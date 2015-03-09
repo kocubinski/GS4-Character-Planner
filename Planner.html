@@ -1,0 +1,248 @@
+<!DOCTYPE html> 
+<HTML>
+ <HEAD>
+ <!--[if lt IE 9]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+  <LINK rel="stylesheet" type="text/css" href="js/planner.css" />	
+<SCRIPT type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></SCRIPT>
+<script type="text/javascript" src="js/base64.js"></script>
+  <SCRIPT type="text/javascript" src="js/main.js"></SCRIPT>
+  <SCRIPT type="text/javascript" src="js/statistics_panel.js"></SCRIPT>
+  <SCRIPT type="text/javascript" src="js/skills_panel.js"></SCRIPT>
+  <SCRIPT type="text/javascript" src="js/maneuvers_panel.js"></SCRIPT>
+  <SCRIPT type="text/javascript" src="js/jquery.js"></SCRIPT>
+  </SCRIPT>  
+  </HEAD>
+ <BODY onload="Planner_Init()"> 
+    Name: <input type="text" id="build_name" size="40px"> 
+	<input type="button" value="Save Character" id="save_char_button" onclick="Planner_Save_Character();" />
+	<input type="button" value="Load Character" onclick="document.getElementById('file_picker').click()"/>
+	<input style="display:none" type="file" id="file_picker" name="file" onchange="Planner_File_Onchange(this)"/>
+    <a style="display:none"  href="javascript://Save as TXT" id="save_char_link" onclick='$(this).attr("download",(Planner_Escape_Special(document.getElementById("build_name").value) || "YourChar")+".txt").attr("href","data:application/octet-stream;base64,"+Base64.encode(char_data));'>Save</a>
+	<SCRIPT>
+		//used to reset the file picker when the page refreshes. It's a dumb work around.
+		var input = $("#file_picker"); 
+		input.replaceWith(input.val('').clone(true));
+		//document.getElementById('file_picker').addEventListener('change', Planner_Load_Character, false);
+	</SCRIPT>
+	
+	
+	
+ 
+    <ul id="planner_tabs">
+      <li><span id="statistics_tab" class="panel_tab">Statistics</span></li>	  
+      <li><span id="skills_tab" class="panel_tab" >Skills</span></li>
+      <li><span id="maneuvers_tab" class="panel_tab" >Maneuvers</span></li>	  
+	  
+      <li><span style="display:none" id="magic_tab" class="panel_tab">Magic</span></li>	  
+      <li><span style="display:none" id="combat_tab" class="panel_tab" >Combat</span></li>
+      <li><span style="display:none" id="summary_tab" class="panel_tab">Summary</span></li>	
+	  
+    </ul>
+ 
+ 
+   <div id="statistics_panel">
+   <table id="StP_container_table" border="1" width="100%">
+    <tr>
+     <td valign="top" width="25%">
+	  <table id="StP_left_side" border="0" width="100%" >
+	   <tr>	
+	    <td height="23" colspan="5" width="100%">
+		<b>Profession:</b>&nbsp;
+			<select id="StP_selected_profession" onchange="Planner_Panels_Update_Profession(this.value);">
+				<option value="bard" >Bard</option>
+				<option value="cleric" >Cleric</option>
+				<option value="empath" >Empath</option>
+				<option value="monk" >Monk</option>
+				<option value="paladin" >Paladin</option>
+				<option value="ranger" >Ranger</option>
+				<option value="rogue" >Rogue</option>
+				<option value="sorcerer" >Sorcerer</option>
+				<option value="warrior" selected="selected">Warrior</option>
+				<option value="wizard">Wizard</option>
+			</select>	  
+		 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			
+         <b>Race:</b>&nbsp;		
+			<select id="StP_selected_race" onchange="StatisticsPanel_Refresh_All();">
+				<option value="aelotoi" >Aelotoi</option>
+ 	            <option value="burghal_gnome" >Burghal Gnome</option>
+	            <option value="dark_elf" >Dark Elf</option>
+	            <option value="dwarf" >Dwarf</option>
+	            <option value="elf" >Elf</option>
+	            <option value="erithian" >Erithian</option>
+	            <option value="forest_gnome" >Forest Gnome</option>
+	            <option value="giantman" >Giantman</option>
+	            <option value="half_krolvin" >Half Krolvin</option>
+	            <option value="half_elf" >Half Elf</option>
+	            <option value="halfling" >Halfling</option>
+	            <option value="human" selected="selected">Human</option>
+	            <option value="sylvankind" >Sylvankind</option>
+	        </select>	  
+
+	    </td>	 		
+	   </tr>
+	   <tr>
+	    <td height="23"></td>
+	   </tr>
+	  </table>	  
+	 </td>
+	 <td valign="top">
+	  <table id="StP_right_side">
+	   <tr>
+	    <td height="23"></td>
+	   </tr>
+	   <tr>
+	    <td height="23" id="StP_right_side_title">
+		 <form><b>Statistics by Level</b><input type="radio" name="growth_style" id="StP_show_statistics"  value="statistic" checked="checked" onclick="StatisticsPanel_Calculate_Growth_All();" >Show Statistics Growth<input type="radio" name="growth_style" id="StP_show_bonus" value="bonus" onclick="StatisticsPanel_Calculate_Growth_All();" >Show Statistic Bonuses</form>
+		</td>
+	   </tr>
+	   <tr>
+	    <td height="23" colspan="10">
+	     <div id="StP_growth_container" class="Planner_linked_scroller_div">
+		 </div>
+	    </td>
+	   </tr>
+	  </table>
+	 </td>
+	</tr>
+   </table>
+   </div>
+
+   </div>
+   <div id="skills_panel">
+   <table id="SkP_container_table" border="1" width="100%">
+    <tr>
+     <td valign="top" width="25%">
+	  <table id="SkP_left_side" border="0" width="100%" >
+	   <tr>
+	    <td height="23">
+		 <input type="checkbox" id="SkP_hide_skills" onclick="SkillsPanel_Change_Displayed_Skills()" /> Hide Unchecked / Untrained Skills
+		</td>
+	    <td height="23">
+	     <input type="button" value="Rate Auto-Fill" onclick="SkillsPanel_Autofill_Training();">
+		</td>
+	   </tr>
+	   <tr>
+	    <td height="23">
+		</td>
+	   </tr>
+	   <tr>
+	    <td colspan="5">
+			<div id="SkP_skills_info_container" class="Planner_linked_scroller_div" style="overflow-y: hidden;"> </div>
+		</td>
+	   </tr>
+	  </table>
+	 </td>
+	 <td valign="top" >
+	  <table id="SkP_right_side_title">
+	   <tr>
+	    <td height="23"></td>
+	   </tr>	   
+	   <tr>
+	    <td height="23">
+		 <form>
+		  <b>Training by Level</b>
+		  <input type="radio" name="training_style" id="SkP_show_level_ranks" value="level_ranks" checked="checked" onclick="SkillsPanel_Training_Change_Style();" >Show Ranks
+		  <input type="radio" name="training_style" id="SkP_show_total_ranks" value="total_ranks" onclick="SkillsPanel_Training_Change_Style();" >Show Total Ranks
+		  <input type="radio" name="training_style" id="SkP_show_total_bonus" value="total_bonus" onclick="SkillsPanel_Training_Change_Style();" >Show Total Bonus</form>
+		</td>
+	   </tr>
+	   <tr>
+	    <td>
+			<div id="SkP_skills_training_container" class="Planner_linked_scroller_div"> </div>
+		</td>
+	   </tr>
+	  </table>
+	</tr>	
+   </table>
+   </div>   
+   
+   <div id="maneuvers_panel">
+   <table id="ManP_container_table" border="1" width="100%">
+    <tr>
+     <td valign="top" width="25%">
+	  <table id="ManP_left_side_title" border="0" width="100%" >
+	   <tr>
+	    <td height="23">
+		 <input type="checkbox" id="ManP_hide_maneuvers" onclick="ManeuversPanel_Change_Maneuver_View()" /> Hide Unchecked / Untrained Maneuvers
+		</td>
+	   </tr>
+	   <tr>
+	    <td height="23" colspan="100">
+		 <form style="font-size:11px">
+		  <input type="radio" name="maneuver_style" id="ManP_show_cm" value="show_cm" checked="checked" onclick="ManeuversPanel_Change_Maneuver_View();" >Combat Maneuvers
+		  <input type="radio" name="maneuver_style" id="ManP_show_sm" value="show_shield" onclick="ManeuversPanel_Change_Maneuver_View();" >Shield Maneuvers
+		  <input type="radio" name="maneuver_style" id="ManP_show_as" value="show_armor" onclick="ManeuversPanel_Change_Maneuver_View();" >Armor Specialization</form>
+		</td>
+	   </tr>
+	   <tr>
+	    <td colspan="5">
+			<div id="ManP_maneuvers_info_container" class="Planner_linked_scroller_div" style="overflow-y: hidden;"> </div>
+		</td>
+	   </tr>
+	  </table>
+	 </td>
+	 <td valign="top" >
+	  <table id="ManP_right_side_title">
+	   <tr>
+	    <td height="23"></td>
+	   </tr>	   
+	   <tr>
+	    <td height="23">
+		 <form>
+		  <b>Training by Level</b>
+		  <input type="radio" name="training_style" id="ManP_show_level_ranks" value="level_ranks" checked="checked" onclick="ManeuversPanel_Training_Change_Style();" >Show Ranks
+		  <input type="radio" name="training_style" id="ManP_show_total_ranks" value="total_ranks" onclick="ManeuversPanel_Training_Change_Style();" >Show Total Ranks</form>
+		</td>
+	   </tr>
+	   <tr>
+	    <td>
+			<div id="ManP_maneuvers_training_container" class="Planner_linked_scroller_div"> </div>
+		</td>
+	   </tr>
+	  </table>
+	</tr>	
+   </table>
+   </div>
+  
+  
+   <div style="display:none" id="magic_panel">
+	Spellburst
+	MIU formula
+	Arcane Symbols formula
+   </div>
+   
+   <div style="display:none" id="combat_panel">
+	AS caluclation
+	DS calculation (Parry/Block/Evade)
+   </div>
+
+   <div style="display:none" id="summary_panel">
+	==TEMPORARY TODO LIST:==<BR>
+	GLOBAL:<BR>
+	--Create Save/Load functions. Hold off on doing this until the panels with data that needs to be saved is done.<BR>
+	STATISTICS PANEL:<BR>
+	--Remove spacing row in statistics growth frame and add the Target Level UI above the display options<BR>
+	SKILLS PANEL<BR>
+	--Remove spacing row in training by level frame and add the Target Level UI above the display options<BR>
+	--Add error colors and messages for having too many trains in a skill for a level.<BR>
+	MANEUVERS PANEL:<BR>
+	--Find a way to speed up the panel.<BR>
+	OFFENSE PANEL:<BR>
+	--This panel should ask the user for their combat style (sword and board/TWC/runestaff/etc) using drop down menues and then calculate AS and CS for all stances.<BR>
+	---Other important info to calculate for this panel would be: Normal Round Time, MoC Mstrike maxes and RT, <BR>
+	---Might include certain spell buffs (Pheon Strength, Strength, Guided Strike, etc) (would need the Magic Tab completed first) <BR>
+	DEFENSE PANEL:<BR>
+	--This panel should ask the user for their combat style (sword and board/TWC/runestaff/etc) using drop down menues and then calculate DS and TD for all stances.<BR>
+	---Other important info to calculate for this panel would be: Normal Round Time, MoC Mstrike maxes and RT, <BR>
+	---Might include spell defense info in here too. (would need the Magic Tab completed first) <BR>
+	MAGIC PANEL:<BR>
+	--Will deal with the spells circles and the effects of lore on each. Might allow other circles as well.
+	SUMMARY PANEL:<BR>
+	--This will give a general overview of the player overall or at a specific level.
+	--This panel is meant to display the character's training choices in such a way that they can be copy and pasted with ease to a forum post.<BR>
+   </div>   
+   
+ </BODY>
+</HTML>
