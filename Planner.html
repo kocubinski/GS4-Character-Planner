@@ -7,6 +7,7 @@
   <LINK rel="stylesheet" type="text/css" href="js/planner.css" />	
 <SCRIPT type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></SCRIPT>
 <script type="text/javascript" src="js/base64.js"></script>
+  <SCRIPT type="text/javascript" src="js/globals.js"></SCRIPT>
   <SCRIPT type="text/javascript" src="js/main.js"></SCRIPT>
   <SCRIPT type="text/javascript" src="js/statistics_panel.js"></SCRIPT>
   <SCRIPT type="text/javascript" src="js/skills_panel.js"></SCRIPT>
@@ -21,6 +22,7 @@
 	<input style="display:none" type="file" id="file_picker" name="file" onchange="Planner_File_Onchange(this)"/>
     <a style="display:none"  href="javascript://Save as TXT" id="save_char_link" onclick='$(this).attr("download",(Planner_Escape_Special(document.getElementById("build_name").value) || "YourChar")+".txt").attr("href","data:application/octet-stream;base64,"+Base64.encode(char_data));'>Save</a>
 	<SCRIPT>
+	    document.getElementById("build_name").value = "" ;
 		//used to reset the file picker when the page refreshes. It's a dumb work around.
 		var input = $("#file_picker"); 
 		input.replaceWith(input.val('').clone(true));
@@ -50,7 +52,7 @@
 	   <tr>	
 	    <td height="23" colspan="5" width="100%">
 		<b>Profession:</b>&nbsp;
-			<select id="StP_selected_profession" onchange="Planner_Panels_Update_Profession(this.value);">
+			<select id="StP_selected_profession" onchange="Planner_Panels_Update_Profession_Race();">
 				<option value="bard" >Bard</option>
 				<option value="cleric" >Cleric</option>
 				<option value="empath" >Empath</option>
@@ -64,17 +66,17 @@
 			</select>	  
 		 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			
          <b>Race:</b>&nbsp;		
-			<select id="StP_selected_race" onchange="StatisticsPanel_Refresh_All();">
+			<select id="StP_selected_race" onchange="Planner_Panels_Update_Profession_Race();">
 				<option value="aelotoi" >Aelotoi</option>
- 	            <option value="burghal_gnome" >Burghal Gnome</option>
-	            <option value="dark_elf" >Dark Elf</option>
+ 	            <option value="burghal gnome" >Burghal Gnome</option>
+	            <option value="dark elf" >Dark Elf</option>
 	            <option value="dwarf" >Dwarf</option>
 	            <option value="elf" >Elf</option>
 	            <option value="erithian" >Erithian</option>
-	            <option value="forest_gnome" >Forest Gnome</option>
+	            <option value="forest gnome" >Forest Gnome</option>
 	            <option value="giantman" >Giantman</option>
-	            <option value="half_krolvin" >Half Krolvin</option>
-	            <option value="half_elf" >Half Elf</option>
+	            <option value="half krolvin" >Half Krolvin</option>
+	            <option value="half elf" >Half Elf</option>
 	            <option value="halfling" >Halfling</option>
 	            <option value="human" selected="selected">Human</option>
 	            <option value="sylvankind" >Sylvankind</option>
@@ -84,6 +86,11 @@
 	   </tr>
 	   <tr>
 	    <td height="23"></td>
+	   </tr>
+	   <tr>
+	    <td colspan="5">
+			<div id="StP_stat_info_container" class="Planner_linked_scroller_div" style="overflow-y: hidden;"> </div>
+		</td>
 	   </tr>
 	  </table>	  
 	 </td>
@@ -114,17 +121,20 @@
    <table id="SkP_container_table" border="1" width="100%">
     <tr>
      <td valign="top" width="25%">
-	  <table id="SkP_left_side" border="0" width="100%" >
+	  <table id="SkP_left_side" border="0" width="100%">
 	   <tr>
 	    <td height="23">
-		 <input type="checkbox" id="SkP_hide_skills" onclick="SkillsPanel_Change_Displayed_Skills()" /> Hide Unchecked / Untrained Skills
+		 <input type="checkbox" id="SkP_hide_skills" onclick="SkillsPanel_Change_Displayed_Skills()" /> Hide Unchecked / Untrained
 		</td>
 	    <td height="23">
 	     <input type="button" value="Rate Auto-Fill" onclick="SkillsPanel_Autofill_Training();">
 		</td>
+		<td>
+	     <input type="button" value="Clear All" onclick="SkillsPanel_Clear_All_Button();">
+		</td>
 	   </tr>
 	   <tr>
-	    <td height="23">
+	    <td height="23" colspan="100">
 		</td>
 	   </tr>
 	   <tr>
@@ -165,15 +175,18 @@
 	  <table id="ManP_left_side_title" border="0" width="100%" >
 	   <tr>
 	    <td height="23">
-		 <input type="checkbox" id="ManP_hide_maneuvers" onclick="ManeuversPanel_Change_Maneuver_View()" /> Hide Unchecked / Untrained Maneuvers
+		 <input type="checkbox" id="ManP_hide_maneuvers" onclick="ManeuversPanel_Update_Rightside()" /> Hide Unchecked / Untrained Maneuvers
+		</td>
+		<td>
+	     <input type="button" value="Clear All" onclick="ManeuversPanel_Clear_All_Button();">
 		</td>
 	   </tr>
 	   <tr>
 	    <td height="23" colspan="100">
 		 <form style="font-size:11px">
-		  <input type="radio" name="maneuver_style" id="ManP_show_cm" value="show_cm" checked="checked" onclick="ManeuversPanel_Change_Maneuver_View();" >Combat Maneuvers
-		  <input type="radio" name="maneuver_style" id="ManP_show_sm" value="show_shield" onclick="ManeuversPanel_Change_Maneuver_View();" >Shield Maneuvers
-		  <input type="radio" name="maneuver_style" id="ManP_show_as" value="show_armor" onclick="ManeuversPanel_Change_Maneuver_View();" >Armor Specialization</form>
+		  <input type="radio" name="maneuver_style" id="ManP_show_cm" value="show_cm" checked="checked" onclick="ManeuversPanel_Update_Rightside();" >Combat Maneuvers
+		  <input type="radio" name="maneuver_style" id="ManP_show_sm" value="show_shield" onclick="ManeuversPanel_Update_Rightside();" >Shield Maneuvers
+		  <input type="radio" name="maneuver_style" id="ManP_show_as" value="show_armor" onclick="ManeuversPanel_Update_Rightside();" >Armor Specialization</form>
 		</td>
 	   </tr>
 	   <tr>
