@@ -3,7 +3,7 @@
 	
 ul#planner_tabs { list-style-type: none; margin: 30px 0 0 0; padding: 0 0 0.3em 0; }
 ul#planner_tabs li { display: inline; }
-ul#planner_tabs li span { color: #000000; border: 1px solid #c9c3ba; border-bottom: none; padding: 0.3em; text-decoration: none; cursor: pointer;}
+ul#planner_tabs li span { color: #000000; border: 1px solid black; border-bottom: none; padding: 0.3em; text-decoration: none; cursor: pointer;}
 	
 .Planner_linked_scroller_div { overflow-x: auto; max-width: 1180px; overflow-y:auto; max-height: 541px;}
 
