@@ -22,23 +22,7 @@
 							break;							
 	}
  }
- 
- //This isn't working very well. Try to think of something else
- function Jquery_Scroller_Onmousedown() {	             //meant to fire when they move the scrollbar
-	if( scroller_V != $(this).scrollTop() ) {	
-		scroller_V = $(this).scrollTop();
-		$("#SkP_skills_info_container").scrollTop(scroller_V);	
-	}
-	else if( scroller_H != $(this).scrollTop() ) {
-		scroller_H = $(this).scrollLeft();		
-		Jquery_Update_Scroller_Positions();
-	}
-	 
- }
- 
- 
- 
- 
+  
  
 $(document).ready(function(){	
 //MAIN	
@@ -52,7 +36,6 @@ $(document).ready(function(){
 	 
 	 
 //Skills Tab
-	//$("#SkP_skills_training_container").mousedown(Jquery_Scroller_Onmousedown);
 	$("#SkP_skills_training_container").scroll(Jquery_Update_Scroller_Positions);
 	$("#SkP_skills_info_container").bind('mousewheel DOMMouseScroll', function(event){
 		if (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0) {   // scroll up 			
