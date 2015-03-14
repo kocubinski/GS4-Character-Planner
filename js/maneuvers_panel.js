@@ -1,198 +1,7 @@
-function Maneuver(name, mnemonic, type, rank_costs, avail, prereq) {
- this.name = name;
- this.mnemonic = mnemonic;
- this.type = type; //combat, shield, armor
- this.rank_costs = rank_costs.split(",");
- this.availability = {"bard":0, "cleric":0, "empath":0, "monk":0, "paladin":0, "ranger":0, "rogue":0, "savant":0, "sorcerer":0, "warrior":0, "wizard":0}; 
- this.prerequisites = {};  //"CM|Shadow Mastery":4, "Skill|Multi-Opponent Combat":30
-
- this.GetCostAtRank = function( rank ) { return this.rank_costs[rank-1] || 0; };
- 
- //CONSTRUCTOR
- var parts;
-	
-	parts = avail.split(",");
-	for( var i=0; i<parts.length; i++ ) {
-	 this.availability[parts[i]] = 1;
-	}
-	if( prereq != "" ) {
-		parts = prereq.split(",");	
-		for( var i=0; i<parts.length; i++ ) {
-			this.prerequisites[parts[i].split(":")[0]] = parts[i].split(":")[1];
-		}	
-	}
-}
-
-function Maneuver_List() {
- this.list = [];	
-
- this.AddManeuver = function(name, mnemonic, type, rank_costs, avail, prereq) {
-  this.list[this.list.length] = new Maneuver(name, mnemonic, type, rank_costs, avail, prereq);
- };
-  
- this.GetManeuverByName = function( input ) {
-	for (var i=0; i < this.list.length; i++) {
-		if( this.list[i].name == input ) {
-			return this.list[i];
-		}
-	}
-	return null;	 
- };	 
- 
- this.GetListPositionByMnemonic = function( input ) {
-	for (var i=0; i < this.list.length; i++) {
-		if( this.list[i].name == input ) {
-			return i;
-		}
-	}
-	return -1;
- };
-	
-
-}
-
-
- var all_maneuvers = new Maneuver_List();
-//Add all Combat Maneuvers to list
-all_maneuvers.AddManeuver("Armor Spike Focus", "SPIKEFOCUS", "combat", "5,10", "warrior,rogue,paladin", "");
-all_maneuvers.AddManeuver("Bearhug", "BEARHUG", "combat", "2,4,6,8,10", "warrior,monk", "");
-all_maneuvers.AddManeuver("Berserk", "BERSERK", "combat", "2,4,6,8,10", "warrior", "");
-all_maneuvers.AddManeuver("Block Mastery", "BMASTERY", "combat", "4,8,12", "warrior", "");
-all_maneuvers.AddManeuver("Bull Rush", "BULLRUSH", "combat", "2,4,6,8,10", "warrior,paladin", "");
-all_maneuvers.AddManeuver("Burst of Swiftness", "BURST", "combat", "2,4,6,8,10", "monk", "");
-all_maneuvers.AddManeuver("Charge", "Charge", "combat", "2,4,6,8,10", "warrior,bard,monk,paladin", "");
-all_maneuvers.AddManeuver("Cheapshots", "CHEAPSHOTS", "combat", "2,3,4,5,6", "bard,monk,rogue", "");
-all_maneuvers.AddManeuver("Combat Focus", "FOCUS", "combat", "2,4,6,8,10", "warrior,rogue,ranger,bard,monk,paladin", "");
-all_maneuvers.AddManeuver("Combat Mastery", "CMASTERY", "combat", "2,4", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Combat Mobility", "MOBILITY", "combat", "5,10", "warrior,rogue,monk", "");
-all_maneuvers.AddManeuver("Combat Movement", "CMOVEMENT", "combat", "2,3,4,5,6", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Combat Toughness", "TOUGHNESS", "combat", "6,8,10", "warrior,rogue,monk,paladin", "");
-all_maneuvers.AddManeuver("Coup de Grace", "COUPDEGRACE", "combat", "2,4,6,8,10", "warrior,rogue", "");
-all_maneuvers.AddManeuver("Crowd Press", "CPRESS", "combat", "2,4,6,8,10", "warrior,rogue,monk,paladin", "");
-all_maneuvers.AddManeuver("Cunning Defense", "CDEFENSE", "combat", "2,3,4,5,6", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Cutthroat", "CUTTROAT", "combat", "2,4,6,8,10", "warrior,rogue,monk,paladin", "");
-all_maneuvers.AddManeuver("Dirtkick", "DIRTKICK", "combat", "2,3,4,5,6", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Disarm Weapon", "DISARM", "combat", "2,4,6,8,10", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Divert", "DIVERT", "combat", "2,3,4,5,6", "rogue", "");
-all_maneuvers.AddManeuver("Duck and Weave", "WEAVE", "combat", "4,8,12", "rogue,monk", "CM|Evade Mastery:2");
-all_maneuvers.AddManeuver("Dust Shroud", "SHROUD", "combat", "2,3,4,5,6", "rogue", "CM|Dirtkick:4");
-all_maneuvers.AddManeuver("Evade Mastery", "EMASTERY", "combat", "4,8,12", "warrior,rogue,monk", "");
-all_maneuvers.AddManeuver("Executioner's Stance", "EXECUTIONER", "combat", "4,8,12", "warrior", "");
-all_maneuvers.AddManeuver("Feint", "FEINT", "combat", "2,3,5,7,10", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Flurry of Blows", "FLURRY", "combat", "3,6,9", "monk", "");
-all_maneuvers.AddManeuver("Garrote", "GARROTE", "combat", "2,4,6,8,10", "rogue,ranger,bard,monk", "");
-all_maneuvers.AddManeuver("Grapple Mastery", "GMASTERY", "combat", "4,8,12", "warrior,rogue,monk", "");
-all_maneuvers.AddManeuver("Griffin's Voice", "GRIFFIN", "combat", "3,6,9", "warrior", "");
-all_maneuvers.AddManeuver("Groin Kick", "GKICK", "combat", "2,4,6,8,10", "rogue", "");
-all_maneuvers.AddManeuver("Hamstring", "HAMSTRING", "combat", "2,4,6,8,10", "warrior,ranger,bard,rogue", "");
-all_maneuvers.AddManeuver("Haymaker", "HAYMAKER", "combat", "2,4,6,8,10", "warrior", "");
-all_maneuvers.AddManeuver("Headbutt", "HEADBUTT", "combat", "2,3,4,5,6", "warrior,monk", "");
-all_maneuvers.AddManeuver("Inner Harmony", "IHARMONY", "combat", "4,8,12", "monk", "");
-all_maneuvers.AddManeuver("Internal Power", "IPOWER", "combat", "2,4,6,8,10", "monk", "");
-all_maneuvers.AddManeuver("Ki Focus", "KIFOCUS", "combat", "3,6,9", "monk", "");
-all_maneuvers.AddManeuver("Kick Mastery", "KMASTERY", "combat", "4,8,12", "warrior,rogue,monk", "");
-all_maneuvers.AddManeuver("Mighty Blow", "MBLOW", "combat", "2,4,6,8,10", "warrior", "");
-all_maneuvers.AddManeuver("Multi-Fire", "MFIRE", "combat", "2,4,6,8,10", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Mystic Strike", "MYSTICSTRIKE", "combat", "2,3,4,5,6", "monk", "");
-all_maneuvers.AddManeuver("Parry Mastery", "PMASTERY", "combat", "4,8,12", "warrior", "");
-all_maneuvers.AddManeuver("Perfect Self", "PERFECTSELF", "combat", "2,4,6,8,10", "monk", "CM|Burst of Speed:3,CM|Surge of Strength:3");
-all_maneuvers.AddManeuver("Precision", "PRECISION", "combat", "4,6", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Predator's Eye", "PREDATOR", "combat", "4,6,8", "rogue", "");
-all_maneuvers.AddManeuver("Punch Mastery", "PUNCHMASTERY", "combat", "4,8,12", "warrior,rogue,monk", "");
-all_maneuvers.AddManeuver("Quickstrike", "QSTRIKE", "combat", "2,4,6,8,10", "warrior,rogue,monk", "");
-all_maneuvers.AddManeuver("Rolling Krynch Stance", "KRYNCH", "combat", "4,8,12", "monk", "");
-all_maneuvers.AddManeuver("Shadow Mastery", "SMASTERY", "combat", "2,4,6,8,10", "ranger,rogue", "");
-all_maneuvers.AddManeuver("Shield Bash", "SBASH", "combat", "2,4,6,8,10", "ranger,rogue,warrior,bard,paladin", "");
-all_maneuvers.AddManeuver("Shield Charge", "SCHARGE", "combat", "2,4,6,8,10", "warrior,paladin", "");
-all_maneuvers.AddManeuver("Side By Side", "SIDEBYSIDE", "combat", "2,4,6,8,10", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "CM:Combat Movement:2");
-all_maneuvers.AddManeuver("Silent Strike", "SILENTSTRIKE", "combat", "2,4,6,8,10", "rogue", "CM|Shadow Mastery:2");
-all_maneuvers.AddManeuver("Slippery Mind", "SLIPPERYMIND", "combat", "4,8,12", "rogue", "CM|Shadow Mastery:2");
-all_maneuvers.AddManeuver("Specialization I", "WSPEC1", "combat", "2,4,6,8,10", "warrior,rogue,paladin", "");
-all_maneuvers.AddManeuver("Specialization II", "WSPEC2", "combat", "2,4,6,8,10", "warrior,rogue,paladin", "");
-all_maneuvers.AddManeuver("Specialization III", "WSPEC3", "combat", "2,4,6,8,10", "warrior,rogue,paladin", "");
-all_maneuvers.AddManeuver("Spell Cleaving", "SCLEAVE", "combat", "2,4,6,8,10", "warrior,monk", "");
-all_maneuvers.AddManeuver("Spell Parry", "SPARRY", "combat", "4,8,12", "warrior,Rouge,monk", "");
-all_maneuvers.AddManeuver("Spell Thieve", "SATTACK", "combat", "2,4,6,8,10", "rogue", "");
-all_maneuvers.AddManeuver("Spin Attack", "THIEVE", "combat", "2,4,6,8,10", "warrior,rogue, bard,monk", "");
-all_maneuvers.AddManeuver("Staggering Blow", "SBLOW", "combat", "2,4,6,8,10", "warrior", "");
-all_maneuvers.AddManeuver("Stance of the Mongoose", "MONGOOSE", "combat", "4,8,12", "warrior,monk", "");
-all_maneuvers.AddManeuver("Stun Maneuvers", "STUNMAN", "combat", "2,4,6,8,10", "warrior,monk,rogue", "");
-all_maneuvers.AddManeuver("Subdual Strike", "SSTRIKE", "combat", "2,3,4,5,6", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Subdue", "SUBDUE", "combat", "2,3,4,5,6", "rogue", "");
-all_maneuvers.AddManeuver("Sucker Punch", "SPUNCH", "combat", "2,3,4,5,6", "rogue", "");
-all_maneuvers.AddManeuver("Sunder Shield", "SUNDER", "combat","2,4,6,8,10", "warrior", "");
-all_maneuvers.AddManeuver("Surge of Strength", "SURGE", "combat", "2,4,6,8,10", "warrior,monk,rogue,paladin", "");
-all_maneuvers.AddManeuver("Sweep", "SWEEP", "combat", "2,4,6,8,10", "bard,monk,ranger,rogue", "");
-all_maneuvers.AddManeuver("Tackle", "TACKLE", "combat", "2,4,6,8,10", "warrior", "");
-all_maneuvers.AddManeuver("Tainted Bond", "TAINTED", "combat", "20", "warrior,paladin", "CM|Weapon Bonding:5~Skill|Spell Research, Paladin Base:25");
-all_maneuvers.AddManeuver("Trip", "TRIP", "combat", "2,4,6,8,10", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Truehand", "TRUEHAND", "combat", "2,4,6,8,10", "warrior,paladin,rogue", "");
-all_maneuvers.AddManeuver("Twin Hammerfists", "TWINHAMM", "combat", "2,4,6,8,10", "warrior", "");
-all_maneuvers.AddManeuver("Unarmed Specialist", "UNARMEDSPEC", "combat", "6", "warrior,rogue,ranger,bard,monk,paladin,cleric,empath,sorcerer,wizard,savant", "");
-all_maneuvers.AddManeuver("Vanish", "VANISH", "combat", "4,8,12", "rogue", "CM|Shadow Mastery:4");
-all_maneuvers.AddManeuver("Weapon Bonding", "BOND", "combat", "2,4,6,8,10", "warrior", "CM|Specialization I:3~CM|Specialization II:3~CM|Specialization III:3");
-all_maneuvers.AddManeuver("Whirling Dervish", "DERVISH", "combat", "4,8,12", "warrior,rogue", "");
-
-// Add all Shield Maneuvers to the list
-all_maneuvers.AddManeuver("Small Shield Focus", "SFOCUS", "shield", "4,6,8,10,12", "warrior,rogue", "");
-all_maneuvers.AddManeuver("Medium Shield Focus", "MFOCUS", "shield", "4,6,8,10,12", "warrior,rogue,paladin", "");
-all_maneuvers.AddManeuver("Large Shield Focus", "LFOCUS", "shield", "4,6,8,10,12", "warrior,paladin", "");
-all_maneuvers.AddManeuver("Tower Shield Focus", "TFOCUS", "shield", "4,6,8,10,12", "warrior,paladin", "");
-all_maneuvers.AddManeuver("Shield Bash", "SBASH", "shield", "2,4,6,8,10", "warrior,rogue,paladin", "");
-all_maneuvers.AddManeuver("Shield Charge", "SCHARGE", "shield", "2,4,6,8,10", "warrior,paladin", "SM|Shield Bash:2~CM|Shield Bash:2");
-all_maneuvers.AddManeuver("Shield Push", "PUSH", "shield", "2,4,6,8,10", "warrior,paladin", "SM|Shield Bash:2~CM|Shield Bash:2");
-all_maneuvers.AddManeuver("Shield Pin", "PIN", "shield", "2,4,6,8,10", "warrior", "SM|Shield Bash:2~CM|Shield Bash:2");
-all_maneuvers.AddManeuver("Shield Swiftness", "SWIFTNESS", "shield", "6,12,18", "warrior,rogue", "SM|Small Shield Focus:3~SM|Medium Shield Focus:3");
-all_maneuvers.AddManeuver("Shield Brawler", "BRAWLER", "shield", "6,8,10,12,14", "warrior,rogue,paladin", "SM|Small Shield Focus:3~SM|Medium Shield Focus:3~SM|Large Shield Focus:3~SM|Tower Shield Focus:3");
-all_maneuvers.AddManeuver("Prop Up", "PROP", "shield", "6,12,18", "warrior,paladin", "SM|Large Shield Focus:3~SM|Tower Shield Focus:3");
-all_maneuvers.AddManeuver("Adamantine Bulwark", "BULWARK", "shield", "6,12,18", "warrior", "SM|Prop Up:2");
-all_maneuvers.AddManeuver("Shield Riposte", "RIPOSTE", "shield", "4,8,12", "warrior,rogue", "SM|Shield Bash:2~CM|Shield Bash:2");
-all_maneuvers.AddManeuver("Shield Forward", "FORWARD", "shield", "4,8,12", "warrior,rogue,paladin", "");
-all_maneuvers.AddManeuver("Shield Spike Focus", "SPIKEFOCUS", "shield", "8,12", "warrior,rogue,paladin", "");
-all_maneuvers.AddManeuver("Shield Spike Mastery", "SPIKEMASTERY", "shield", "8,12", "warrior,rogue,paladin", "SM|Shield Spike Focus:2");
-all_maneuvers.AddManeuver("Deflection Training", "DTRAINING", "shield", "6,12,18", "warrior,rogue", "SM|Small Shield Focus:3~SM|Medium Shield Focus:3~SM|Large Shield Focus:3~SM|Tower Shield Focus:3");
-all_maneuvers.AddManeuver("Deflection Mastery", "DMASTERY", "shield", "8,10,12,14,16", "warrior,rogue", "SM|Deflection Training:3");
-all_maneuvers.AddManeuver("Block the Elements", "EBLOCK", "shield", "6,12,18", "warrior,paladin", "");
-all_maneuvers.AddManeuver("Deflect the Elements", "DEFLECT", "shield", "6,12,18", "warrior,rogue", "");
-all_maneuvers.AddManeuver("Steady Shield", "STEADY", "shield", "4,6", "warrior,rogue", "CM|Stun Maneuvers:2");
-all_maneuvers.AddManeuver("Disarming Presence", "DPRESENCE", "shield", "6,12,18", "warrior,rogue", "CM|Disarm Weapon:2");
-all_maneuvers.AddManeuver("Guard Mastery", "GUARDMASTERY", "shield", "6,12,18", "warrior", "");
-all_maneuvers.AddManeuver("Tortoise Stance", "TORTOISE", "shield", "6,12,18", "warrior", "SM|Block Mastery:2");
-all_maneuvers.AddManeuver("Spell Block", "SPELLBLOCK", "shield", "6,12,18", "warrior,rogue,paladin", "SM|Small Shield Focus:3~SM|Medium Shield Focus:3~SM|Large Shield Focus:3~SM|Tower Shield Focus:3");
-all_maneuvers.AddManeuver("Shield Mind", "MIND", "shield", "6,12,18", "warrior,rogue,paladin", "SM|Spell Block:2");
-all_maneuvers.AddManeuver("Protective Wall", "PWALL", "shield", "4,6", "warrior,rogue,paladin", "SM|Tower Shield Focus:2");
-all_maneuvers.AddManeuver("Shield Strike", "STRIKE", "shield", "2,4,6,8,10", "warrior,rogue,paladin", "SM|Shield Bash:2~CM|Shield Bash:2");
-all_maneuvers.AddManeuver("Shield Strike Mastery", "STRIKEMASTERY", "shield", "30", "warrior,rogue,paladin", "SM|Shield Strike:2,Skill|Multi Opponent Combat:30");
-all_maneuvers.AddManeuver("Shield Trample", "TRAMPLE", "shield", "2,4,6,8,10", "warrior", "SM|Shield Charge:2");
-all_maneuvers.AddManeuver("Shield Trample Mastery", "TMASTERY", "shield", "8,10,12", "warrior", "SM|Shield Trample:3,Skill|Multi Opponent Combat:30");
-all_maneuvers.AddManeuver("Steely Resolve", "RESOLVE", "shield", "6,12,18", "warrior,paladin", "SM|Tower Shield Focus:3");
-all_maneuvers.AddManeuver("Phalanx", "PHALANX", "shield", "2,4,6,8,10", "warrior,rogue,paladin", "");
-
-// Add all Armor Specializations to the list
-all_maneuvers.AddManeuver("Crush Protection", "CRUSH", "armor", "20,30,40,50,60", "warrior", "");
-all_maneuvers.AddManeuver("Puncture Protection", "PUNCTURE", "armor", "20,30,40,50,60", "warrior", "");
-all_maneuvers.AddManeuver("Slash Protection", "SLASH", "armor", "20,30,40,50,60", "warrior", "");
-all_maneuvers.AddManeuver("Armored Casting", "CASTING", "armor", "20,30,40,50,60", "paladin", "");
-all_maneuvers.AddManeuver("Armored Evasion", "EVASION", "armor", "20,30,40,50,60", "rogue", "");
-all_maneuvers.AddManeuver("Armored Fluidity", "FLUIDITY", "armor", "20,30,40,50,60", "paladin", "");
-all_maneuvers.AddManeuver("Armor Reinforcement", "REINFORCE", "armor", "20,30,40,50,60", "warrior", "");
-all_maneuvers.AddManeuver("Armored Stealth", "STEALTH", "armor", "20,30,40,50,60", "rogue", "");
-all_maneuvers.AddManeuver("Armor Support", "SUPPORT", "armor", "20,30,40,50,60", "warrior", "");
-
- 
- var man_ranks_by_level = [];
- var total_man_ranks_by_level = [];
-	for (var i=0; i <= 100; i++) {
-		man_ranks_by_level[i] = {};
-		total_man_ranks_by_level[i] = {};
-	} 
-
-
-
 	function ManeuversPanel_Init() {
 		var info_div = document.getElementById("ManP_maneuvers_info_container");
 		var training_div = document.getElementById("ManP_maneuvers_training_container");
-		var prof = document.getElementById("StP_selected_profession").value;
+//		var prof = document.getElementById("StP_selected_profession").value;
 		
 		var info_tbl = document.createElement('table');
 		var training_tbl = document.createElement('table');
@@ -271,10 +80,10 @@ all_maneuvers.AddManeuver("Armor Support", "SUPPORT", "armor", "20,30,40,50,60",
 		info_tbdy.appendChild(tr);
 				
 		//Skill Info and Training Rows
-		for( var i=0; i < all_maneuvers.list.length; i++ ) {			
-			tr = ManeuversPanel_Create_Maneuver_Row_Left(all_maneuvers.list[i]);
+		for( var i=0; i < avail_maneuvers.list.length; i++ ) {			
+			tr = ManeuversPanel_Create_Maneuver_Row_Left(avail_maneuvers.list[i]);
 			info_tbdy.appendChild(tr);
-			tr = ManeuversPanel_Create_Maneuver_Row_Right(all_maneuvers.list[i]);
+			tr = ManeuversPanel_Create_Maneuver_Row_Right(avail_maneuvers.list[i]);
 			training_tbdy.appendChild(tr);		
 		}		
 		
@@ -325,8 +134,24 @@ all_maneuvers.AddManeuver("Armor Support", "SUPPORT", "armor", "20,30,40,50,60",
 		tbl = document.createElement('table');
 		tbdy = document.createElement('tbody');		
 					
+		ManeuversPanel_Update_LeftSide();
+		ManeuversPanel_Update_Rightside();
 		ManeuversPanel_Change_Maneuver_View();		
+		ManeuversPanel_Calculate_Points();
 	}
+	
+    function ManeuversPanel_Term() {
+		var info_div = document.getElementById("ManP_maneuvers_info_container");
+		var training_div = document.getElementById("ManP_maneuvers_training_container");
+		
+		while (info_div.firstChild) {
+			info_div.removeChild(info_div.firstChild);
+		}
+		
+		while (training_div.firstChild) {
+			training_div.removeChild(training_div.firstChild);
+		}		
+	}  		
 	
 	function ManeuversPanel_Create_Maneuver_Row_Left(man) {
 		var	tr = document.createElement('tr');
@@ -341,6 +166,7 @@ all_maneuvers.AddManeuver("Armor Support", "SUPPORT", "armor", "20,30,40,50,60",
 		checkbox = document.createElement('input');
 		checkbox.id = man.name + "@" + man.type + "_checkbox";	
 		checkbox.type = "checkbox";
+		checkbox.onclick = function() { if( this.checked ) { hidden_maneuvers[this.id.split("_")[0]] = true; } else {delete hidden_maneuvers[this.id.split("_")[0]]; } };
 		td.appendChild(checkbox);
 		tr.appendChild(td);    			
 		
@@ -454,21 +280,22 @@ all_maneuvers.AddManeuver("Armor Support", "SUPPORT", "armor", "20,30,40,50,60",
 		caller.style.display = "none";		
 		div.style.display = "block"; 		
 			
-		if( !isNaN(caller.value)) {	
+		if( !isNaN(caller.value) && man_ranks_by_level[arr[2]][arr[0]] != parseInt(caller.value) ) {	
 			if( caller.value == "" ) {				
 				delete man_ranks_by_level[arr[2]][arr[0]];					
 			}
 			else {
 				man_ranks_by_level[arr[2]][arr[0]] = parseInt(caller.value);				
 			}	
+			
 			ManeuversPanel_Calculate_Total_Ranks(arr[0].split("@")[0], arr[2]);	
-			ManeuversPanel_Training_Update_Row(arr[0].split("@")[0], arr[2]);		
+			ManeuversPanel_Training_Update_Row(arr[0].split("@")[0], arr[2]);	
+			ManeuversPanel_Calculate_Points();	
 		}					
-		ManeuversPanel_Calculate_Points();
 		
-		if( arr[0] == "Combat Toughness-combat" ) {
-			StatisticsPanel_Calculate_Resources();
-		}
+//		if( arr[0] == "Combat Toughness-combat" ) {
+//			StatisticsPanel_Calculate_Resources();
+//		}
 	}	
 	
 	function ManeuversPanel_Training_Input_Onkeyup(e, caller) {
@@ -488,8 +315,8 @@ all_maneuvers.AddManeuver("Armor Support", "SUPPORT", "armor", "20,30,40,50,60",
 						break;
 						
 			case 40:	// down arrow
-						for( var i=all_maneuvers.GetListPositionByMnemonic(arr[0].split("@")[0])+1; i <= all_maneuvers.list.length-1; i++ ) {
-							nextskill = all_maneuvers.list[i].name+"@"+all_maneuvers.list[i].type;
+						for( var i=avail_maneuvers.list.indexOf(avail_maneuvers.GetObjectByName(caller.id.split("@")[0]))+1; i <= avail_maneuvers.list.length-1; i++ ) {
+							nextskill = avail_maneuvers.list[i].name+"@"+avail_maneuvers.list[i].type;
 							if( document.getElementById(nextskill+"_info_row").style.display != "none" ) {	
 								document.getElementById(nextskill + "_" + arr[1] + "_" + arr[2]).click();
 								break;
@@ -498,8 +325,8 @@ all_maneuvers.AddManeuver("Armor Support", "SUPPORT", "armor", "20,30,40,50,60",
 						break;
 						
 			case 38:    // up arrow
-						for( var i=all_maneuvers.GetListPositionByMnemonic(arr[0].split("@")[0])-1; i >= 0; i-- ) {
-							nextskill = all_maneuvers.list[i].name+"@"+all_maneuvers.list[i].type;
+						for( var i=avail_maneuvers.list.indexOf(avail_maneuvers.GetObjectByName(caller.id.split("@")[0]))-1; i >= 0; i-- ) {
+							nextskill = avail_maneuvers.list[i].name+"@"+avail_maneuvers.list[i].type;
 							if( document.getElementById(nextskill+"_info_row").style.display != "none" ) {	
 								document.getElementById(nextskill + "_" + arr[1] + "_" + arr[2]).click();
 								break;
@@ -523,14 +350,44 @@ all_maneuvers.AddManeuver("Armor Support", "SUPPORT", "armor", "20,30,40,50,60",
 		}				
 	}		
 	
+	function ManeuversPanel_Clear_All_Button() {
+		var ok = confirm("Are you sure you want erase all training and options. Click Yes to continue or No to cancel.");
+		
+		if( ok ) {
+			ManeuversPanel_Erase_Training();	
+		}
+	}
+	
+	function ManeuversPanel_Erase_Training() {
+		var title;
+		hide_unused_maneuvers = false;
+		document.getElementById("ManP_show_cm").checked = true;
+		document.getElementById("ManP_show_level_ranks").checked = true;
+		
+		for( var i=0; i < maneuvers.list.length; i++ ) {
+			title = maneuvers.list[i].name+"@"+maneuvers.list[i].type
+			delete hidden_maneuvers[title];
+			delete training_rate[title];
+			
+			for( var j=0; j <= 100; j++ ) {				
+				delete man_ranks_by_level[j][title]
+				delete total_man_ranks_by_level[j][title];
+			}
+		}		
+		
+		ManeuversPanel_Update_LeftSide();
+		ManeuversPanel_Update_Rightside();
+	//	StatisticsPanel_Calculate_Resources();
+	}	
+	
 	function ManeuversPanel_Change_Maneuver_View() {
-		var prof = document.getElementById("StP_selected_profession").value;
+	//	var prof = document.getElementById("StP_selected_profession").value;
 		var maneuver, multiplier = 2;
 		
-		if( prof == "warrior" || prof == "rogue" || prof == "monk" ) {
+		if( selected_prof == "warrior" || selected_prof == "rogue" || selected_prof == "monk" ) {
 			multiplier = 1;
 		}
-		else if( prof == "bard" || prof == "ranger" || prof == "paladin" ) 	{
+		else if( selected_prof == "bard" || selected_prof == "ranger" || selected_prof == "paladin" ) 	{
 			multiplier = 1.5;
 		}		
 	
@@ -544,45 +401,60 @@ else {
 		$(".test_class").show();		
 }	
 */
-		for( var i=0; i < all_maneuvers.list.length; i++ ) {	
-			maneuver = all_maneuvers.list[i].name+"@"+all_maneuvers.list[i].type;		
+		for( var i=0; i < avail_maneuvers.list.length; i++ ) {	
+			maneuver = avail_maneuvers.list[i].name+"@"+avail_maneuvers.list[i].type;		
 			
 			//yeah I don't like the huge if statement either, but this panels causes sooooo much lag that I'll deal with it. For now.
-			if( (all_maneuvers.list[i].availability[prof] == 1) &&
+			if( (avail_maneuvers.list[i].availability[selected_prof] == 1) &&
 			(!document.getElementById("ManP_hide_maneuvers").checked || (document.getElementById("ManP_hide_maneuvers").checked &&  
 			(document.getElementById(maneuver+"_checkbox").checked || total_man_ranks_by_level[100][maneuver] != undefined ))) &&
-			((document.getElementById("ManP_show_cm").checked && all_maneuvers.list[i].type == "combat") || 			
-			(document.getElementById("ManP_show_sm").checked && all_maneuvers.list[i].type == "shield") ||
-			(document.getElementById("ManP_show_as").checked && all_maneuvers.list[i].type == "armor"))				
+			((document.getElementById("ManP_show_cm").checked && avail_maneuvers.list[i].type == "combat") || 			
+			(document.getElementById("ManP_show_sm").checked && avail_maneuvers.list[i].type == "shield") ||
+			(document.getElementById("ManP_show_as").checked && avail_maneuvers.list[i].type == "armor"))				
 			) {					
 				document.getElementById(maneuver+"_info_row").style.display = "";
 				document.getElementById(maneuver+"_training_row").style.display = "";	
 		//		if( document.getElementById("ManP_show_cm").checked ) {
-					document.getElementById(maneuver+"_cost1").innerHTML = (all_maneuvers.list[i].rank_costs[0] * multiplier) || "-";
-					document.getElementById(maneuver+"_cost2").innerHTML = (all_maneuvers.list[i].rank_costs[1] * multiplier) || "-";
-					document.getElementById(maneuver+"_cost3").innerHTML = (all_maneuvers.list[i].rank_costs[2] * multiplier) || "-";
-					document.getElementById(maneuver+"_cost4").innerHTML = (all_maneuvers.list[i].rank_costs[3] * multiplier) || "-";
-					document.getElementById(maneuver+"_cost5").innerHTML = (all_maneuvers.list[i].rank_costs[4] * multiplier) || "-";
+					document.getElementById(maneuver+"_cost1").innerHTML = Math.floor((avail_maneuvers.list[i].rank_costs[0] * multiplier)) || "-";
+					document.getElementById(maneuver+"_cost2").innerHTML = Math.floor((avail_maneuvers.list[i].rank_costs[1] * multiplier)) || "-";
+					document.getElementById(maneuver+"_cost3").innerHTML = Math.floor((avail_maneuvers.list[i].rank_costs[2] * multiplier)) || "-";
+					document.getElementById(maneuver+"_cost4").innerHTML = Math.floor((avail_maneuvers.list[i].rank_costs[3] * multiplier)) || "-";
+					document.getElementById(maneuver+"_cost5").innerHTML = Math.floor((avail_maneuvers.list[i].rank_costs[4] * multiplier)) || "-";
 	//			}
 			}			
 			else {
 				document.getElementById(maneuver+"_info_row").style.display = "none";
 				document.getElementById(maneuver+"_training_row").style.display = "none";					
 			}
-		}
+		}		
 		
-		ManeuversPanel_Calculate_Points();
 	}
 
-	function ManeuversPanel_Training_Change_Style(start_level=0) {
-		for( var i=0; i < all_maneuvers.list.length; i++ ) {
-			ManeuversPanel_Training_Update_Row(all_maneuvers.list[i].name, start_level);			
+	function ManeuversPanel_Update_LeftSide() {
+		document.getElementById("ManP_hide_maneuvers").checked = hide_unused_maneuvers;
+		
+		for( var i=0; i < avail_maneuvers.list.length; i++ ) {
+			if( hidden_skills[avail_maneuvers.list[i]] != undefined ) {
+				document.getElementById(avail_maneuvers.list[i].name+"@"+avail_maneuvers.list[i].type+"_checkbox").checked = true;
+			}
+			else {
+				document.getElementById(avail_maneuvers.list[i].name+"@"+avail_maneuvers.list[i].type+"_checkbox").checked = false;						
+			}			
+		}		
+	}	
+		
+	function ManeuversPanel_Update_Rightside(start_level=0) {
+		for( var i=0; i < avail_maneuvers.list.length; i++ ) {
+			ManeuversPanel_Training_Update_Row(avail_maneuvers.list[i].name, start_level);			
 		}
+		
+		ManeuversPanel_Change_Maneuver_View();	
+		ManeuversPanel_Calculate_Points();	
 	}
 	
 	function ManeuversPanel_Calculate_Total_Ranks(man, start_level) {
 		var rtotal = 0;				
-		man = all_maneuvers.GetManeuverByName(man);		
+		man = avail_maneuvers.GetObjectByName(man);		
 		man_title = man.name + "@" + man.type;
 		
 		if( start_level > 0 && total_man_ranks_by_level[start_level-1][man_title] != undefined ) {
@@ -605,7 +477,7 @@ else {
 
 	function ManeuversPanel_Training_Update_Row(man, start_level) {		
 		var div, tranks, lranks;
-		man = all_maneuvers.GetManeuverByName(man);
+		man = avail_maneuvers.GetObjectByName(man);
 		man_title = man.name + "@" + man.type;
 		
 		for (var k=start_level; k <= 100; k++) {	
@@ -627,12 +499,12 @@ else {
 	
 	function ManeuversPanel_Calculate_Points() {		
 		var skillname, multiplier = 2, man, man_title, lsum, usum;
-		var prof = document.getElementById("StP_selected_profession").value;
+	//	var prof = document.getElementById("StP_selected_profession").value;
 		
-		if( prof == "warrior" || prof == "rogue" || prof == "monk" ) {
+		if( selected_prof == "warrior" || selected_prof == "rogue" || selected_prof == "monk" ) {
 			multiplier = 1;
 		}
-		else if( prof == "bard" || prof == "ranger" || prof == "paladin" ) 	{
+		else if( selected_prof == "bard" || selected_prof == "ranger" || selected_prof == "paladin" ) 	{
 			multiplier = 1.5;
 		}
 		
@@ -659,13 +531,13 @@ else {
 			usum = 0;
 			lsum = 0;
 			
-			for(var j=0; j <= all_maneuvers.list.length-1; j++) {
-				man = all_maneuvers.list[j];
+			for(var j=0; j <= avail_maneuvers.list.length-1; j++) {
+				man = avail_maneuvers.list[j];
 				man_title = man.name+"@"+man.type;
 				
-				if( (all_maneuvers.list[j].type == "combat" && skillname != "Combat Maneuvers") ||
-				((all_maneuvers.list[j].type == "shield" && skillname != "Shield Use")) ||
-				((all_maneuvers.list[j].type == "armor" && skillname != "Armor Use")) 
+				if( (avail_maneuvers.list[j].type == "combat" && skillname != "Combat Maneuvers") ||
+				((avail_maneuvers.list[j].type == "shield" && skillname != "Shield Use")) ||
+				((avail_maneuvers.list[j].type == "armor" && skillname != "Armor Use")) 
 			    ) {
 					continue;
 				}
@@ -688,7 +560,7 @@ else {
 	}
 	
 	function ManeuversPanel_Zero_Out_Maneuver_Row(man) {
-		document.getElementById(man+"_checkbox").checked = false;
+		delete hidden_maneuvers[man]
 		
 		for( var i = 0; i <= 100; i++ ) {
 			delete man_ranks_by_level[i][man];
@@ -698,12 +570,22 @@ else {
 		ManeuversPanel_Training_Update_Row(man.split("@")[0], 0);
 	}
 	
-	function ManeuversPanel_On_Prof_Change(prof) {			
-		for( var i=0; i < all_maneuvers.list.length; i++ ) {			
-			if( all_maneuvers.list[i].availability[prof] == 0  ) {
-				ManeuversPanel_Zero_Out_Maneuver_Row(all_maneuvers.list[i].name+"@"+all_maneuvers.list[i].type);
+	function ManeuversPanel_On_Prof_Change() {			
+		for( var i=0; i < avail_maneuvers.list.length; i++ ) {			
+			if( avail_maneuvers.list[i].availability[selected_prof] == 0  ) {
+				ManeuversPanel_Zero_Out_Maneuver_Row(avail_maneuvers.list[i].name+"@"+avail_maneuvers.list[i].type);
 			}
 		}
 		
-		ManeuversPanel_Change_Maneuver_View();
+		ManeuversPanel_Update_LeftSide();
+		ManeuversPanel_Update_Rightside();
+	}	
+	
+	function ManeuversPanel_Update_Available_Maneuvers() {
+		avail_maneuvers = new Object_List();
+		for( var i=0; i < maneuvers.list.length; i++ ) {
+			if( maneuvers.list[i].availability[selected_prof] == 1 ) {
+				avail_maneuvers.AddObject(maneuvers.list[i]);
+			}	
+		}		
 	}	
