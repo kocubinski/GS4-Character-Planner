@@ -1,77 +1,47 @@
-	function Planner_Init() {		
-		for (var i=0; i < panel_list.length; i++) {
-			document.getElementById(panel_list[i]+"_panel").style.display = "none";
-			document.getElementById(panel_list[i]+"_tab").style.backgroundColor = "white";
-		//		document.getElementById(panel_list[i]+"_tab").style.color = "black";
-		}	
-			
+	var active_panel = "";
+
+	function Planner_Init() {					
 		StatisticsPanel_Calculate_Growth_All();
 		StatisticsPanel_Calculate_Resources();
 		SkillsPanel_Update_Available_Skills();
-		ManeuversPanel_Update_Available_Maneuvers();	
+//		ManeuversPanel_Update_Available_Maneuvers();	
 	
-//		StatisticsPanel_Init();
-//		SkillsPanel_Init();
-//		ManeuversPanel_Init();		
-		Planner_Show_Panel("statistics");					
+		Planner_Show_Panel("skills");		
 	}	
 	
-	function Planner_Show_Panel(id) {
-		var old = Planner_Get_Active_Panel();
-		
-		if( old ) {
-			document.getElementById(old+"_panel").style.display = "none";
-			document.getElementById(old+"_tab").style.backgroundColor = "white";		
-	//		document.getElementById(panel_list[i]+"_tab").style.color = "black";
-			
-			
-			switch(old) {
-				case "statistics":	StatisticsPanel_Term();
-									break;
-				case "skills":		SkillsPanel_Term();
-									break;
-				case "maneuvers":	ManeuversPanel_Term();
-									break;
-			}
-			
+	function Planner_Show_Panel(id) {		
+		var div = document.getElementById('panel_container');
+				
+		if( active_panel == id ) {
+			return 0;
+		}
+		else if( active_panel ) {
+			document.getElementById(active_panel+"_tab").style.backgroundColor = "lightgray";			
 		}
 
-		document.getElementById(id+"_panel").style.display = "block";
-		document.getElementById(id+"_tab").style.backgroundColor = "#dedbde";			
-//		document.getElementById(id+"_tab").style.color = "white";			
-			
+		active_panel = id;
+		
+		document.getElementById(id+"_tab").style.backgroundColor = "white";					
+		
 			switch(id) {
-				case "statistics":	StatisticsPanel_Init();
-			//						StatisticsPanel_Update_Leftside();
-			//						StatisticsPanel_Update_Rightside();	
-									$("#StP_growth_container").scrollLeft(scroller_H);
+				case "statistics":	m.module(div, {controller: StP_MCV.controller, view: StP_MCV.view});
+						//			$("#StP_growth_container").scrollLeft(scroller_H);
 									break;
-				case "skills":		SkillsPanel_Init();
-								//	$("#SkP_skills_info_container").scrollTop(scroller_V);
-								//	$("#SkP_skills_training_container").scrollTop(scroller_V);
-			//						SkillsPanel_Update_LeftSide();		
-		//							SkillsPanel_Update_RightSide();					
-		//							SkillsPanel_Change_Displayed_Skills();	
-									$("#SkP_skills_training_container").scrollLeft(scroller_H);
+				case "skills":		m.module(div, {controller: SkP_MCV.controller, view: SkP_MCV.view});
+							//		$("#SkP_skills_training_container").scrollLeft(scroller_H);
 									break;
-				case "maneuvers":	ManeuversPanel_Init();
-									//$("#SkP_skills_info_container").scrollTop(scroller_V);
-									//$("#SkP_skills_training_container").scrollTop(scroller_V);
-			//						ManeuversPanel_Update_LeftSide();
-			//						ManeuversPanel_Update_Rightside();
-			//						ManeuversPanel_Change_Maneuver_View();		
-			//						ManeuversPanel_Calculate_Points();
-									$("#ManP_maneuvers_training_container").scrollLeft(scroller_H);
+				case "maneuvers":					
+					//				$("#ManP_maneuvers_training_container").scrollLeft(scroller_H);
 									break;
 			}
+			
 	}	
 	
-	function Planner_Panels_Update_Profession_Race() {
-		selected_prof = document.getElementById("StP_selected_profession").value || selected_prof;
-		selected_race = document.getElementById("StP_selected_race").value || selected_race;
-				
+	function Planner_Panels_Update_Profession_Race() {				
 		StatisticsPanel_Calculate_Growth_All();
 		StatisticsPanel_Calculate_Resources();
+		SkillsPanel_Update_Available_Skills();
+/*		
 		SkillsPanel_Update_Available_Skills();
 		ManeuversPanel_Update_Available_Maneuvers();
 		switch(Planner_Get_Active_Panel()) {
@@ -82,16 +52,8 @@
 			case "maneuvers":	ManeuversPanel_On_Prof_Change();								
 								break;
 		}
-	}
-	
-	function Planner_Get_Active_Panel() {
-		for( var i=0; i < panel_list.length; i++ ) {
-			if( document.getElementById(panel_list[i]+"_panel").style.display != "none" ) {
-					return panel_list[i];				
-			}			
-		}
-		return false;
-	}
+*/		
+	}	
 		
 	function Planner_File_Onchange(caller) {
 		var reader = new FileReader();
