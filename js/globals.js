@@ -44,6 +44,18 @@
 	var influence_by_level = [];
 	var statistics_by_level = { "strength": strength_by_level, "constitution": constitution_by_level, "dexterity": dexterity_by_level, "agility": agility_by_level, "discipline": discipline_by_level, "aura": aura_by_level, "logic": logic_by_level, "intuition": intuition_by_level, "wisdom": wisdom_by_level, "influence": influence_by_level };
 
+	var strength_bonus_by_level = [];
+	var constitution_bonus_by_level = [];
+	var dexterity_bonus_by_level = [];
+	var agility_bonus_by_level = [];
+	var discipline_bonus_by_level = [];
+	var aura_bonus_by_level = [];
+	var logic_bonus_by_level = [];
+	var intuition_bonus_by_level = [];
+	var wisdom_bonus_by_level = [];
+	var influence_bonus_by_level = [];
+	var statistic_bonuses_by_level = { "strength": strength_bonus_by_level, "constitution": constitution_bonus_by_level, "dexterity": dexterity_bonus_by_level, "agility": agility_bonus_by_level, "discipline": discipline_bonus_by_level, "aura": aura_bonus_by_level, "logic": logic_bonus_by_level, "intuition": intuition_bonus_by_level, "wisdom": wisdom_bonus_by_level, "influence": influence_bonus_by_level };	
+	
 	var stat_total_by_level = [];
 	var PTP_by_level = [];
 	var MTP_by_level = [];
@@ -54,6 +66,7 @@
 	
 	var selected_prof = "warrior";
 	var selected_race = "human";	
+	var StP_show_mode = "growth";
 	
 	strength_by_level[0] = 30;
 	constitution_by_level[0] = 30;
@@ -65,6 +78,8 @@
 	intuition_by_level[0] = 20;
 	wisdom_by_level[0] = 20;
 	influence_by_level[0] = 20;
+	
+	
 	
 	var profession_list = new Object_List();
 	var race_list = new Object_List();
@@ -210,7 +225,7 @@
 
  var skills = [ "Two Weapon Combat", "Armor Use", "Shield Use", "Combat Maneuvers", "Edged Weapons", "Blunt Weapons", "Two-Handed Weapons", "Ranged Weapons", "Thrown Weapons", "Polearm Weapons", "Brawling", "Ambush", "Multi Opponent Combat", "Physical Fitness", "Dodging", "Arcane Symbols", "Magic Item Use", "Spell Aiming", "Harness Power", "Elemental Mana Control", "Mental Mana Control", "Spirit Mana Control", "Spell Research", "Elemental Lore", "Spiritual Lore", "Sorcerous Lore", "Mental Lore", "Survival", "Disarming Traps", "Picking Locks", "Stalking and Hiding", "Perception", "Climbing", "Swimming", "First Aid", "Trading", "Pickpocketing" ];
 
- var all_skills = [];   //contains all skills, including subskills. Needed for cycling through ALL skills.
+ var available_skills = [];   //contains all skills, including subskills. Needed for cycling through ALL skills.
 
   
  var skill_redux = { "Two Weapon Combat":0.3, "Armor Use":0.4, "Shield Use":0.4, "Combat Maneuvers":0.3, "Edged Weapons":0.3, "Blunt Weapons":0.3, "Two-Handed Weapons":0.3, "Ranged Weapons":0.3, "Thrown Weapons":0.3, "Polearm Weapons":0.3, "Brawling":0.3, "Ambush":0.4, "Multi Opponent Combat":0.4, "Physical Fitness":1.0, "Dodging":0.4, "Arcane Symbols":0, "Magic Item Use":0, "Spell Aiming":0, "Harness Power":0, "Elemental Mana Control":0, "Mental Mana Control":0, "Spirit Mana Control":0, "Spell Research":0, "Elemental Lore":0, "Spiritual Lore":0, "Sorcerous Lore":0, "Mental Lore":0, "Survival":0, "Disarming Traps":0, "Picking Locks":0, "Stalking and Hiding":0, "Perception":0, "Climbing":0, "Swimming":0, "First Aid":0, "Trading":0, "Pickpocketing":0 };
@@ -219,7 +234,7 @@
 
  var training_rate = {};  
  var hide_unused_skills = false;
- var hidden_skills = {};
+ var checked_skills = {};
   
   
  var ranks_by_level = [];
