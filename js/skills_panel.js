@@ -1,3 +1,160 @@
+var SkP_MCV = {};
+
+SkP_MCV.controller = function() {}; // What should I do with this???
+	
+SkP_MCV.view = function() {		
+		var LT_view =  m("table", {width: "100%"}, [
+						m("tr", [
+							m("td", {height: "23px"}, m("input", {type: "checkbox"}) ),
+							m("td", "Hide Unchecked / Untrained Skills"),
+							m("td", m("input", {type: "button", value: "Rate Auto-Fill"} ) ),
+							m("td", m("input", {type: "button", value: "Clear All"} ) ),							
+						]), 	
+						m("tr", {height: "23px"}, []),		
+						m("tr", {height: "23px"}, [
+							m("td", {colspan: "4", height: "23px"}, 
+								m("table", {width: "100%"}, [
+					m("col", {width: "1%"}),
+					m("col", {width: "45%"}),
+					m("col", {width: "7%"}),
+					m("col", {width: "7%"}),
+					m("col", {width: "7%"}),
+					m("col", {width: "7%"}),
+									m("tr", {class:"stat_header_row"}, [ 	
+										m("td", ""),
+										m("td", {height: "23px"}, m("div", "Skill Name") ),
+										m("td", m("div", "PTP") ),
+										m("td", m("div", "MTP") ),
+										m("td", m("div", "Ranks") ),
+										m("td", m("div", "Rate") ),
+									])
+								])
+							)						
+						])
+					]);		
+
+		
+		var LM_view = m("div", {class: "SkP_linked_scroller_Mid", style: {"overflow-y": "hidden"}, config: SkillsPanel_Scroll_VDiv_Onmousewheel},
+				m("table", {width: "100%"}, [
+					m("col", {width: "1%"}),
+					m("col", {width: ""}),
+					m("col", {width: "10%"}),
+					m("col", {width: "10%"}),
+					m("col", {width: "10%"}),
+					m("col", {width: "1%"}),
+						SkillsPanel_Create_Skill_Rows(),		
+				])
+		);		
+
+		
+		var LB_view = m("table", {width: "100%"}, [
+					m("col", {style: {width: "82%"}} ),
+					m("col", {style: {width: ""}} ),
+					m("tr", [ 
+						m("td", {colspan: "2", height: "23px"}, ""),
+						m("td", m("div", {class:"resource_header"}, "PTP Used") ),
+					]),
+					m("tr", [ 
+						m("td", {colspan: "2", height: "23px"}, ""),
+						m("td", m("div", {class:"resource_header"}, "MTP Used") ),
+					]),
+					m("tr", [ 
+						m("td", {colspan: "2", height: "23px"}, ""),
+						m("td", m("div", {class:"resource_header"}, "PTP Left") ),
+					]),
+					m("tr", [ 
+						m("td", {colspan: "2", height: "23px"}, ""),
+						m("td", m("div", {class:"resource_header"}, "MTP Left") ),
+					]),
+					m("tr", [ 
+						m("td", {colspan: "2", height: "23px"}, ""),
+						m("td", m("div", {class:"resource_header"}, "Redux Points") ),
+					]),
+
+		          ]);
+
+		
+		var RT_view = m("table", {width: "100%"}, [
+					m("tr", [ 
+						m("td", {height: "23px"}, ""),				
+					]),
+					m("tr", [ 
+						m("td", {colspan: "100", height: "23px"}, 
+							m("form", {id: "SkP_display_option1"}, [
+								m("span", {class:"resource_header"}, "Training by Level"),
+								m("input", {id: "SkP_display_option1", type: "radio", name: "SkP_display_options", value: "growth", checked:"checked", style: {"font-weight": "bold"}, onclick: m.withAttr("value", StatisticsPanel_Set_Display_Mode)} ),
+								m("span", "Show Ranks"),
+								m("input", {id: "SkP_display_option2", type: "radio", name: "SkP_display_options", value: "bonus", style: {"font-weight": "bold"}, onclick: m.withAttr("value", StatisticsPanel_Set_Display_Mode)} ),
+								m("span", "Show Total Ranks"),
+								m("input", {id: "SkP_display_option3", type: "radio", name: "SkP_display_options", value: "bonus", style: {"font-weight": "bold"}, onclick: m.withAttr("value", StatisticsPanel_Set_Display_Mode)} ),
+								m("span", "Show Total Bonuses")
+							])						
+						),					
+					]),
+					m("tr", [ 
+						m("td", {height: "23px"},
+						 m("div", {class: "SkP_linked_scroller_H", style: {"overflow-x": "hidden"}},				
+							m("table", {width: "5500px"}, [	
+								SkillsPanel_Create_Level_Row()		
+							])
+						)),					
+					])
+				   ]);	
+				  
+					
+		var RM_view = m("div", {class: "SkP_linked_scroller_Mid", onscroll: SkillsPanel_Scroll_VDiv_Onscroll, style: {"overflow-x": "hidden"}},
+				   m("table", {name: "BUFFER_TABLE", width: "100%"}, [
+					m("tr", [ 
+						m("td", {height: 23}, m("table", {width: "5500px"}, SkillsPanel_Create_Training_Rows())),				
+					]),		
+				   ])
+				  );		
+		
+		
+		var RB_view = m("div", {class: "SkP_linked_scroller_H", onscroll: SkillsPanel_Scroll_HDiv_Onscroll, onmouseup: SkillsPanel_Scroll_HDiv_Onmouseup },
+				   m("table", {name: "BUFFER_TABLE", width: "100%"}, [
+					m("tr", [ 
+						m("table", {width: "5500px"}, SkillsPanel_Create_Totals_Rows())			
+					]),		
+				   ])
+				  );		
+				
+		
+		return m("table", {border: "1", width: "100%"}, [
+				m("col", {style: {width: "30%"}} ),
+				m("col", {style: {width: ""}} ),	
+				m("tr", [	
+					m("td", {valign: "top"}, 		 
+						m("table", {width: "100%"}, [
+							m("tr", {height: "95px", key: "skills_LT"}, m("td", LT_view) ),
+							m("tr", {height: "279px", key: "skills_LM"}, m("td", {valign: "top"}, LM_view) ),
+							m("tr", {key: "skills_LB"}, m("td", LB_view) )
+						])
+					),
+					
+					m("td", {valign: "top"},		 
+						m("table", {width: "100%"},[
+							m("tr", {height: "93px", key: "skills_RT"}, m("td", RT_view) ),						
+							m("tr", {height: "280px", key: "skills_RM"}, m("td", RM_view) ),
+							m("tr", {key: "skills_RB"}, m("td", RB_view) )							
+						])
+					)
+				])
+			]);
+	}
+
+	function SkillsPanel_Create_Level_Row() {
+		var cells = [];
+		
+		for(var i=0; i <= 100; i++) {
+			cells.push(	m("td", i )	);			
+		}
+		
+		return m("tr", {class:"level_row"}, cells);			
+	}
+	
+	
+/*	
 	function SkillsPanel_Init() {
 		var info_div = document.getElementById("SkP_skills_info_container");
 		var training_div = document.getElementById("SkP_skills_training_container");
@@ -89,15 +246,15 @@
 		info_tbdy.appendChild(tr);
 				
 		//Skill Info and Training Rows
-		for( var i=0; i < all_skills.length; i++ ) {
-			val = profession_skill_costs[selected_prof][all_skills[i].split(",")[0]].split("/");
+		for( var i=0; i < available_skills.length; i++ ) {
+			val = profession_skill_costs[selected_prof][available_skills[i].split(",")[0]].split("/");
 			PTP = val[0];
 			MTP = val[1];
 			ranks = val[2];		
 			
-			tr = SkillsPanel_Create_Skill_Row_Left(all_skills[i], PTP, MTP, ranks);
+			tr = SkillsPanel_Create_Skill_Row_Left(available_skills[i], PTP, MTP, ranks);
 			info_tbdy.appendChild(tr);
-			tr = SkillsPanel_Create_Skill_Row_Right(all_skills[i]);
+			tr = SkillsPanel_Create_Skill_Row_Right(available_skills[i]);
 			training_tbdy.appendChild(tr);	
 		}		
 		
@@ -174,102 +331,142 @@
 			training_div.removeChild(training_div.firstChild);
 		}		
 	}  		
-	
-	function SkillsPanel_Create_Skill_Row_Left(skill, PTP, MTP, ranks) {
-		var	tr = document.createElement('tr');
-		var td, checkbox, input;
-
-		tr.id = skill + "_info_row";		
-		tr.style.backgroundColor = "lightgray";
-	
-		td = document.createElement('td');	
-		td.height = "23px";			
-		checkbox = document.createElement('input');
-		checkbox.id = skill + "_checkbox";	
-		checkbox.type = "checkbox";
-		checkbox.onclick = function() { if( this.checked ) { hidden_skills[skill] = true; } else {delete hidden_skills[skill]; } };
-		td.appendChild(checkbox);
-		tr.appendChild(td);    			
+*/	
+	function SkillsPanel_Create_Skill_Rows() {
+		var rows = [];
+		var cells = [];
 		
-		td = document.createElement('td');
-		td.appendChild(document.createTextNode(skill));		
-		td.id = skill + "_text";		
-		tr.appendChild(td);    		
+		for ( var i=0; i < available_skills.length; i++ ) {
+			//skill = available_skills[0];
+			skill_info = profession_skill_costs[selected_prof][available_skills[i].split(",")[0]].split("/");
+			skill_ptp = skill_info[0];
+			skill_mtp = skill_info[1];
+			skill_ranks = skill_info[2];
+			
+			cells = m("tr", {class: /*checked_skills[available_skills[i]] ? "checked_skill_row":*/ "skill_row", key: "skill_row_"+available_skills[i]}, [
+				m("td", m("input", {type: "checkbox", /*checked: checked_skills[available_skills[i]],*/ onclick: MEH })),
+				m("td", available_skills[i]),
+				m("td", m("div", skill_ptp)),
+				m("td", m("div", skill_mtp)),
+				m("td", m("div", "("+skill_ranks+")")),
+				m("td", m("input",{size: "3", maxlength: "3", value: "", onblur: m.withAttr("value", StatisticsPanel_Set_Statistic_Value[statistics[i]]), onkeydown: StatisticsPanel_Input_Box_Onkeydown })),
+			]);
+			rows.push(cells);
+		}
 		
-		td = document.createElement('td');
-		td.appendChild(document.createTextNode(PTP));
-		td.style.textAlign="center";	
-		td.id = skill + "_PTP_cost";
-		tr.appendChild(td);  
-		
-		td = document.createElement('td');
-		td.appendChild(document.createTextNode(MTP));	
-		td.style.textAlign="center";
-		td.id = skill + "_MTP_cost";		
-		tr.appendChild(td);  
-		
-		td = document.createElement('td');		
-		td.appendChild(document.createTextNode("(" + ranks + ")"));
-		td.style.textAlign="center";	
-		td.id = skill + "_max_ranks";		
-		tr.appendChild(td);  		
-		
-		td = document.createElement('td');		
-		
-		input = document.createElement('input');
-		input.maxLength = 5;
-		input.size= 3;
-		input.style.textAlign = "center";
-		input.id = skill + "_train_rate";		
-		input.onblur = function() {  SkillsPanel_Rate_Input_Onblur(this) };	
-		input.click = function() {  this.focus() };                     //need this for a work around in the input_onkeyp function. lets the arrows the cursor move up/down
-		input.onkeyup = function(event) {  SkillsPanel_Training_Input_Onkeyup(event, this) };	
-		td.appendChild(input);
-		tr.appendChild(td);  			
-		
-		return tr;
+		return rows;
 	}
   
- 	function SkillsPanel_Create_Skill_Row_Right(skill) {
-		var tr = document.createElement('tr');
-		var td, input, div;
+ 	function SkillsPanel_Create_Training_Rows() {
+		var rows = [];
+		var cells = [];
+//alert("here");		
+		for ( var i=0; i < available_skills.length; i++ ) {			
+			cells = [];
+			for ( var j=0; j <= 100; j++ ) {
+			cells.push( m("td", {key: "training_cell_"+available_skills[i]+"_"+j}, [ m("div", ""), m("input", {style: {display: "none"}, size: "3", maxlength: "3", value: "", onblur: m.withAttr("value", StatisticsPanel_Set_Statistic_Value[statistics[i]]), onkeydown: StatisticsPanel_Input_Box_Onkeydown }) ] ) );				
+			}				
+			rows.push(m("tr", {class: "skill_training_row", key: "training_row_"+available_skills[i]}, cells));
+		}
 		
-		tr.id = skill + "_training_row";	
-		tr.style.backgroundColor = "lightgray";
-		
-		for(var j=0; j<=100; j++) {
-			td = document.createElement('td');
-			td.height = 23;
-			td.id = skill + "_ranks_" + j;
-			td.align="center";	
-			td.onclick = function() { SkillsPanel_Training_Div_Onclick(this); };
-						
-			div = document.createElement('div');
-			div.id = skill + "_div_" + j;
-			div.style.width = 31;
-			div.style.textAlign="center";	
-			div.onclick = function() {  SkillsPanel_Training_Div_Onclick(this); };	
-			td.appendChild(div);  				
-
-			//input box for rank training per level
-			input = document.createElement('input');
-			input.id = skill + "_input_" + j;	
-			input.style.display = "none";		
-			input.size="2";		
-			input.maxLength = "1";
-			input.type="text";
-			input.align="center";
-			input.style.textAlign="center";
-			input.onblur = function() {  SkillsPanel_Training_Input_Onblur(this) };	
-			input.onkeyup = function(event) {  SkillsPanel_Training_Input_Onkeyup(event, this) };	
-			td.appendChild(input);  
-			
-			tr.appendChild(td);    
-		}  		
-	
-		return tr;
+		return rows;		
 	} 
+
+
+	function SkillsPanel_Create_Totals_Rows() {	   
+		var rows = [];
+		var cells = [];
+		
+		for ( var j=0; j <= 100; j++ ) {
+			cells.push( m("td", "" ) );				
+		}				
+		rows.push(m("tr", {class: "skill_training_row"}, cells));		
+
+		cells = [];
+		for ( var j=0; j <= 100; j++ ) {
+			cells.push( m("td", "" ) );				
+		}				
+		rows.push(m("tr", {class: "skill_training_row"}, cells));	
+
+		cells = [];
+		for ( var j=0; j <= 100; j++ ) {
+			cells.push( m("td", "" ) );				
+		}				
+		rows.push(m("tr", {class: "skill_training_row"}, cells));	
+
+		cells = [];
+		for ( var j=0; j <= 100; j++ ) {
+			cells.push( m("td", "" ) );				
+		}				
+		rows.push(m("tr", {class: "skill_training_row"}, cells));	
+
+		cells = [];
+		for ( var j=0; j <= 100; j++ ) {
+			cells.push( m("td", "" ) );				
+		}				
+		rows.push(m("tr", {class: "skill_training_row"}, cells));	
+
+		return rows;
+	}
+
+
+	function SkillsPanel_Scroll_HDiv_Onscroll() {
+		var divs = document.getElementsByClassName("SkP_linked_scroller_H");
+		var pos = $(divs[1]).scrollLeft();
 	
+		$(divs[0]).scrollLeft(pos);
+		$(document.getElementsByClassName("SkP_linked_scroller_Mid")).scrollLeft(pos);	
+		m.redraw.strategy("none")
+	}
+
+	function SkillsPanel_Scroll_HDiv_Onmouseup(val) {
+		scroller_H = val;	
+		m.redraw.strategy("none");
+	}
+
+	function SkillsPanel_Scroll_VDiv_Onscroll() {
+		var divs = document.getElementsByClassName("SkP_linked_scroller_Mid");
+		var pos = $(divs[1]).scrollTop();
+	
+		$(divs[0]).scrollTop(pos);
+		m.redraw.strategy("none");
+	}
+
+	function SkillsPanel_Scroll_VDiv_Onmouseup(val) {
+		scroller_V = val;	
+		m.redraw.strategy("none");
+	}
+
+	function SkillsPanel_Scroll_VDiv_Onmousewheel(element, isInit, context) {	
+		if (!isInit) { 
+			$(element).bind('mousewheel DOMMouseScroll', function(event){
+				var divs = document.getElementsByClassName("SkP_linked_scroller_Mid");
+				var pos = $(divs[0]).scrollTop();
+			
+				if (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0) {            // scroll up 	
+					pos = $(divs[0]).scrollTop() - 27;
+				}
+				else {                                                                               // scroll down     
+					pos = $(divs[0]).scrollTop() + 27;
+				}
+					$(divs).scrollTop(pos);
+					m.redraw.strategy("none");
+			});	 
+		}
+	}
+
+
+	function MEH(val) { }
+	
+	var TEST_set_checked = {		
+		"Armor Use" : function(val) { /*if(val) { checked_skills["Armor Use"] = val; } else { delete checked_skills["Armor Use"]; } */} 
+	}
+	
+	
+	
+
+	
+/*	
 	function SkillsPanel_Create_Label_Row_Left(title) {
 		tr = document.createElement('tr');
 		td = document.createElement('td');
@@ -357,8 +554,8 @@
 						break;
 						
 			case 40:	// down arrow			
-						for( var i=all_skills.indexOf(arr[0])+1; i < all_skills.length; i++ ) {
-							nextskill = all_skills[i];
+						for( var i=available_skills.indexOf(arr[0])+1; i < available_skills.length; i++ ) {
+							nextskill = available_skills[i];
 							if( document.getElementById(nextskill+"_info_row").style.display != "none" ) {	
 								document.getElementById(nextskill + "_" + arr[1]+ "_" + arr[2]).click();
 								break;
@@ -367,8 +564,8 @@
 						break;
 						
 			case 38:    // up arrow
-						for( var i=all_skills.indexOf(arr[0])-1; i >= 0; i-- ) {
-							nextskill = all_skills[i];
+						for( var i=available_skills.indexOf(arr[0])-1; i >= 0; i-- ) {
+							nextskill = available_skills[i];
 							if( document.getElementById(nextskill+"_info_row").style.display != "none" ) {	
 								document.getElementById(nextskill + "_" + arr[1]+ "_" + arr[2]).click();
 								break;
@@ -445,8 +642,8 @@
 		
 		if ( !ok ) { return; }
 		
-		for( var i=0; i < all_skills.length; i++ ) {		
-			key = all_skills[i];
+		for( var i=0; i < available_skills.length; i++ ) {		
+			key = available_skills[i];
 			
 			if( training_rate[key] == undefined ) {
 				for( var j=0; j <= 100; j++ ) {		
@@ -560,24 +757,24 @@
 	function SkillsPanel_Change_Displayed_Skills() {			
 		hide_unused_skills = document.getElementById("SkP_hide_skills").checked;	
 		
-		for( var i=0; i < all_skills.length; i++ ) {
-			if( document.getElementById(all_skills[i]+"_info_row").style.display == "" ) {
-				if( hide_unused_skills && !document.getElementById(all_skills[i]+"_checkbox").checked &&        
-				total_ranks_by_level[100][all_skills[i]] == undefined && training_rate[all_skills[i]] == undefined ) {    
-					document.getElementById(all_skills[i]+"_info_row").style.display = "none";
-					document.getElementById(all_skills[i]+"_training_row").style.display = "none";
+		for( var i=0; i < available_skills.length; i++ ) {
+			if( document.getElementById(available_skills[i]+"_info_row").style.display == "" ) {
+				if( hide_unused_skills && !document.getElementById(available_skills[i]+"_checkbox").checked &&        
+				total_ranks_by_level[100][available_skills[i]] == undefined && training_rate[available_skills[i]] == undefined ) {    
+					document.getElementById(available_skills[i]+"_info_row").style.display = "none";
+					document.getElementById(available_skills[i]+"_training_row").style.display = "none";
 				}
 			}			
 			else if( !hide_unused_skills ) {    
-				document.getElementById(all_skills[i]+"_info_row").style.display = "";
-				document.getElementById(all_skills[i]+"_training_row").style.display = "";									
+				document.getElementById(available_skills[i]+"_info_row").style.display = "";
+				document.getElementById(available_skills[i]+"_training_row").style.display = "";									
 			}
 		}
 	}		
 			
 	function SkillsPanel_Training_Change_Style(start_level=0) {
-		for( var i=0; i < all_skills.length; i++ ) {
-			SkillsPanel_Training_Update_Row(all_skills[i], 0);				
+		for( var i=0; i < available_skills.length; i++ ) {
+			SkillsPanel_Training_Update_Row(available_skills[i], 0);				
 		}
 	}
 	
@@ -608,19 +805,19 @@
 	function SkillsPanel_Update_LeftSide() {
 		document.getElementById("SkP_hide_skills").checked = hide_unused_skills;
 	
-		for( var i=0; i < all_skills.length; i++ ) {
-			if( hidden_skills[all_skills[i]] != undefined ) {
-				document.getElementById(all_skills[i]+"_checkbox").checked = true;
+		for( var i=0; i < available_skills.length; i++ ) {
+			if( hidden_skills[available_skills[i]] != undefined ) {
+				document.getElementById(available_skills[i]+"_checkbox").checked = true;
 			}
 			else {
-				document.getElementById(all_skills[i]+"_checkbox").checked = false;						
+				document.getElementById(available_skills[i]+"_checkbox").checked = false;						
 			}
 			
-			if( training_rate[all_skills[i]] != undefined ) {
-				document.getElementById(all_skills[i]+"_train_rate").value = training_rate[all_skills[i]];
+			if( training_rate[available_skills[i]] != undefined ) {
+				document.getElementById(available_skills[i]+"_train_rate").value = training_rate[available_skills[i]];
 			}
 			else {
-				document.getElementById(all_skills[i]+"_train_rate").value = "";	
+				document.getElementById(available_skills[i]+"_train_rate").value = "";	
 			}			
 		}		
 	}
@@ -645,11 +842,11 @@
 	
 	function SkillsPanel_Set_Skill_Costs(prof) {
 		var skill_info;
-		for( var i=0; i < all_skills.length; i++ ) {
-			skill_info = profession_skill_costs[prof][all_skills[i].split(",")[0]].split("/");
-			document.getElementById(all_skills[i] + "_PTP_cost").innerHTML = skill_info[0];
-			document.getElementById(all_skills[i] + "_MTP_cost").innerHTML = skill_info[1];
-			document.getElementById(all_skills[i] + "_max_ranks").innerHTML = "("+skill_info[2]+")";	
+		for( var i=0; i < available_skills.length; i++ ) {
+			skill_info = profession_skill_costs[prof][available_skills[i].split(",")[0]].split("/");
+			document.getElementById(available_skills[i] + "_PTP_cost").innerHTML = skill_info[0];
+			document.getElementById(available_skills[i] + "_MTP_cost").innerHTML = skill_info[1];
+			document.getElementById(available_skills[i] + "_max_ranks").innerHTML = "("+skill_info[2]+")";	
 		}		
 	}
 	
@@ -803,25 +1000,25 @@
 			SkillsPanel_Calculate_Redux_Points();
 		}
 	}
-		
+*/		
 	function SkillsPanel_Update_Available_Skills() {
-		all_skills = [];
+		available_skills = [];
 		
 		for( var i=0; i < skills.length; i++ ) {
 			if( subskills[skills[i]] != undefined ) {
 				for( var j=0; j < subskills[skills[i]].length; j++) {
 					if( skills[i] == "Spell Research" ) {
 						if( profession_list.GetObjectByName(selected_prof).spell_circles.indexOf(subskills["Spell Research"][j]) != -1 ) {
-							all_skills[all_skills.length] = skills[i]+", "+subskills[skills[i]][j];    							
+							available_skills[available_skills.length] = skills[i]+", "+subskills[skills[i]][j];    							
 						}					
 					}
 					else {
-						all_skills[all_skills.length] = skills[i]+", "+subskills[skills[i]][j];    
+						available_skills[available_skills.length] = skills[i]+", "+subskills[skills[i]][j];    
 					}
 				}
 			}	
 			else {
-				all_skills[all_skills.length] = skills[i];
+				available_skills[available_skills.length] = skills[i];
 			}
 		}		
 	}
