@@ -3,22 +3,57 @@
 	
 ul#planner_tabs { list-style-type: none; margin: 30px 0 0 0; padding: 0 0 0.3em 0; }
 ul#planner_tabs li { display: inline; }
-ul#planner_tabs li span { color: #000000; border: 1px solid black; border-bottom: none; padding: 0.3em; text-decoration: none; cursor: pointer;}
+ul#planner_tabs li span { background-color: lightgray; border: 1px solid black; border-bottom: none; padding: 0.3em; text-decoration: none; cursor: pointer;}
 	
 .Planner_linked_scroller_div { overflow-x: auto; max-width: 1180px; overflow-y:auto; max-height: 541px;}
 
 
+
 /* Statistics Tab */	
-#StP_right_side_title form { margin-left: 5px; margin-right: 0; margin-top: 0px; margin-bottom: 0px; padding: 0px; }
-#StP_right_side_title form #StP_show_statistics { margin-left: 40px; }
-#StP_right_side_title form #StP_show_bonus { margin-left: 50px }	
+tr[class=' stat_header_row'] td div { font-weight: bold; text-align: center; }
+tr[class=' stat_row']  { background-color: lightgray; }
+tr[class=' stat_row'] td { text-align: center; height: 23px; }
+tr[class=' stat_row'] td input{ text-align: center; }
+[class=' resource_header'] { font-weight: bold; }
+
+#StP_display_row { margin-left: 0px; margin-right: 0px; margin-top: 0px; margin-bottom: 0px; padding: 0px; }
+#StP_display_option1 { margin-left: 20px; }
+#StP_display_option2 { margin-left: 40px; }	
+tr[class=' level_row'] td { background-color: black; color: white; font-weight: bold; text-align: center; height: 20px; width: 45px; }
+
+td[class=' stat_cell'] { background-color: lightgray; text-align: center; height: 17px; }
+td[class=' health_cell'] { background-color: red; color: white; height: 17px; text-align: center; }
+td[class=' mana_cell'] { background-color: blue; color: white; height: 17px; text-align: center; }
+td[class=' stamina_cell'] { background-color: yellow; height: 17px; text-align: center; }
+td[class=' spirit_cell'] { background-color: #707070 ; color: white; height: 17px; text-align: center; }
+tr[class=' growth_row'] td { background-color: lightgray; text-align: center; height: 23px; }
+
+div[class=' StP_linked_scroller_H'] { overflow-x: auto; max-width: 1100px; overflow-y:auto; max-height: 541px; }
 
 
 /* Skills Tab */
-#SkP_right_side_title form { margin-left: 5px; margin-right: 0; margin-top: 0px; margin-bottom: 0px; padding: 0px; }
-#SkP_right_side_title form #SkP_show_level_ranks { margin-left: 40px; }
-#SkP_right_side_title form #SkP_show_total_ranks { margin-left: 40px }	
-#SkP_right_side_title form #SkP_show_total_bonus { margin-left: 40px }	
+#SkP_display_row { margin-left: 0px; margin-right: 0px; margin-top: 0px; margin-bottom: 0px; padding: 0px; }
+#SkP_display_option1 { margin-left: 20px; }
+#SkP_display_option2 { margin-left: 40px; }	
+#SkP_display_option3 { margin-left: 40px; }	
+
+tr[class=' skill_row']  { background-color: lightgray; }
+tr[class=' skill_row']  td { height: 23px; }
+tr[class=' skill_row']  td div { text-align: center; }
+
+tr[class=' checked_skill_row']  { background-color: lightgray; }
+tr[class=' checked_skill_row']  td { height: 23px; }
+tr[class=' checked_skill_row']  td div { text-align: center; }
+
+
+tr[class=' skill_training_row'] td { background-color: lightgray; text-align: center; height: 23px; }
+tr[class=' skill_totals_row'] td { background-color: lightgray; text-align: center; height: 23px; }
+
+
+div[class=' SkP_linked_scroller_H'] { overflow-x: auto; max-width: 1100px; overflow-y:auto; max-height: 541px; }
+div[class=' SkP_linked_scroller_Mid'] { overflow-x: auto; max-width: 1100px; overflow-y:auto; max-height: 350px; }
+
+
 
 
 /* Maneuvers Tab */
