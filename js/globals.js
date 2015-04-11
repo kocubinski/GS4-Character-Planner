@@ -185,7 +185,7 @@
 		{ "strength": 30, "constitution": 25, "dexterity": 25, "agility": 25, "discipline": 20, "aura": 15, "logic": 10, "intuition": 20, "wisdom": 15, "influence": 20 }	
 	));
 	profession_list.AddObject(new Profession( "wizard", "pure", [ "aura", "logic"], [ "aura", "aura"], [ "Minor Elemental", "Major Elemental", "Wizard" ],
-		{ "strength": 30, "constitution": 25, "dexterity": 25, "agility": 25, "discipline": 20, "aura": 15, "logic": 10, "intuition": 20, "wisdom": 15, "influence": 20 }	
+		{ "strength": 10, "constitution": 15, "dexterity": 25, "agility": 15, "discipline": 20, "aura": 30, "logic": 25, "intuition": 25, "wisdom": 20, "influence": 20 }	
 	));
 	
 	
