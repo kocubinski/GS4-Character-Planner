@@ -1,8 +1,20 @@
 var SkP_MCV = {};
 
-SkP_MCV.controller = function() {}; // What should I do with this???
+var test_prop = m.prop(0);
+
+SkP_MCV.controller = function() {
+	var ctrl = this;
 	
-SkP_MCV.view = function() {		
+	ctrl.skills = m.prop(available_skills);
+	ctrl.rate = m.prop(training_rate);
+	ctrl.hide_unused = m.prop(hide_unused_skills);
+	ctrl.checked_skills = m.prop(checked_skills);
+	ctrl.ranks_by_level = m.prop(ranks_by_level);
+	ctrl.total_ranks_by_level = m.prop(total_ranks_by_level);
+	ctrl.total_bonus_by_level = m.prop(total_bonus_by_level);	
+}
+	
+SkP_MCV.view = function(ctrl) {		
 		var LT_view =  m("table", {width: "100%"}, [
 						m("tr", [
 							m("td", {height: "23px"}, m("input", {type: "checkbox"}) ),
@@ -42,7 +54,7 @@ SkP_MCV.view = function() {
 					m("col", {width: "10%"}),
 					m("col", {width: "10%"}),
 					m("col", {width: "1%"}),
-						SkillsPanel_Create_Skill_Rows(),		
+						SkillsPanel_Create_Skill_Rows(ctrl),		
 				])
 		);		
 
@@ -82,11 +94,11 @@ SkP_MCV.view = function() {
 						m("td", {colspan: "100", height: "23px"}, 
 							m("form", {id: "SkP_display_option1"}, [
 								m("span", {class:"resource_header"}, "Training by Level"),
-								m("input", {id: "SkP_display_option1", type: "radio", name: "SkP_display_options", value: "growth", checked:"checked", style: {"font-weight": "bold"}, onclick: m.withAttr("value", StatisticsPanel_Set_Display_Mode)} ),
+								m("input", {id: "SkP_display_option1", type: "radio", name: "SkP_display_options", value: "growth", checked:"checked", style: {"font-weight": "bold"}, onclick: m.withAttr("value", MEH)} ),
 								m("span", "Show Ranks"),
-								m("input", {id: "SkP_display_option2", type: "radio", name: "SkP_display_options", value: "bonus", style: {"font-weight": "bold"}, onclick: m.withAttr("value", StatisticsPanel_Set_Display_Mode)} ),
+								m("input", {id: "SkP_display_option2", type: "radio", name: "SkP_display_options", value: "bonus", style: {"font-weight": "bold"}, onclick: m.withAttr("value", MEH)} ),
 								m("span", "Show Total Ranks"),
-								m("input", {id: "SkP_display_option3", type: "radio", name: "SkP_display_options", value: "bonus", style: {"font-weight": "bold"}, onclick: m.withAttr("value", StatisticsPanel_Set_Display_Mode)} ),
+								m("input", {id: "SkP_display_option3", type: "radio", name: "SkP_display_options", value: "bonus", style: {"font-weight": "bold"}, onclick: m.withAttr("value", MEH)} ),
 								m("span", "Show Total Bonuses")
 							])						
 						),					
@@ -105,7 +117,7 @@ SkP_MCV.view = function() {
 		var RM_view = m("div", {class: "SkP_linked_scroller_Mid", onscroll: SkillsPanel_Scroll_VDiv_Onscroll, style: {"overflow-x": "hidden"}},
 				   m("table", {name: "BUFFER_TABLE", width: "100%"}, [
 					m("tr", [ 
-						m("td", {height: 23}, m("table", {width: "5500px"}, SkillsPanel_Create_Training_Rows())),				
+						m("td", {height: 23}, m("table", {width: "5500px"}, SkillsPanel_Create_Training_Rows(ctrl))),				
 					]),		
 				   ])
 				  );		
@@ -114,7 +126,7 @@ SkP_MCV.view = function() {
 		var RB_view = m("div", {class: "SkP_linked_scroller_H", onscroll: SkillsPanel_Scroll_HDiv_Onscroll, onmouseup: SkillsPanel_Scroll_HDiv_Onmouseup },
 				   m("table", {name: "BUFFER_TABLE", width: "100%"}, [
 					m("tr", [ 
-						m("table", {width: "5500px"}, SkillsPanel_Create_Totals_Rows())			
+						m("table", {width: "5500px"}, SkillsPanel_Create_Totals_Rows(ctrl))			
 					]),		
 				   ])
 				  );		
@@ -152,7 +164,6 @@ SkP_MCV.view = function() {
 		
 		return m("tr", {class:"level_row"}, cells);			
 	}
-	
 	
 /*	
 	function SkillsPanel_Init() {
@@ -332,24 +343,24 @@ SkP_MCV.view = function() {
 		}		
 	}  		
 */	
-	function SkillsPanel_Create_Skill_Rows() {
+	function SkillsPanel_Create_Skill_Rows(ctrl) {
 		var rows = [];
 		var cells = [];
 		
-		for ( var i=0; i < available_skills.length; i++ ) {
+		for ( var i=0; i < ctrl.skills().length; i++ ) {
 			//skill = available_skills[0];
-			skill_info = profession_skill_costs[selected_prof][available_skills[i].split(",")[0]].split("/");
+			skill_info = profession_skill_costs[selected_prof][ctrl.skills()[i].split(",")[0]].split("/");
 			skill_ptp = skill_info[0];
 			skill_mtp = skill_info[1];
 			skill_ranks = skill_info[2];
 			
-			cells = m("tr", {class: /*checked_skills[available_skills[i]] ? "checked_skill_row":*/ "skill_row", key: "skill_row_"+available_skills[i]}, [
-				m("td", m("input", {type: "checkbox", /*checked: checked_skills[available_skills[i]],*/ onclick: MEH })),
-				m("td", available_skills[i]),
+			cells = m("tr", {class: /*checked_skills[available_skills[i]] ? "checked_skill_row":*/ "skill_row", key: "skill_row_"+ctrl.skills()[i]}, [
+				m("td", m("input", {type: "checkbox", checked: "", onclick: m.withAttr("checked", ctrl.hide_unused()[ctrl.skills()[i]]) })),
+				m("td", ctrl.skills()[i]),
 				m("td", m("div", skill_ptp)),
 				m("td", m("div", skill_mtp)),
 				m("td", m("div", "("+skill_ranks+")")),
-				m("td", m("input",{size: "3", maxlength: "3", value: "", onblur: m.withAttr("value", StatisticsPanel_Set_Statistic_Value[statistics[i]]), onkeydown: StatisticsPanel_Input_Box_Onkeydown })),
+				m("td", m("input",{size: "3", maxlength: "3", value: "", onblur: m.withAttr("value", ""), onkeydown: StatisticsPanel_Input_Box_Onkeydown })),
 			]);
 			rows.push(cells);
 		}
@@ -357,23 +368,22 @@ SkP_MCV.view = function() {
 		return rows;
 	}
   
- 	function SkillsPanel_Create_Training_Rows() {
+ 	function SkillsPanel_Create_Training_Rows(ctrl) {
 		var rows = [];
 		var cells = [];
-//alert("here");		
-		for ( var i=0; i < available_skills.length; i++ ) {			
+
+		for ( var i=0; i < ctrl.skills().length; i++ ) {			
 			cells = [];
 			for ( var j=0; j <= 100; j++ ) {
-			cells.push( m("td", {key: "training_cell_"+available_skills[i]+"_"+j}, [ m("div", ""), m("input", {style: {display: "none"}, size: "3", maxlength: "3", value: "", onblur: m.withAttr("value", StatisticsPanel_Set_Statistic_Value[statistics[i]]), onkeydown: StatisticsPanel_Input_Box_Onkeydown }) ] ) );				
+			cells.push( m("td", {key: "training_cell_"+ctrl.skills()[i]+"_"+j}, [ m("div", ""), m("input", {style: {display: "none"}, size: "3", maxlength: "3", value: "", /*onblur: m.withAttr("value", ""), onkeydown: StatisticsPanel_Input_Box_Onkeydown*/ }) ] ) );				
 			}				
-			rows.push(m("tr", {class: "skill_training_row", key: "training_row_"+available_skills[i]}, cells));
+			rows.push(m("tr", {class: "skill_training_row", key: "training_row_"+ctrl.skills()[i]}, cells));
 		}
 		
 		return rows;		
 	} 
 
-
-	function SkillsPanel_Create_Totals_Rows() {	   
+	function SkillsPanel_Create_Totals_Rows(ctrl) {	   
 		var rows = [];
 		var cells = [];
 		
