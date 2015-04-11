@@ -4,16 +4,16 @@
  <!--[if lt IE 9]>
   <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
- <LINK rel="stylesheet" type="text/css" href="js/planner.css" />	
-  <SCRIPT type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></SCRIPT>
-  <script type="text/javascript" src="js/base64.js"></script>
-  <script type="text/javascript" src="js/mithril.min.js"></script>
+  <LINK rel="stylesheet" type="text/css" href="js/planner.css" />	
+<SCRIPT type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></SCRIPT>
+<script type="text/javascript" src="js/base64.js"></script>
   <SCRIPT type="text/javascript" src="js/globals.js"></SCRIPT>
   <SCRIPT type="text/javascript" src="js/main.js"></SCRIPT>
   <SCRIPT type="text/javascript" src="js/statistics_panel.js"></SCRIPT>
   <SCRIPT type="text/javascript" src="js/skills_panel.js"></SCRIPT>
   <SCRIPT type="text/javascript" src="js/maneuvers_panel.js"></SCRIPT>
   <SCRIPT type="text/javascript" src="js/jquery.js"></SCRIPT>
+  </SCRIPT>  
   </HEAD>
  <BODY onload="Planner_Init()"> 
     Name: <input type="text" id="build_name" size="40px"> 
@@ -27,7 +27,10 @@
 		var input = $("#file_picker"); 
 		input.replaceWith(input.val('').clone(true));
 		//document.getElementById('file_picker').addEventListener('change', Planner_Load_Character, false);
-	</SCRIPT>	
+	</SCRIPT>
+	
+	
+	
  
     <ul id="planner_tabs">
       <li><span id="statistics_tab" class="panel_tab">Statistics</span></li>	  
@@ -36,12 +39,84 @@
 	  
       <li><span style="display:none" id="magic_tab" class="panel_tab">Magic</span></li>	  
       <li><span style="display:none" id="combat_tab" class="panel_tab" >Combat</span></li>
-      <li><span style="display:none" id="summary_tab" class="panel_tab">Summary</span></li>		  
+      <li><span style="display:none" id="summary_tab" class="panel_tab">Summary</span></li>	
+	  
     </ul>
-	
-	
-   <div id="panel_container"></div>
-<!--   
+ 
+ 
+   <div id="statistics_panel">
+   <table id="StP_container_table" border="1" width="100%">
+    <tr>
+     <td valign="top" width="25%">
+	  <table id="StP_left_side" border="0" width="100%" >
+	   <tr>	
+	    <td height="23" colspan="5" width="100%">
+		<b>Profession:</b>&nbsp;
+			<select id="StP_selected_profession" onchange="Planner_Panels_Update_Profession_Race();">
+				<option value="bard" >Bard</option>
+				<option value="cleric" >Cleric</option>
+				<option value="empath" >Empath</option>
+				<option value="monk" >Monk</option>
+				<option value="paladin" >Paladin</option>
+				<option value="ranger" >Ranger</option>
+				<option value="rogue" >Rogue</option>
+				<option value="sorcerer" >Sorcerer</option>
+				<option value="warrior" selected="selected">Warrior</option>
+				<option value="wizard">Wizard</option>
+			</select>	  
+		 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			
+         <b>Race:</b>&nbsp;		
+			<select id="StP_selected_race" onchange="Planner_Panels_Update_Profession_Race();">
+				<option value="aelotoi" >Aelotoi</option>
+ 	            <option value="burghal gnome" >Burghal Gnome</option>
+	            <option value="dark elf" >Dark Elf</option>
+	            <option value="dwarf" >Dwarf</option>
+	            <option value="elf" >Elf</option>
+	            <option value="erithian" >Erithian</option>
+	            <option value="forest gnome" >Forest Gnome</option>
+	            <option value="giantman" >Giantman</option>
+	            <option value="half krolvin" >Half Krolvin</option>
+	            <option value="half elf" >Half Elf</option>
+	            <option value="halfling" >Halfling</option>
+	            <option value="human" selected="selected">Human</option>
+	            <option value="sylvankind" >Sylvankind</option>
+	        </select>	  
+
+	    </td>	 		
+	   </tr>
+	   <tr>
+	    <td height="23"></td>
+	   </tr>
+	   <tr>
+	    <td colspan="5">
+			<div id="StP_stat_info_container" class="Planner_linked_scroller_div" style="overflow-y: hidden;"> </div>
+		</td>
+	   </tr>
+	  </table>	  
+	 </td>
+	 <td valign="top">
+	  <table id="StP_right_side">
+	   <tr>
+	    <td height="23"></td>
+	   </tr>
+	   <tr>
+	    <td height="23" id="StP_right_side_title">
+		 <form><b>Statistics by Level</b><input type="radio" name="growth_style" id="StP_show_statistics"  value="statistic" checked="checked" onclick="StatisticsPanel_Calculate_Growth_All();" >Show Statistics Growth<input type="radio" name="growth_style" id="StP_show_bonus" value="bonus" onclick="StatisticsPanel_Calculate_Growth_All();" >Show Statistic Bonuses</form>
+		</td>
+	   </tr>
+	   <tr>
+	    <td height="23" colspan="10">
+	     <div id="StP_growth_container" class="Planner_linked_scroller_div">
+		 </div>
+	    </td>
+	   </tr>
+	  </table>
+	 </td>
+	</tr>
+   </table>
+   </div>
+
+   </div>
    <div id="skills_panel">
    <table id="SkP_container_table" border="1" width="100%">
     <tr>
@@ -158,6 +233,8 @@
 
    <div style="display:none" id="summary_panel">
 	==TEMPORARY TODO LIST:==<BR>
+	GLOBAL:<BR>
+	--Create Save/Load functions. Hold off on doing this until the panels with data that needs to be saved is done.<BR>
 	STATISTICS PANEL:<BR>
 	--Remove spacing row in statistics growth frame and add the Target Level UI above the display options<BR>
 	SKILLS PANEL<BR>
@@ -178,13 +255,7 @@
 	SUMMARY PANEL:<BR>
 	--This will give a general overview of the player overall or at a specific level.
 	--This panel is meant to display the character's training choices in such a way that they can be copy and pasted with ease to a forum post.<BR>
-	POST CAP PANEL:<BR>
-	--Will handle all training after reaching the level cap. Will take in a player's total exp and generate how many extra PTP/MTP they have.<BR>
-	FORMULA PANEL:<BR>
-	--Will calculate as many skill/game mechanic values of interest as possible.<BR>
-	ENHANCITIVE PANEL:<BR>
-	--A place to put all the extra stat/skill ranks and bonuses that can factor into the other panels.<BR>
    </div>   
- -->  
+   
  </BODY>
 </HTML>
