@@ -1,3 +1,6 @@
+# TODO LIST
+# Does this need to be seperate from the globals file? Combining this into globals might be a better idea.
+
 #!/usr/bin/python
 
 import tkinter
@@ -5,120 +8,42 @@ import math
 import Globals as globals
 
 class Character:
-	#def __init__(self, parent):
 	def __init__(self):
 		# Statistics Panel stuff
-		self.race = globals.race_list["Human"]
-		self.profession = globals.prof_list["Warrior"]
-		self.statistics = {}
+		self.race = ""
+		self.profession = ""
+		self.statistics = globals.statistics_list
 		self.stat_bonus = {}
 		self.stat_adj = {}
 		
-		self.StP_radio_var = tkinter.IntVar()
 		self.ptp_base = tkinter.DoubleVar()
 		self.mtp_base = tkinter.DoubleVar()
 		self.stat_totals = [tkinter.IntVar() for i in range(101)]
 		self.ptp_by_level = [tkinter.IntVar() for i in range(101)]		
 		self.mtp_by_level = [tkinter.IntVar() for i in range(101)]
+		self.total_ptp_by_level = [tkinter.IntVar() for i in range(101)]		
+		self.total_mtp_by_level = [tkinter.IntVar() for i in range(101)]
 		
 		self.health_by_level = [tkinter.IntVar() for i in range(101)]
 		self.mana_by_level = [tkinter.IntVar() for i in range(101)]
 		self.stamina_by_level = [tkinter.IntVar() for i in range(101)]
 		self.spirit_by_level = [tkinter.IntVar() for i in range(101)]
 			
-		self.ptp_bgs = ["lightgray" for i in range(101)]
-		self.mtp_bgs = ["lightgray" for i in range(101)]
-		self.ptp_frame = ""
-		self.mtp_frame = ""		
-		
-		
-		
-		self.skills_inter = ""
-		self.skills = {}
-		self.maneuvers = {}
-		self.resources = {}
-		self.calculations = {} # AS, DS, CS, UAF
-		
-	def StP_Init_Statistics(self, stat_objs):	
-		self.statistics = stat_objs
 		for stat in globals.statistics:
 			self.stat_bonus[stat] = tkinter.IntVar()
 			self.stat_adj[stat] = tkinter.IntVar()
-			self.statistics[stat].parent = self
-				
-	def StP_Create_Resources_Frame(self, parent):
-		myframe = tkinter.Frame(parent)	
-		total_frame = tkinter.Frame(myframe)	
-		self.ptp_frame = tkinter.Frame(myframe)
-		self.mtp_frame = tkinter.Frame(myframe)	
-		spacer_frame = tkinter.Frame(myframe)
-		health_frame = tkinter.Frame(myframe)
-		mana_frame = tkinter.Frame(myframe)
-		stamina_frame = tkinter.Frame(myframe)
-		spirit_frame = tkinter.Frame(myframe)
-				
-		total_frame.grid(row=0, column=0)
-		self.ptp_frame.grid(row=1, column=0)
-		self.mtp_frame.grid(row=2, column=0)
-		spacer_frame.grid(row=3, column=0)
-		health_frame.grid(row=4, column=0)
-		mana_frame.grid(row=5, column=0)
-		stamina_frame.grid(row=6, column=0)		
-		spirit_frame.grid(row=7, column=0)		
+			self.statistics[stat].parent = self	
 		
-		for i in range(101):
-			tkinter.Label(total_frame, width=5, bg="lightgray", textvar=self.stat_totals[i]).grid(row=0, column=i, padx="1", pady="1")		
-			tkinter.Label(self.ptp_frame, width=5, bg="lightgray", textvar=self.ptp_by_level[i]).grid(row=0, column=i, padx="1", pady="1")	
-			tkinter.Label(self.mtp_frame, width=5, bg="lightgray", textvar=self.mtp_by_level[i]).grid(row=0, column=i, padx="1", pady="1")	
-			tkinter.Label(spacer_frame, width=5, text="").grid(row=0, column=i)			
-			tkinter.Label(health_frame, width=5, bg="red", fg="white", textvar=self.health_by_level[i]).grid(row=0, column=i, padx="1", pady="1")		
-			tkinter.Label(mana_frame, width=5, bg="blue", fg="white", textvar=self.mana_by_level[i]).grid(row=0, column=i, padx="1", pady="1")		
-			tkinter.Label(stamina_frame, width=5, bg="yellow", textvar=self.stamina_by_level[i]).grid(row=0, column=i, padx="1", pady="1")			
-			tkinter.Label(spirit_frame, width=5, bg="darkgray", fg="white", textvar=self.spirit_by_level[i]).grid(row=0, column=i, padx="1", pady="1")	
-	
-		return myframe
-	
-	
-	def StP_Set_TP_Backgrounds(self):
-		i = 0
-		for cell in self.ptp_frame.winfo_children():	
-			cell["bg"] = self.ptp_bgs[i]
-			i += 1
-	
-		i = 0
-		for cell in self.mtp_frame.winfo_children():
-			cell["bg"] = self.mtp_bgs[i]
-			i += 1
-			
-			
-	def StP_Change_Race(self, race):
-		self.race = globals.race_list[race]
-				
-		for stat in globals.statistics:
-			self.stat_bonus[stat].set(self.race.statistic_bonus[stat])
-			self.stat_adj[stat].set(self.race.statistic_adj[stat] + self.profession.statistic_growth[stat])	
-			self.statistics[stat].adj = self.race.statistic_adj[stat] + self.profession.statistic_growth[stat]
-			self.statistics[stat].Calculate_Growth()
-			self.statistics[stat].Update_Training_Frame()
-			
-		self.StP_Update_Resources()
-	
-	
-	def StP_Change_Profession(self, prof):
-		self.profession = globals.prof_list[prof]
-				
-		for stat in globals.statistics:			
-			self.stat_adj[stat].set(self.race.statistic_adj[stat] + self.profession.statistic_growth[stat])	
-			self.statistics[stat].adj = self.race.statistic_adj[stat] + self.profession.statistic_growth[stat]	
-			self.statistics[stat].Calculate_Growth()
-			self.statistics[stat].Update_Training_Frame()
-
-		self.StP_Update_Resources()
 		
-	def StP_Change_Display_Style(self):	
-		for stat in globals.statistics:
-			self.statistics[stat].Update_Training_Frame()
-	
+		self.build_skills_list = []
+		self.SkP_ptp_leftover = [tkinter.IntVar() for i in range(101)]
+		self.SkP_mtp_leftover = [tkinter.IntVar() for i in range(101)]
+		
+		
+		self.maneuvers = {}
+		self.resources = {}
+		self.calculations = {} # AS, DS, CS, UAF
+			
 		
 	def StP_Update_Resources(self):	
 		for i in range(101):
@@ -147,6 +72,9 @@ class Character:
 			self.mtp_by_level[i].set(math.floor(MTP_sum))	
 						
 			if i == 0:
+				self.total_ptp_by_level[0].set(math.floor(PTP_sum))
+				self.total_mtp_by_level[0].set(math.floor(MTP_sum))					
+			
 				M_bonus1 = self.statistics[self.profession.mana_statistics[0]].values_by_level[0].get()
 				M_bonus2 = self.statistics[self.profession.mana_statistics[1]].values_by_level[0].get()
 				M_bonus1 = 0 if M_bonus1 == "" else int(M_bonus1)
@@ -157,33 +85,36 @@ class Character:
 				self.ptp_base.set(PTP_sum)
 				self.mtp_base.set(MTP_sum)				
 			else:
+				self.total_ptp_by_level[i].set( math.floor(PTP_sum) + self.total_ptp_by_level[i-1].get() )
+				self.total_mtp_by_level[i].set( math.floor(MTP_sum) + self.total_mtp_by_level[i-1].get() )	
+				
 				if self.ptp_by_level[i].get() > self.ptp_by_level[i-1].get():
-					self.ptp_bgs[i] = "#00FF00"
+					globals.panels['Statistics'].ptp_bgs[i] = "#00FF00"
 				else:
-					self.ptp_bgs[i] = "lightgrey"
+					globals.panels['Statistics'].ptp_bgs[i] = "lightgrey"
 					
 				if self.mtp_by_level[i].get() > self.mtp_by_level[i-1].get():
-					self.mtp_bgs[i] = "#00FF00"
+					globals.panels['Statistics'].mtp_bgs[i] = "#00FF00"
 				else:
-					self.mtp_bgs[i] = "lightgrey"
+					globals.panels['Statistics'].mtp_bgs[i] = "lightgrey"
 					
 					
 			#health
-			PF_ranks = 0 # total_ranks_by_level[i]["Physical Fitness"] || 
-			Combat_Toughness = 0 # (10 * total_man_ranks_by_level[i]["Combat Toughness-combat"] + 5) ||
+			PF_ranks = globals.panels['Skills'].Get_Skill_By_Name("Physical Fitness").total_ranks_by_level[i].get() or 0
+			Combat_Toughness = 0 # (10 * total_man_ranks_by_level[i]["Combat Toughness-combat"] + 5) or 0
 			H_str = float(0) if self.statistics["Strength"].values_by_level[0].get() == "" else float(self.statistics["Strength"].values_by_level[0].get())
 			H_con = float(0) if self.statistics["Constitution"].values_by_level[0].get() == "" else float(self.statistics["Constitution"].values_by_level[0].get())
 			con_bonus = float(0) if self.statistics["Constitution"].values_by_level[0].get() == "" else float(self.statistics["Constitution"].values_by_level[0].get())
-			con_bonus = (con_bonus - 50) / 2 + self.stat_bonus["Constitution"].get()
+			con_bonus = int(math.floor((con_bonus - 50) / 2 + self.stat_bonus["Constitution"].get()))
 			self.health_by_level[i].set(min(math.floor((H_str + H_con) / 10) + PF_ranks*5, self.race.max_health + con_bonus) + Combat_Toughness)
 		
 			#mana
-			HP_ranks = 0 # total_ranks_by_level[i]["Harness Power"] || 0;	
-			HP_mana = 0 # (HPranks > i) ? i*3 + HPranks-i : HPranks*3;					
+			HP_ranks = globals.panels['Skills'].Get_Skill_By_Name("Harness Power").total_ranks_by_level[i].get() or 0	
+			HP_mana = i*3 + HP_ranks-i if HP_ranks > i else HP_ranks*3
 			self.mana_by_level[i].set(max(int(math.floor(M_bonus1 + M_bonus2) / 4), 0) + HP_mana)
 	
 			#stamina
-			PF_bonus = 0 # total_bonus_by_level[i]["Physical Fitness"] || 0;		
+			PF_bonus = globals.panels['Skills'].Get_Skill_By_Name("Physical Fitness").bonus_by_level[i].get() or 0		
 			S_str = (STR - 50) / 2 + self.stat_bonus["Strength"].get()
 			S_con = (CON - 50) / 2 + self.stat_bonus["Constitution"].get()
 			S_agi = (AGI - 50) / 2 + self.stat_bonus["Agility"].get()
@@ -196,7 +127,7 @@ class Character:
 				spirit += 1
 			self.spirit_by_level[i].set(int(round(spirit))) 
 		
-		self.StP_Set_TP_Backgrounds()
+		globals.panels['Statistics'].Set_TP_Backgrounds()
 		
 	
 	def Is_Prime_Stat(self, stat):
@@ -207,3 +138,19 @@ class Character:
 			return 1
 		
 			
+			
+	def Update_Skills(self, prof):
+		name = prof.lower()
+		globals.db_cur.execute("SELECT name, type, subskill_of, redux_value, %s_ptp, %s_mtp, %s_max_ranks FROM Skills WHERE %s_max_ranks<>0" % (name, name, name, name))
+		globals.db_con.commit()		
+		data = globals.db_cur.fetchall()	
+		
+		globals.skills = []
+		globals.skills_list = {}		
+		for skill in data:
+			globals.skills.append(skill[0])
+			globals.skills_list[skill[0]] = globals.Skill(skill)
+		globals.character.skills = globals.skills_list	
+		
+		globals.panels['Skills'].SkP_Update_Skills()
+		
