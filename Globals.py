@@ -23,7 +23,7 @@ class Statistic:
 		self.values_by_level[0].set("20")		
 		
 		
-	def On_EntryBox_Update(self, *args):
+	def On_EntryBox_Update(self, *args): 
 		self.Calculate_Growth()
 		self.Update_Training_Frame()
 		self.parent.StP_Update_Resources()
