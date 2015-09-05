@@ -1,3 +1,8 @@
+# TODO LIST
+# Changing professions causes a 2-3 second delay. Find a way to improve the speed.
+# Consider changing the scrolling table structure to a graph format.
+
+
 #!/usr/bin/python
 
 import tkinter
@@ -5,9 +10,13 @@ import Pmw
 import Globals as globals
   
 class Statistics_Panel:  
-	def __init__(self, parent, panel, character):		
+	def __init__(self, parent, panel):		
 		self.parent = parent
-		self.character = character
+		self.ptp_bgs = ["lightgray" for i in range(101)]
+		self.mtp_bgs = ["lightgray" for i in range(101)]
+		self.ptp_frame = ""
+		self.mtp_frame = ""		
+		self.StP_radio_var = tkinter.IntVar()
 		
 		#These are the linked scrolling frames for the Panel
 		self.lvl_header_scrollframe = ""		
@@ -32,8 +41,7 @@ class Statistics_Panel:
 		
 		
 		#initialize defaults
-		self.character.StP_Change_Race("Human")
-		self.character.StP_radio_var.set(1)
+		self.StP_radio_var.set(1)
 				
 				
 	def Create_Info_Header(self, panel):
@@ -52,12 +60,12 @@ class Statistics_Panel:
 		
 		prof_frame = tkinter.Frame(myframe_inner)
 		prof_name = tkinter.Label(prof_frame, width="20", anchor="w", text="Profession:")
-		prof_options = tkinter.OptionMenu(prof_frame, self.profession_dd, *options1, command=self.character.StP_Change_Profession)
+		prof_options = tkinter.OptionMenu(prof_frame, self.profession_dd, *options1, command=self.Change_Profession)
 		prof_options.config(width=15)
 				
 		race_frame = tkinter.Frame(myframe_inner)
 		race_name = tkinter.Label(race_frame, width="20", anchor="w", text="Race:")
-		race_options = tkinter.OptionMenu(race_frame, self.race_dd, *options2, command=self.character.StP_Change_Race)
+		race_options = tkinter.OptionMenu(race_frame, self.race_dd, *options2, command=self.Change_Race)
 		race_options.config(width=15)
 		
 		titleframe = tkinter.Frame(myframe_inner)	
@@ -93,8 +101,8 @@ class Statistics_Panel:
 		myframe_inner = myframe.interior()		
 		
 		for stat in globals.statistics:				
-			self.character.statistics[stat].StP_info_row = self.character.statistics[stat].Create_Info_Row_Frame(myframe_inner, stat, self.character)
-			self.character.statistics[stat].StP_info_row.grid(row=i, column=0)
+			globals.character.statistics[stat].StP_info_row = globals.character.statistics[stat].Create_Info_Row_Frame(myframe_inner, stat, globals.character)
+			globals.character.statistics[stat].StP_info_row.grid(row=i, column=0)
 			i = i + 1		
 		
 		return myframe	
@@ -114,13 +122,13 @@ class Statistics_Panel:
 		spirit_title = tkinter.Label(myframe_inner, width=42, bg="lightgray", anchor="e", text="Spirit")
 		space_title = tkinter.Label(myframe_inner, width=42, text="")
 				
-		total_base = tkinter.Label(myframe_inner, width=5, bg="white", anchor="c", textvar=self.character.stat_totals[0])
-		ptp_base = tkinter.Label(myframe_inner, width=5, bg="white", anchor="c", textvar=self.character.ptp_base)
-		mtp_base = tkinter.Label(myframe_inner, width=5, bg="white", anchor="c", textvar=self.character.mtp_base)
-		health_base = tkinter.Label(myframe_inner, width=5, bg="red", fg="white", anchor="c", textvar=self.character.health_by_level[0])
-		mana_base = tkinter.Label(myframe_inner, width=5, bg="blue", fg="white", anchor="c", textvar=self.character.mana_by_level[0])
-		stamina_base = tkinter.Label(myframe_inner, width=5, bg="yellow", anchor="c", textvar=self.character.stamina_by_level[0])
-		spirit_base = tkinter.Label(myframe_inner, width=5, bg="darkgray", fg="white", anchor="c", textvar=self.character.spirit_by_level[0])
+		total_base = tkinter.Label(myframe_inner, width=5, bg="white", anchor="c", textvar=globals.character.stat_totals[0])
+		ptp_base = tkinter.Label(myframe_inner, width=5, bg="white", anchor="c", textvar=globals.character.ptp_base)
+		mtp_base = tkinter.Label(myframe_inner, width=5, bg="white", anchor="c", textvar=globals.character.mtp_base)
+		health_base = tkinter.Label(myframe_inner, width=5, bg="red", fg="white", anchor="c", textvar=globals.character.health_by_level[0])
+		mana_base = tkinter.Label(myframe_inner, width=5, bg="blue", fg="white", anchor="c", textvar=globals.character.mana_by_level[0])
+		stamina_base = tkinter.Label(myframe_inner, width=5, bg="yellow", anchor="c", textvar=globals.character.stamina_by_level[0])
+		spirit_base = tkinter.Label(myframe_inner, width=5, bg="darkgray", fg="white", anchor="c", textvar=globals.character.spirit_by_level[0])
 		space_title2 = tkinter.Label(myframe_inner, width=5, text="")
 				
 	
@@ -155,8 +163,8 @@ class Statistics_Panel:
 		otherframe = tkinter.Frame(myframe_inner, width=1, height=1)
 		
 		stat_by_lvl = tkinter.Label(otherframe, anchor="w", text="Statistics by Level")		
-		radio1 = tkinter.Radiobutton(otherframe, anchor="w", text="Show Statistics Growth", command=self.character.StP_Change_Display_Style, var=self.character.StP_radio_var, value=1)
-		radio2 = tkinter.Radiobutton(otherframe, anchor="w", text="Show Statistics Bonus", command=self.character.StP_Change_Display_Style , var=self.character.StP_radio_var, value=2)		
+		radio1 = tkinter.Radiobutton(otherframe, anchor="w", text="Show Statistics Growth", command=self.Change_Display_Style, var=self.StP_radio_var, value=1)
+		radio2 = tkinter.Radiobutton(otherframe, anchor="w", text="Show Statistics Bonus", command=self.Change_Display_Style , var=self.StP_radio_var, value=2)		
 			
 		self.lvl_header_scrollframe = Pmw.ScrolledFrame(myframe_inner,  usehullsize = 1, hull_width = 820, hull_height = 25 )		
 		self.lvl_header_scrollframe.configure(hscrollmode = "none")		
@@ -184,8 +192,8 @@ class Statistics_Panel:
 		self.training_middle_scrollframe.configure(hscrollmode = "none", vscrollmode = "none")
 
 		for stat in globals.statistics:	
-			self.character.statistics[stat].StP_training_row = self.character.statistics[stat].Create_Training_Row_Frame(self.training_middle_scrollframe_inner)
-			self.character.statistics[stat].StP_training_row.grid(row=i, column=0)
+			globals.character.statistics[stat].StP_training_row = globals.character.statistics[stat].Create_Training_Row_Frame(self.training_middle_scrollframe_inner)
+			globals.character.statistics[stat].StP_training_row.grid(row=i, column=0)
 			i = i + 1						
 		
 		return self.training_middle_scrollframe
@@ -198,7 +206,7 @@ class Statistics_Panel:
 		
 		self.resource_footer_scrollframe.component("horizscrollbar").config(command=self.Linked_Scrolling)
 		
-		self.character.StP_Create_Resources_Frame(self.resource_footer_scrollframe_inner).grid(row=0, column=0, sticky="nw")		
+		self.Create_Resources_Frame(self.resource_footer_scrollframe_inner).grid(row=0, column=0, sticky="nw")		
 						
 		return self.resource_footer_scrollframe
 			
@@ -207,5 +215,92 @@ class Statistics_Panel:
 		self.training_middle_scrollframe.xview(*args)
 		self.resource_footer_scrollframe.xview(*args)
 		self.lvl_header_scrollframe.xview(*args)
+	
+	
+	def Change_Display_Style(self):	
+		for stat in globals.statistics:
+			globals.character.statistics[stat].Update_Training_Frame()
+
+			
+	def Change_Race(self, race):	
+		globals.db_cur.execute("SELECT * FROM Races WHERE name='%s'" % race)
+		globals.db_con.commit()		
+		data = globals.db_cur.fetchone()				
+				
+		globals.character.race = globals.Race(data)
+						
+		for stat in globals.statistics:
+			globals.character.stat_bonus[stat].set(globals.character.race.statistic_bonus[stat])
+			globals.character.stat_adj[stat].set(globals.character.race.statistic_adj[stat] + globals.character.profession.statistic_growth[stat])	
+			globals.character.statistics[stat].adj = globals.character.race.statistic_adj[stat] + globals.character.profession.statistic_growth[stat]
+			globals.character.statistics[stat].Calculate_Growth()
+			globals.character.statistics[stat].Update_Training_Frame()
+			
+		globals.character.StP_Update_Resources()
+		# Temporary Sanity check for the Skills panel. This one is temporary
+		globals.panels['Skills'].ClearAll_Button_Onclick()
+
 		
+	def Change_Profession(self, prof):
+		globals.db_cur.execute("SELECT * FROM Professions WHERE name='%s'" % prof)
+		globals.db_con.commit()		
+		data = globals.db_cur.fetchone()				
+				
+		globals.character.profession = globals.Profession(data)
+				
+		for stat in globals.statistics:			
+			globals.character.stat_adj[stat].set(globals.character.race.statistic_adj[stat] + globals.character.profession.statistic_growth[stat])	
+			globals.character.statistics[stat].adj = globals.character.race.statistic_adj[stat] + globals.character.profession.statistic_growth[stat]	
+			globals.character.statistics[stat].Calculate_Growth()
+			globals.character.statistics[stat].Update_Training_Frame()
+
+		globals.character.Update_Skills(prof)
+		globals.character.StP_Update_Resources()	
+		# Temporary Sanity check for the Skills panel. This one will stay since the whole build changes badly when the prof changes
+		globals.panels['Skills'].ClearAll_Button_Onclick()
+
+
+	def Create_Resources_Frame(self, parent):
+		myframe = tkinter.Frame(parent)	
+		total_frame = tkinter.Frame(myframe)	
+		self.ptp_frame = tkinter.Frame(myframe)
+		self.mtp_frame = tkinter.Frame(myframe)	
+		spacer_frame = tkinter.Frame(myframe)
+		health_frame = tkinter.Frame(myframe)
+		mana_frame = tkinter.Frame(myframe)
+		stamina_frame = tkinter.Frame(myframe)
+		spirit_frame = tkinter.Frame(myframe)
+				
+		total_frame.grid(row=0, column=0)
+		self.ptp_frame.grid(row=1, column=0)
+		self.mtp_frame.grid(row=2, column=0)
+		spacer_frame.grid(row=3, column=0)
+		health_frame.grid(row=4, column=0)
+		mana_frame.grid(row=5, column=0)
+		stamina_frame.grid(row=6, column=0)		
+		spirit_frame.grid(row=7, column=0)		
 		
+		for i in range(101):
+			tkinter.Label(total_frame, width=5, bg="lightgray", textvar=globals.character.stat_totals[i]).grid(row=0, column=i, padx="1", pady="1")		
+			tkinter.Label(self.ptp_frame, width=5, bg="lightgray", textvar=globals.character.ptp_by_level[i]).grid(row=0, column=i, padx="1", pady="1")	
+			tkinter.Label(self.mtp_frame, width=5, bg="lightgray", textvar=globals.character.mtp_by_level[i]).grid(row=0, column=i, padx="1", pady="1")	
+			tkinter.Label(spacer_frame, width=5, text="").grid(row=0, column=i)			
+			tkinter.Label(health_frame, width=5, bg="red", fg="white", textvar=globals.character.health_by_level[i]).grid(row=0, column=i, padx="1", pady="1")		
+			tkinter.Label(mana_frame, width=5, bg="blue", fg="white", textvar=globals.character.mana_by_level[i]).grid(row=0, column=i, padx="1", pady="1")		
+			tkinter.Label(stamina_frame, width=5, bg="yellow", textvar=globals.character.stamina_by_level[i]).grid(row=0, column=i, padx="1", pady="1")			
+			tkinter.Label(spirit_frame, width=5, bg="darkgray", fg="white", textvar=globals.character.spirit_by_level[i]).grid(row=0, column=i, padx="1", pady="1")	
+	
+		return myframe			
+
+		
+	def Set_TP_Backgrounds(self):
+		i = 0
+		for cell in self.ptp_frame.winfo_children():	
+			cell["bg"] = self.ptp_bgs[i]
+			i += 1
+	
+		i = 0
+		for cell in self.mtp_frame.winfo_children():
+			cell["bg"] = self.mtp_bgs[i]
+			i += 1		
+						
