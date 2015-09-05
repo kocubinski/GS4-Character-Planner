@@ -1,7 +1,10 @@
+# This file contains variables used by 2 or more other planner files.
+
 #!/usr/bin/python
 
 import tkinter
 import math
+import Character as char
 
 class Statistic:
 	def __init__(self,name):
@@ -24,10 +27,13 @@ class Statistic:
 		self.Calculate_Growth()
 		self.Update_Training_Frame()
 		self.parent.StP_Update_Resources()
+		#Temporary Sanity check for the skills panel. I'll remove this later
+#		panels['Skills'].ClearAll_Button_Onclick()
 	
 	
 	def Update_Training_Frame(self):	
-		radio = self.parent.StP_radio_var.get()
+		global panels
+		radio = panels['Statistics'].StP_radio_var.get()
 		for i in range(101):			
 			if radio == 2:			
 				self.StP_display_values[i].set(self.bonuses_by_level[i].get())
@@ -122,152 +128,76 @@ class Statistic:
 				return False
 		
 		return True
-		
-	
 	
 		
 class Race:
-	def __init__(self, name, health, health_regen, spirit_regen, decay, encumber, weight, eltd, sptd, sotd, potd, ditd, bonus, adj):	
-		self.name = name
-		self.max_health = health
-		self.base_regen = health_regen
-		self.spirit_regen = spirit_regen
-		self.decay_timer = decay
-		self.encumberance_factor = encumber
-		self.weight_factor = weight
-		self.elemental_td = eltd
-		self.spiritual_td = sptd
-		self.sorc_td = sotd
-		self.poison_td = potd
-		self.disease_td = ditd
-		self.statistic_bonus = bonus
-		self.statistic_adj = adj
-		
-		
-		
+	def __init__(self, arr):	
+		self.name = arr['name']
+		self.man_bonus = arr['manauever_bonus']
+		self.max_health = arr['max_health']
+		self.base_regen = arr['health_regen']
+		self.spirit_regen = arr['spirit_regen']
+		self.decay_timer = arr['decay_timer']
+		self.encumberance_factor = arr['encumberance_factor']
+		self.weight_factor = arr['weight_factor']
+		self.elemental_td = arr['elemental_td']
+		self.spiritual_td = arr['spiritual_td']
+		self.sorc_td = arr['sorc_td']
+		self.poison_td = arr['poison_td']
+		self.disease_td = arr['disease_td']
+		self.statistic_bonus = { "Strength": arr['strength_bonus'], "Constitution": arr['constitution_bonus'], "Dexterity": arr['dexterity_bonus'], "Agility": arr['agility_bonus'], "Discipline": arr['discipline_bonus'], "Aura": arr['aura_bonus'], "Logic": arr['logic_bonus'], "Intuition": arr['intuition_bonus'], "Wisdom": arr['wisdom_bonus'], "Influence": arr['influence_bonus'] }
+		self.statistic_adj = { "Strength": arr['strength_adj'], "Constitution": arr['constitution_adj'], "Dexterity": arr['dexterity_adj'], "Agility": arr['agility_adj'], "Discipline": arr['discipline_adj'], "Aura": arr['aura_adj'], "Logic": arr['logic_adj'], "Intuition": arr['intuition_adj'], "Wisdom": arr['wisdom_adj'], "Influence": arr['influence_adj'] }
+			
 
 class Profession:
-	def __init__(self, name, type, prime, mana, spell, growth, ptp, mtp, ranks):
-		self.name = name
-		self.type = type
-		self.prime_statistics = prime;
-		self.mana_statistics = mana;
-		self.spell_circles = spell;
-		self.statistic_growth = growth;
-		self.skills_PTP_costs = ptp
-		self.skills_MTP_costs = mtp
-		self.skills_max_ranks = ranks
+	def __init__(self, arr):
+		self.name = arr['name']
+		self.type = arr['type']
+		self.prime_statistics = [ arr['prime_statistics1'], arr['prime_statistics2'] ]
+		self.mana_statistics = [ arr['mana_statistic1'], arr['mana_statistic1'] ]
+		self.spell_circles = [ arr['spell_circle1'], arr['spell_circle2'] ]
+		if arr['spell_circle3'] != "NONE":
+			self.spell_circles.append(arr['spell_circle3'])
+		self.statistic_growth = { "Strength": arr['strength_growth'], "Constitution": arr['constitution_growth'], "Dexterity": arr['dexterity_growth'], "Agility": arr['agility_growth'], "Discipline": arr['discipline_growth'], "Aura": arr['aura_growth'], "Logic": arr['logic_growth'], "Intuition": arr['intuition_growth'], "Wisdom": arr['wisdom_growth'], "Influence": arr['influence_growth'] }
+		self.skills_PTP_costs = ""
+		self.skills_MTP_costs = ""
+		self.skills_max_ranks = ""
 
+
+class Skill:
+	def __init__(self, arr):
+		self.name = arr[0]
+		self.type = arr[1]
+		self.subskill_of = arr[2]
+		self.redux = arr[3]
+		self.ptp_cost = arr[4]
+		self.mtp_cost = arr[5]
+		self.max_ranks = arr[6]
 		
+			
+			
+#Planner globals		
+root = tkinter.Tk();			
+version = "v2.1"
+db_file = "GS4_Planner.db";	
+db_con = "";
+db_cur = "";
+panels = {}
+error_dialog = ""
+error_dialogmsg = tkinter.StringVar()
+error_event = 0
 		
-root = tkinter.Tk();		
-		
-		
+# Statistics Panel globals		
+races = ["Aelotoi", "Burghal Gnome", "Dark Elf", "Dwarf", "Elf", "Erithian", "Forest Gnome", "Giantman", "Half Elf", "Half Krolvin", "Halfling", "Human", "Sylvankind"]	
+professions = ["Bard", "Cleric", "Empath", "Monk", "Paladin", "Ranger", "Rogue", "Sorcerer", "Warrior", "Wizard"]
 statistics = ["Strength", "Constitution", "Dexterity", "Agility", "Discipline", "Aura", "Logic", "Intuition", "Wisdom", "Influence"]
 statistics_list = {}		
 for stat in statistics:
 	statistics_list[stat] = Statistic(stat)
-
 	
-races = ["Aelotoi", "Burghal Gnome", "Dark Elf", "Dwarf", "Elf", "Erithian", "Forest Gnome", "Giantman", "Half Elf", "Half Krolvin", "Halfling", "Human", "Sylvankind"]
-race_list = {}
+# Skills Panel globals	
+skills = []
+skills_list = {}	
 
-race_list["Aelotoi"] = Race("Aelotoi", 120, 1, 1, 10, 0.75, 0.65, 0, 0, 0, 0, 0,
-		{ "Strength": -5, "Constitution": 0, "Dexterity": 5, "Agility": 10, "Discipline": 5, "Aura": 0, "Logic": 5, "Intuition": 5, "Wisdom": 0, "Influence": 0 },	
-		{ "Strength": 0, "Constitution": -2, "Dexterity": 3, "Agility": 3, "Discipline": 2, "Aura": 0, "Logic": 0, "Intuition": 2, "Wisdom": 0, "Influence": 3 }
-)	
-race_list["Burghal Gnome"] = Race("Burghal Gnome", 90, 1, 1, 14, 0.78, 0.7, 0, 0, 0, 0, 0,
-	{ "Strength": -15, "Constitution": 10, "Dexterity": 10, "Agility": 10, "Discipline": -5, "Aura": 5, "Logic": 10, "Intuition": 5, "Wisdom": 0, "Influence": -5 },
-	{ "Strength": -5, "Constitution": 0, "Dexterity": 3, "Agility": 3, "Discipline": -3, "Aura": -2, "Logic": 5, "Intuition": 5, "Wisdom": 0, "Influence": 0 }
-)	
-race_list["Dark Elf"] = Race("Dark Elf", 120, 1, 1, 10, 0.84, 0.75, -5, -5, -5, 10, 100,
-		{ "Strength": 0, "Constitution": -5, "Dexterity": 10, "Agility": 5, "Discipline": -10, "Aura": 10, "Logic": 0, "Intuition": 5, "Wisdom": 5, "Influence": -5 },
-		{ "Strength": 0, "Constitution": -2, "Dexterity": 5, "Agility": 5, "Discipline": -2, "Aura": 0, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 0 }		
-	)	
-race_list["Dwarf"] = Race("Dwarf", 140, 3, 2, 16, 0.8, 0.75, 30, 0, 15, 20, 15,
-		{ "Strength": 10, "Constitution": 15, "Dexterity": 0, "Agility": -5, "Discipline": 10, "Aura": -10, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": -10 },
-		{ "Strength": 5, "Constitution": 5, "Dexterity": -3, "Agility": -5, "Discipline": 3, "Aura": 0, "Logic": 0, "Intuition": 0, "Wisdom": 3, "Influence": -2 }		
-	)
-race_list["Elf"] = Race("Elf", 130, 1, 1, 10, 0.78, 0.7, -5, -5, -5, 10, 100,
-		{ "Strength": 0, "Constitution": 0, "Dexterity": 5, "Agility": 15, "Discipline": -15, "Aura": 5, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 10 },
-		{ "Strength": 0, "Constitution": -5, "Dexterity": 5, "Agility": 3, "Discipline": -5, "Aura": 5, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 3 }		
-	)
-race_list["Erithian"] = Race("Erithian", 120, 1, 1, 13, 0.85, 0.75, 0, 0, 0, 0, 0,
-		{ "Strength": -5, "Constitution": 10, "Dexterity": 0, "Agility": 0, "Discipline": 5, "Aura": 0, "Logic": 5, "Intuition": 0, "Wisdom": 0, "Influence": 10 },
-		{ "Strength": -2, "Constitution": 0, "Dexterity": 0, "Agility": 0, "Discipline": 3, "Aura": 0, "Logic": 2, "Intuition": 0, "Wisdom": 0, "Influence": 3 }		
-	)
-race_list["Forest Gnome"] = Race("Forest Gnome", 100, 1, 2, 16, 0.6, 0.45, 0, 0, 0, 0, 0,
-		{ "Strength": -10, "Constitution": 10, "Dexterity": 5, "Agility": 10, "Discipline": 5, "Aura": 0, "Logic": 5, "Intuition": 0, "Wisdom": 5, "Influence": -5 },
-		{ "Strength": -3, "Constitution": 2, "Dexterity": 2, "Agility": 3, "Discipline": 2, "Aura": 0, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 0 }		
-	)
-race_list["Giantman"] = Race("Giantman", 200, 3, 1, 13, 1.33, 1.2, -5, -5, 0, 0, 0,
-		{ "Strength": 15, "Constitution": 10, "Dexterity": -5, "Agility": -5, "Discipline": 0, "Aura": -5, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 5 },
-		{ "Strength": 5, "Constitution": 3, "Dexterity": -2, "Agility": -2, "Discipline": 0, "Aura": 0, "Logic": 0, "Intuition": 2, "Wisdom": 0, "Influence": 0 }		
-	)
-race_list["Half Elf"] = Race("Half Elf", 135, 2, 1, 10, 0.92, 0.8, -5, -5, -5, 0, 50,
-		{ "Strength": 0, "Constitution": 0, "Dexterity": 5, "Agility": 10, "Discipline": -5, "Aura": 0, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 5 },
-		{ "Strength": 2, "Constitution": 0, "Dexterity": 2, "Agility": 2, "Discipline": -2, "Aura": 0, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 0 }		
-	)
-race_list["Half Krolvin"] = Race("Half Krolvin", 165, 1, 1, 13, 1.1, 1, 0, 0, 0, 0, 0,
-		{ "Strength": 10, "Constitution": 10, "Dexterity": 0, "Agility": 5, "Discipline": 0, "Aura": 0, "Logic": -10, "Intuition": 0, "Wisdom": -5, "Influence": -5 },
-		{ "Strength": 3, "Constitution": 5, "Dexterity": 2, "Agility": 2, "Discipline": 0, "Aura": -2, "Logic": -2, "Intuition": 0, "Wisdom": 0, "Influence": -2 }		
-	)
-race_list["Halfling"] = Race("Halfling", 100, 3, 2, 16, 0.5, 0.45, 40, 0, 20, 30, 30,
-		{ "Strength": -15, "Constitution": 10, "Dexterity": 15, "Agility": 10, "Discipline": -5, "Aura": -5, "Logic": 5, "Intuition": 10, "Wisdom": 0, "Influence": -5 },
-		{ "Strength": -5, "Constitution": 5, "Dexterity": 5, "Agility": 5, "Discipline": -2, "Aura": 0, "Logic": -2, "Intuition": 0, "Wisdom": 0, "Influence": 0 }		
-	)
-race_list["Human"] = Race("Human", 150, 2, 1, 14, 1, 0.9, 0, 0, 0, 0, 0,
-		{ "Strength": 5, "Constitution": 0, "Dexterity": 0, "Agility": 0, "Discipline": 0, "Aura": 0, "Logic": 5, "Intuition": 5, "Wisdom": 0, "Influence": 0 },
-		{ "Strength": 2, "Constitution": 2, "Dexterity": 0, "Agility": 0, "Discipline": 0, "Aura": 0, "Logic": 0, "Intuition": 2, "Wisdom": 0, "Influence": 0 }		
-	)
-race_list["Sylvankind"] = Race("Sylvankind", 130, 1, 1, 10, 0.81, 0.7, -5, -5, -5, 10, 100,
-		{ "Strength": 0, "Constitution": 0, "Dexterity": 10, "Agility": 5, "Discipline": -5, "Aura": 5, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 0 },
-		{ "Strength": -3, "Constitution": -2, "Dexterity": 5, "Agility": 5, "Discipline": -5, "Aura": 3, "Logic": 0, "Intuition": 0, "Wisdom": 0, "Influence": 3 }		
-	)		
-
-
-	
-professions = ["Bard", "Cleric", "Empath", "Monk", "Paladin", "Ranger", "Rogue", "Sorcerer", "Warrior", "Wizard"]
-prof_list = {}
-
-prof_list["Bard"] = Profession( "Bard", "semi", [ "Influence", "Aura" ], [ "Influence", "Aura" ], [ "Minor Elemental", "Bard" ],
-		{ "Strength": 25, "Constitution": 20, "Dexterity": 25, "Agility": 20, "Discipline": 15, "Aura": 25, "Logic": 10, "Intuition": 15, "Wisdom": 20, "Influence": 30 },
-		0,0,0	
-	)
-prof_list["Cleric"] = Profession( "Cleric", "pure", [ "Wisdom", "Intuition" ], [ "Wisdom", "Wisdom" ], [ "Minor Spiritual", "Major Spiritual", "Cleric" ],
-		{ "Strength": 20, "Constitution": 20, "Dexterity": 10, "Agility": 15, "Discipline": 25, "Aura": 15, "Logic": 25, "Intuition": 25, "Wisdom": 30, "Influence": 20 },
-		0,0,0	
-	)
-prof_list["Empath"] = Profession( "Empath", "pure", [ "Wisdom", "Influence" ], [ "Wisdom", "Influence" ], [ "Minor Spiritual", "Major Spiritual", "Empath" ],
-		{ "Strength": 10, "Constitution": 20, "Dexterity": 15, "Agility": 15, "Discipline": 25, "Aura": 20, "Logic": 25, "Intuition": 20, "Wisdom": 30, "Influence": 25 },
-		0,0,0	
-	)
-prof_list["Monk"] = Profession( "Monk", "square", [ "Agility", "Strength" ], [ "Wisdom", "Logic" ], [ "Minor Spiritual", "Minor Mental" ],
-		{ "Strength": 25, "Constitution": 25, "Dexterity": 20, "Agility": 30, "Discipline": 25, "Aura": 15, "Logic": 20, "Intuition": 20, "Wisdom": 15, "Influence": 10 },
-		0,0,0	
-	)
-prof_list["Paladin"] = Profession( "Paladin", "semi", [ "Wisdom", "Strength" ], [ "Wisdom", "Wisdom" ], [ "Minor Spiritual", "Paladin" ],
-		{ "Strength": 30, "Constitution": 25, "Dexterity": 20, "Agility": 20, "Discipline": 25, "Aura": 15, "Logic": 10, "Intuition": 15, "Wisdom": 25, "Influence": 20 },
-		0,0,0	
-	)
-prof_list["Ranger"] = Profession( "Ranger", "semi", [ "Dexterity", "Intuition" ], [ "Wisdom", "Wisdom" ], [ "Minor Spiritual", "Ranger" ],
-		{ "Strength": 25, "Constitution": 20, "Dexterity": 30, "Agility": 20, "Discipline": 20, "Aura": 15, "Logic": 15, "Intuition": 15, "Wisdom": 25, "Influence": 10 },
-		0,0,0	
-	)
-prof_list["Rogue"] = Profession( "Rogue", "square", [ "Dexterity", "Agility" ], [ "Aura", "Wisdom" ], [ "Minor Elemental", "Minor Spiritual" ],
-		{ "Strength": 25, "Constitution": 20, "Dexterity": 25, "Agility": 30, "Discipline": 20, "Aura": 15, "Logic": 20, "Intuition": 25, "Wisdom": 10, "Influence": 15 },
-		0,0,0	
-	)
-prof_list["Sorcerer"] = Profession( "Sorcerer", "pure", [ "Aura", "Wisdom" ], [ "Aura", "Wisdom" ], [ "Minor Elemental", "Minor Spiritual", "Sorcerer" ],
-		{ "Strength": 10, "Constitution": 15, "Dexterity": 20, "Agility": 15, "Discipline": 25, "Aura": 30, "Logic": 25, "Intuition": 20, "Wisdom": 25, "Influence": 20 },
-		0,0,0	
-	)
-prof_list["Warrior"] = Profession( "Warrior", "square", [ "Constitution", "Strength" ], [ "Aura", "Wisdom" ], [ "Minor Elemental", "Minor Spiritual" ],
-		{ "Strength": 30, "Constitution": 25, "Dexterity": 25, "Agility": 25, "Discipline": 20, "Aura": 15, "Logic": 10, "Intuition": 20, "Wisdom": 15, "Influence": 20 },
-		0,0,0	
-	)
-prof_list["Wizard"] = Profession( "Wizard", "pure", [ "Aura", "Logic"], [ "Aura", "Aura"], [ "Minor Elemental", "Major Elemental", "Wizard" ],
-		{ "Strength": 10, "Constitution": 15, "Dexterity": 25, "Agility": 15, "Discipline": 20, "Aura": 30, "Logic": 25, "Intuition": 25, "Wisdom": 20, "Influence": 20 },
-		0,0,0	
-	)	
-	
+# Character global needs to be declared last since it uses the above globals
+character = char.Character();
