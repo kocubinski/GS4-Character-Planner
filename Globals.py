@@ -23,7 +23,7 @@ class Statistic:
 		self.values_by_level[0].set("20")		
 		
 		
-	def On_EntryBox_Update(self, *args): 
+	def On_EntryBox_Update(self, *args):
 		self.Calculate_Growth()
 		self.Update_Training_Frame()
 		self.parent.StP_Update_Resources()
@@ -174,11 +174,54 @@ class Skill:
 		self.mtp_cost = arr[5]
 		self.max_ranks = arr[6]
 		
+
+class Maneuver:
+	def __init__(self, arr):
+		self.name = arr[0]
+		self.mnemonic = arr[1]
+		self.type = arr[2]
+		self.max_ranks = arr[3]	
+		self.cost_by_rank = [arr[4], arr[5], arr[6], arr[7], arr[8]]
+		self.prerequisites = arr[9]	
+	
+		for i in range(0,5):
+			if self.cost_by_rank[i] == "NONE":
+				self.cost_by_rank[i] = "-"
+
+	def Get_Cost_At_Rank(self, rank, prof_type):
+		if self.cost_by_rank[rank] == "-":
+			return "-"
 			
+		if prof_type == "square" or self.type != "combat":
+			modifier = 1
+		elif prof_type == "semi":
+			modifier = 1.5
+		elif prof_type == "pure":
+			modifier = 2	
+
+		return math.floor(int(self.cost_by_rank[rank]) * modifier)
+				
+				
+	def Get_Total_Cost_At_Rank(self, rank, prof_type):
+		total = 0
+		if prof_type == "square" or self.type != "combat":
+			modifier = 1
+		elif prof_type == "semi":
+			modifier = 1.5
+		elif prof_type == "pure":
+			modifier = 2	
+				
+		if rank > 5 or self.cost_by_rank[rank-1] == "-":
+			return -1
 			
+		for i in range(0, rank):
+			total += math.floor(int(self.cost_by_rank[i]) * modifier)
+			
+		return total
+
 #Planner globals		
 root = tkinter.Tk();			
-version = "v2.1"
+version = "v2.2"
 db_file = "GS4_Planner.db";	
 db_con = "";
 db_cur = "";
@@ -198,6 +241,14 @@ for stat in statistics:
 # Skills Panel globals	
 skills = []
 skills_list = {}	
+
+# Maneuvers Panel globals
+combat_maneuvers = []
+shield_maneuvers = []
+armor_maneuvers = []
+combat_maneuvers_list = {}
+shield_maneuvers_list = {}
+armor_maneuvers_list = {}
 
 # Character global needs to be declared last since it uses the above globals
 character = char.Character();
