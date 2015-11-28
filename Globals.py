@@ -1,6 +1,6 @@
 # This file contains variables used by 2 or more other planner files.
 
-#!/usr/bin/python
+#!/usr/bin/python 
 
 import tkinter
 import math
