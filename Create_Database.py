@@ -22,7 +22,7 @@ if data != None:
 
 
 cur.execute("CREATE TABLE Races (name, manauever_bonus, max_health, health_regen, spirit_regen, decay_timer, encumberance_factor, weight_factor, elemental_td, spiritual_td, sorc_td, poison_td, disease_td, strength_bonus, constitution_bonus, dexterity_bonus, agility_bonus, discipline_bonus, aura_bonus, logic_bonus, intuition_bonus, wisdom_bonus, influence_bonus, strength_adj, constitution_adj, dexterity_adj, agility_adj, discipline_adj, aura_adj, logic_adj, intuition_adj, wisdom_adj, influence_adj)")
-   
+    
 cur.execute("INSERT INTO Races VALUES('Aelotoi', 'good', 120, 1, 1, 10, 0.75, 0.65, 0, 0, 0, 0, 0,  -5, 0, 5, 10, 5, 0, 5, 5, 0, 0,  0, -2, 3, 3, 2, 0, 0, 2, 0, 3) ")
 cur.execute("INSERT INTO Races VALUES('Burghal Gnome', 'best', 90, 1, 1, 14, 0.78, 0.7, 0, 0, 0, 0, 0,  -15, 10, 10, 10, -5, 5, 10, 5, 0, -5,  -5, 0, 3, 3, -3, -2, 5, 5, 0, 0) ")
 cur.execute("INSERT INTO Races VALUES('Dark Elf', 'good', 120, 1, 1, 10, 0.84, 0.75, -5, -5, -5, 10, 100,  0, -5, 10, 5, -10, 10, 0, 5, 5, -5,  0, -2, 5, 5, 5, -2, 0, 0, 0, 0) ")
