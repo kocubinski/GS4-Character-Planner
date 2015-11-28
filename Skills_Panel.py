@@ -399,6 +399,7 @@ class Skills_Panel:
 	def Create_Schedule(self):		
 		goal = 0; tranks = 0; estimated_ranks = 0
 		
+		globals.character.scheduled_skills_list = {}
 		# Clear schedule before using it.
 		for row in self.schedule_skills_list:
 			row.Set_To_Default()
@@ -433,9 +434,11 @@ class Skills_Panel:
 					else:
 						estimated_ranks = int(math.floor(estimated_ranks))
 #					print("%s %s" % (estimated_ranks, tranks))
-					row.Calculate_Ranks_Info(i, estimated_ranks-tranks-start)			
+					row.Calculate_Ranks_Info(i, estimated_ranks-tranks-start)	
+					globals.character.scheduled_skills_list[row.name] = row
 			else:
 				row.Calculate_Ranks_Info(int(bskill.slvl.get()), int(bskill.goal.get()))
+				globals.character.scheduled_skills_list[row.name] = row
 #				goal = int(bskill.goal.get())
 #				taken = 0
 #				start_lvl = int(bskill.slvl.get())
