@@ -36,11 +36,25 @@ class Character:
 		
 		
 		self.build_skills_list = []
+		self.scheduled_skills_list = {}
 		self.SkP_ptp_leftover = [tkinter.IntVar() for i in range(101)]
 		self.SkP_mtp_leftover = [tkinter.IntVar() for i in range(101)]
 		
 		
+		self.build_combat_maneuvers_list = []
+		self.build_armor_maneuvers_list = []
+		self.build_shield_maneuvers_list = []
 		self.maneuvers = {}
+		self.combat_by_level = [tkinter.IntVar() for i in range(101)]
+		self.shield_by_level = [tkinter.IntVar() for i in range(101)]
+		self.armor_by_level = [tkinter.IntVar() for i in range(101)]
+		self.total_combat_by_level = [tkinter.IntVar() for i in range(101)]
+		self.total_shield_by_level = [tkinter.IntVar() for i in range(101)]
+		self.total_armor_by_level = [tkinter.IntVar() for i in range(101)]
+		
+		
+		
+		
 		self.resources = {}
 		self.calculations = {} # AS, DS, CS, UAF
 			
@@ -154,3 +168,30 @@ class Character:
 		
 		globals.panels['Skills'].SkP_Update_Skills()
 		
+	def Update_Maneuvers(self, prof):
+		name = prof.lower()
+		globals.db_cur.execute("SELECT name, mnemonic, type, ranks, cost_rank1, cost_rank2, cost_rank3, cost_rank4, cost_rank5, prerequisites FROM Maneuvers WHERE available_%s=1 ORDER BY name" % (name))
+		globals.db_con.commit()		
+		data = globals.db_cur.fetchall()	
+
+		globals.combat_maneuvers[:] = []
+		globals.shield_maneuvers[:] = []
+		globals.armor_maneuvers[:] = []
+		globals.combat_maneuvers_list.clear()
+		globals.shield_maneuvers_list.clear()
+		globals.armor_maneuvers_list.clear()		
+		for man in data:
+			if man[2] == "combat":	
+				globals.combat_maneuvers.append(man[0])
+				globals.combat_maneuvers_list[man[0]] = globals.Maneuver(man)
+			elif man[2] == "shield":
+				globals.shield_maneuvers.append(man[0])
+				globals.shield_maneuvers_list[man[0]] = globals.Maneuver(man)
+			elif man[2] == "armor":
+				globals.armor_maneuvers.append(man[0])
+				globals.armor_maneuvers_list[man[0]] = globals.Maneuver(man)
+		globals.character.combat_maneuvers = globals.combat_maneuvers_list	
+		globals.character.shield_maneuvers = globals.shield_maneuvers_list	
+		globals.character.armor_maneuvers = globals.armor_maneuvers_list	
+						
+		globals.panels['Maneuvers'].ManP_Update_Maneuvers()		
