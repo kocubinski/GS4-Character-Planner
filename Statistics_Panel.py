@@ -237,8 +237,9 @@ class Statistics_Panel:
 			globals.character.statistics[stat].Update_Training_Frame()
 			
 		globals.character.StP_Update_Resources()
-		# Temporary Sanity check for the Skills panel. This one is temporary
+		# Temporary Sanity check for other panels. This one is temporary
 		globals.panels['Skills'].ClearAll_Button_Onclick()
+		globals.panels['Maneuvers'].Clear_Button_Onclick("All")
 
 		
 	def Change_Profession(self, prof):
@@ -255,9 +256,11 @@ class Statistics_Panel:
 			globals.character.statistics[stat].Update_Training_Frame()
 
 		globals.character.Update_Skills(prof)
+		globals.character.Update_Maneuvers(prof)
 		globals.character.StP_Update_Resources()	
-		# Temporary Sanity check for the Skills panel. This one will stay since the whole build changes badly when the prof changes
+		
 		globals.panels['Skills'].ClearAll_Button_Onclick()
+		globals.panels['Maneuvers'].Clear_Button_Onclick("All")
 
 
 	def Create_Resources_Frame(self, parent):
