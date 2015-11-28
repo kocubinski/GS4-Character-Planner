@@ -14,6 +14,7 @@ import Globals as globals
 import Character as char
 import Statistics_Panel as StP
 import Skills_Panel as SkP
+import Maneuvers_Panel as ManP
 
 
 # Planner is the main object in script.
@@ -101,13 +102,17 @@ class Planner:
 		self.pages['Statistics'] = tkinter.Frame(page1, background="white")
 		globals.panels['Statistics'] = StP.Statistics_Panel(self.parent, self.pages['Statistics'])		
 		self.pages['Skills'] = tkinter.Frame(page2, background="white")
-		globals.panels['Skills'] = SkP.Skills_Panel(self.parent, self.pages['Skills'])
+		globals.panels['Skills'] = SkP.Skills_Panel(self.parent, self.pages['Skills'])	
+		self.pages['Maneuvers'] = tkinter.Frame(page3, background="white")
+		globals.panels['Maneuvers'] = ManP.Maneuvers_Panel(self.parent, self.pages['Maneuvers'])
 		
 		self.pages['Statistics'].grid(row=0, column=0)
 		self.pages['Skills'].grid(row=0, column=1)
+		self.pages['Maneuvers'].grid(row=0, column=2)
 	
 		# sets up defaults for each panel
 		globals.character.Update_Skills(globals.character.profession.name)
+		globals.character.Update_Maneuvers(globals.character.profession.name)
 		globals.panels['Statistics'].Change_Race("Human")
 		globals.panels['Skills'].Create_Schedule()              
 #		self.panels_loaded = 1
@@ -138,7 +143,7 @@ if __name__ == "__main__":
 		globals.db_con = sqlite3.connect(globals.db_file)
 		globals.db_con.row_factory = sqlite3.Row
 		globals.db_cur = globals.db_con.cursor()
-		globals.root.title("Gemstone IV Character Planner %s" % globals.version);
+		globals.root.title("Gemstone IV Character Planner %s - New Character" % globals.version);
 		globals.root.geometry("1200x600")
 		planner = Planner(globals.root)	
 		globals.root.mainloop();		
