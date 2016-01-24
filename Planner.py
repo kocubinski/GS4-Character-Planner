@@ -1,7 +1,15 @@
-# TODO LIST
-# Consider adding more to ShowPage and HidePage functions that will cleanup, load. unload information.
-# Error Dialog Box needs at least 2 buttons to be createable. Figure out what button2 should be called and what it should do. 
-
+# INDEX OF CLASSES AND METHODS
+'''
+class Planner
+	def _init__(self, parent)
+	def Create_Top_Menubar(self):	
+	def Menubar_Option_New_Character(self):
+	def Menubar_Option_Load_Character(self):
+	def Menubar_Option_Save_Character(self):
+	def Create_Notebook(self, parent):
+	def Notebook_OnShowPage(self, caller):	
+	def Notebook_OnHidePage(self, caller):
+'''
 
 #!/usr/bin/python
 
@@ -11,139 +19,114 @@ import sqlite3
 import tkinter
 import Pmw
 import Globals as globals
-import Character as char
 import Statistics_Panel as StP
 import Skills_Panel as SkP
 import Maneuvers_Panel as ManP
 
 
-# Planner is the main object in script.
+# Planner is the primary window in the program that holds everything else.
+# Planner is responsible for creating top Menubar and the Notebook used to store each Panel
 class Planner:
-	def __init__(self, parent):
-#		tkinter.Frame.__init__(self, parent)	
+	def __init__(self, parent):	
 		self.parent = parent
 		self.pages = {}
-		self.panels_loaded = 0
-		
-		globals.character = char.Character()
-		globals.db_cur.execute("SELECT * FROM Races WHERE name='%s'" % 'Human')
-		globals.db_con.commit()		
-		data = globals.db_cur.fetchone()
-		globals.character.race = globals.Race(data)	
-		globals.db_cur.execute("SELECT * FROM Professions WHERE name='%s'" % 'Warrior')
-		globals.db_con.commit()		
-		data = globals.db_cur.fetchone()
-		globals.character.profession = globals.Profession(data)	
-		globals.db_cur.execute("SELECT name FROM Skills" )
-		globals.db_con.commit()		
-		data = globals.db_cur.fetchall()		
-		for skill in data:
-			globals.skills.append(skill[0])				
+		self.panels_loaded = 0		
 			
+		# Create top Menubar used to Save and Load character builds
+		self.Create_Top_Menubar()
 		
-		self.Planner_Create_Menu()
-		self.MakeNotebook(self)
-		globals.error_dialog = self.Create_Error_Dialog()
-		globals.error_dialog.withdraw()
+		# Create the Notebook used to hold all the Panels and then create each Panel to be held in the Notebook
+		self.Create_Notebook(self)
+
 		
-	# This error dialog box is used by all panels to display errors that occur in the planner.
-	def Create_Error_Dialog(self):
-		width = 400; height = 250; xpos = 450; ypos = 300
-		dialog = Pmw.Dialog(self.parent,
-            buttons = ("Okay", "Not Okay"),
-            title = "Error",
-            command = self.Dialog_Box_Onclick)
-			
-		dialog.transient(self.parent)	
-		dialog.resizable(width=0, height=0)		
-		dialog.geometry('%sx%s+%s+%s' % (width, height, xpos, ypos))
-
-		myframe = Pmw.ScrolledFrame(dialog.interior(), usehullsize = 1, hull_width = width, hull_height = height)
-		myframe.configure(hscrollmode = "none", vscrollmode = "none")		
-		myframe.grid(row=0, column=0, sticky="nw")	
-		myframe_inner = myframe.interior()			
-		tkinter.Label(myframe_inner, anchor="w", font="-weight bold", wraplength=width, justify="left", textvariable=globals.error_dialogmsg).grid(row=0, column=0, sticky="w")
-		
-		return dialog
-
-	# Handles the button click events for the error dialog box	
-	def Dialog_Box_Onclick(self, result):
-		globals.error_dialog.withdraw()
-		globals.error_dialogmsg.set("")	
-		globals.error_event = 0
-
 	# Makes the top menu that appears horizontally across the top of the planner
-	def Planner_Create_Menu(self):
+	def Create_Top_Menubar(self):
 		menubar = tkinter.Menu(self.parent)
 		self.parent.config(menu=menubar)
 		filemenu = tkinter.Menu(menubar, tearoff=0)
 		menubar.add_cascade(label="File", menu=filemenu)
-		filemenu.add_command(label="New", command=self.donothing)
-		filemenu.add_command(label="Open", command=self.donothing)
-		filemenu.add_command(label="Save as...", command=self.donothing)
+		filemenu.add_command(label="New Character", command=self.Menubar_Option_New_Character)              # Reset planner to default 
+		filemenu.add_command(label="Load Character", command=self.Menubar_Option_Load_Character)             # Open and load a character save file into the planner
+		filemenu.add_command(label="Save Character as...", command=self.Menubar_Option_Save_Character)       # Save an existing build to file
 		filemenu.add_separator()
 		filemenu.add_command(label="Exit", command=self.parent.quit)
 
-	# Python megawidget that creates and holds all the panels	
-	def MakeNotebook(self, parent):
+
+	def Menubar_Option_New_Character(self):
+		for stat, obj in globals.character.statistics_list.items():
+			obj.Set_To_Default()
+		globals.panels['Skills'].ClearAll_Button_Onclick()
+		globals.panels['Maneuvers'].Clear_Button_Onclick("All")
+		globals.root.title("Gemstone IV Character Planner %s - New Character" % (globals.version))
+
+
+	def Menubar_Option_Load_Character(self):
+		self.Menubar_Option_New_Character()
+		globals.character.Load_Character()
+
+		
+	def Menubar_Option_Save_Character(self):
+		globals.character.Save_Character()
+		
+		
+	# Method uses a Python megawidget, Notebook, to create and hold all the Panels	
+	def Create_Notebook(self, parent):
 		self.notebook = Pmw.NoteBook(self.parent,
                 tabpos = 'n',
          #       createcommand = PrintOne('Create'),
-                lowercommand = self.HidePage,
-                raisecommand = self.ShowPage,
+                lowercommand = self.Notebook_OnHidePage,
+                raisecommand = self.Notebook_OnShowPage,
                 hull_width = 300,
                 hull_height = 300,
-                )
-				
+                )				
 		self.notebook.pack(fill = 'both', expand = 1, padx = 5, pady = 5)
+		
+		# Create the pages (tabs) for each panel and add them to the notebook
 		page1 = self.notebook.add('Statistics')		
 		page2 = self.notebook.add('Skills')				
 		page3 = self.notebook.add('Maneuvers')		
 		self.pages['Statistics'] = tkinter.Frame(page1, background="white")
-		globals.panels['Statistics'] = StP.Statistics_Panel(self.parent, self.pages['Statistics'])		
 		self.pages['Skills'] = tkinter.Frame(page2, background="white")
-		globals.panels['Skills'] = SkP.Skills_Panel(self.parent, self.pages['Skills'])	
 		self.pages['Maneuvers'] = tkinter.Frame(page3, background="white")
-		globals.panels['Maneuvers'] = ManP.Maneuvers_Panel(self.parent, self.pages['Maneuvers'])
-		
 		self.pages['Statistics'].grid(row=0, column=0)
 		self.pages['Skills'].grid(row=0, column=1)
 		self.pages['Maneuvers'].grid(row=0, column=2)
-	
-		# sets up defaults for each panel
-		globals.character.Update_Skills(globals.character.profession.name)
-		globals.character.Update_Maneuvers(globals.character.profession.name)
-		globals.panels['Statistics'].Change_Race("Human")
-		globals.panels['Skills'].Create_Schedule()              
-#		self.panels_loaded = 1
-#		self.notebook.selectpage('Maneuvers')						# Debug option	
-
-	# Temporary until the top menu options are made
-	def donothing(self):
-		pass		
-
 		
-	def ShowPage(self, caller):	
+		# Create each Panel. Each is added to the a global list so they can be referenced later
+		globals.panels['Statistics'] = StP.Statistics_Panel(self.pages['Statistics'])		
+		globals.panels['Skills'] = SkP.Skills_Panel(self.pages['Skills'])	
+		globals.panels['Maneuvers'] = ManP.Maneuvers_Panel(self.pages['Maneuvers'])
+	
+		# Set up defaults
+		globals.panels['Statistics'].Change_Race("Human")
+		globals.panels['Statistics'].Change_Profession("Warrior")  
+
+	
+	# Temporary. This might be used to quickly load calculations for some Panels
+	def Notebook_OnShowPage(self, caller):	
 		if self.panels_loaded == 1:
 			print("show")
 			self.pages[caller].grid(row=0, column=0)
 
 			
-	def HidePage(self, caller):	
+	# Temporary. This might be used to quickly hide or erase data from a Panel when it is hidden	
+	def Notebook_OnHidePage(self, caller):	
 		if self.panels_loaded == 1:
 			print("hide")
 			self.pages[caller].grid_remove()
-		
-		
+			
+
+# Start of the program. Unless the SQLite database exist it will exit. Otherwise, setup the database and create the Planner.			
 if __name__ == "__main__":
 	if not os.path.isfile(globals.db_file):	
 		print("ERROR: GS4_Planner.db file not found.")
 		sys.exit(1)
-	else:
-		globals.db_con = sqlite3.connect(globals.db_file)
-		globals.db_con.row_factory = sqlite3.Row
-		globals.db_cur = globals.db_con.cursor()
-		globals.root.title("Gemstone IV Character Planner %s - New Character" % globals.version);
-		globals.root.geometry("1200x600")
-		planner = Planner(globals.root)	
-		globals.root.mainloop();		
+	
+	globals.db_con = sqlite3.connect(globals.db_file)
+	globals.db_con.row_factory = sqlite3.Row
+	globals.db_cur = globals.db_con.cursor()
+	globals.root.title("Gemstone IV Character Planner %s - %s" % (globals.version, globals.char_name))
+	globals.root.geometry("1200x600")
+	globals.root.resizable(0,0)
+	planner = Planner(globals.root)	
+	globals.root.mainloop();		
