@@ -1,27 +1,52 @@
-# TODO LIST
-# Entering a specific number of ranks to take over a level range will try to train them all at the start level
-#   This is intentional. The goal will be to make the planner smart enough to know where to place the skill ranks. This will be worked on in the future.
-# Skills do not take other subskills of the same type (Spell Research, Elemental Lore, etc) in to account when trying to determine training cost.
-# Add a small message to the build header indicating if the build is valid. This will update if the user changes stats, race, professions to invalid.
-
+# INDEX OF CLASSES AND METHODS
+'''
+class Skills_Panel
+	def __init__(self, panel)
+	def Create_Build_Header(self, panel):
+	def Create_Build_Frame(self, panel):
+	def Create_Schedule_Header(self, panel):
+	def Create_Schedule_Footer(self, panel):
+	def Create_Dialog_Box(self, panel, title, buttons):
+	def Dialog_Box_Onclick(self, result):
+	def Add_Edit_Button_Onclick(self, location):
+	def ClearAll_Button_Onclick(self):		
+	def Create_Schedule(self):	
+	def Update_Schedule_Frames(self):	
+	def Skills_Menu_Onchange(self, name):	
+	def Scroll_Build_Frame(self, event):	
+	def Scroll_Schedule_Frame(self, event):
+	def Create_Build_List_Skill(self, parent, name, hidden, order, info, start, target, goal):	
+	
+class Build_List_Skill:
+	def __init__(self, parent, name, hidden, order, info, start, target, goal):	
+	def Set_Training_Rate(self):	
+	def Update_Adjusted_Training(self, new_start, ranks_taken):	
+'''
 
 #!/usr/bin/python
 
 import tkinter
 import re
-import Pmw
 import math
+import Pmw
 import Globals as globals
+
   
+# Skills panel is responsible for handling character skill training from level 0 to 100.
+# This panel is made of 5 sub frames. 
+#  Build buttons (Upper Left) - Contains buttons that add new skills to the build list, calculate out a build, or reset the build list
+#  Build skill list (Middle/Lower Left) - Contains a list of skills that user wants to train in
+#  Schedule buttons (Upper Right) - These button can alter how the Schedule skill list looks
+#  Scheduled skills list (Middle Right) - This list every skill available to the character along with rank information.
+#  Scheduled footer (Lower Right) - The totals and training point costs are calculated here
 class Skills_Panel:  
-	def __init__(self, parent, panel):		
-		self.parent = parent
-		self.schedule_skills_list = []
+	def __init__(self, panel):	
+		self.schedule_skills = []
 		self.SkP_radio_var = tkinter.IntVar()				
 		
-		# Dialog Box vars
+		# Popup Dialog Box variables
 		self.add_order_menu = ""
-		self.add_skills_menu = ""
+		self.dialog_menu_skill_names = ""
 		self.edit_order_menu = ""
 		self.edit_skills_menu = ""
 		self.menu_size = 1
@@ -36,7 +61,7 @@ class Skills_Panel:
 		self.vars_dialog_errormsg = tkinter.StringVar()
 		self.vars_dialog_edit_location = tkinter.IntVar()		
 		
-		# Schedule Level Calculation
+		# Schedule Level Calculation variable lists
 		self.total_regained_ptp_by_level = [tkinter.IntVar() for i in range(101)]
 		self.total_regained_mtp_by_level = [tkinter.IntVar() for i in range(101)]
 		self.total_available_ptp_by_level = [tkinter.IntVar() for i in range(101)]
@@ -48,7 +73,7 @@ class Skills_Panel:
 		self.total_leftover_ptp_by_level = [tkinter.IntVar() for i in range(101)]
 		self.total_leftover_mtp_by_level = [tkinter.IntVar() for i in range(101)]
 		
-		# Schedule Footer vars
+		# Schedule Footer variables
 		self.vars_sfooter_ptp_earned = tkinter.IntVar()
 		self.vars_sfooter_mtp_earned = tkinter.IntVar()
 		self.vars_sfooter_ptp_regained = tkinter.IntVar()
@@ -62,16 +87,12 @@ class Skills_Panel:
 		self.vars_sfooter_ptp_leftover = tkinter.IntVar()
 		self.vars_sfooter_mtp_leftover = tkinter.IntVar()	
 			
-		self.add_box = self.Create_Dialog_Box(panel, "Add Skill", ("Add Skill,Cancel"))
-		self.edit_box = self.Create_Dialog_Box(panel, "Edit Skill", ("Update Skill,Remove Skill,Cancel"))		
+		# This creates the popup box that is used to Add or Edit skills on the build skills list	
+		self.dialog_box = self.Create_Dialog_Box(panel, "Add Skill", ("Add Skill,Cancel"))
 		
+		# This counter is used to track what level is being shown in the schedule list frame
 		self.level_counter = ""     #Becomes a Pmw.counter later on
-			
-		#These are the linked scrolling frames for the Panel
-		self.lvl_header_scrollframe = ""		
-		self.training_middle_scrollframe = ""
-		self.resource_footer_scrollframe = ""		
-		
+					
 		#Create all the sub-frames of the panel
 		self.UL_Frame = self.Create_Build_Header(panel)
 		self.ML_Frame = self.Create_Build_Frame(panel)
@@ -84,33 +105,46 @@ class Skills_Panel:
 		self.ML_Frame.grid(row=1, column=0, sticky="nw", rowspan=2)
 		self.UR_Frame.grid(row=0, column=1, sticky="nw")
 		self.MR_Frame.grid(row=1, column=1, sticky="nw")
-		self.LR_Frame.grid(row=2, column=1, sticky="nw")		
+		self.LR_Frame.grid(row=2, column=1, sticky="nw")	
+		
+		# Intitialize the skill list
+		globals.db_cur.execute("SELECT name, type, subskill_group, redux_value FROM Skills")
+		globals.db_con.commit()		
+		data = globals.db_cur.fetchall()		
+		for skill in data:
+			globals.skill_names.append(skill[0])		
+			globals.character.skills_list[skill[0]] = globals.Skill(skill)
+			globals.character.skills_list[skill[0]].Create_SkP_schedule_row(self.MR_Frame.interior())
 		
 		#initialize defaults
-		self.add_box.withdraw()
-		self.edit_box.withdraw()
+		self.ML_Frame.bind_class("SkP_build", "<MouseWheel>", self.Scroll_Build_Frame)
+		self.MR_Frame.bind_class("SkP_schedule", "<MouseWheel>", self.Scroll_Schedule_Frame)
+		self.dialog_box.withdraw()
 		self.SkP_radio_var.set(1)
 		self.level_counter.setvalue(0)
-#		self.Update_Schedule_Frames()
 							
-
+	
+	# This frame creates 3 buttons used for adding new build skills to the build frame's list, calculating out an existing build list, or clearing the entire panel to start new
 	def Create_Build_Header(self, panel):
 		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 547, hull_height = 50)
 		myframe.component("borderframe").config(borderwidth=0)
 		myframe.configure(hscrollmode = "none", vscrollmode = "none")	
 		myframe_inner = myframe.interior()
 
+		# topframe holds the 3 buttons
 		topframe = tkinter.Frame(myframe_inner)		
-		topframe.grid(row=0, column=0, sticky="w")	
-		tkinter.Button(topframe, height="1", text="Add Skill", command=self.Add_Button_Onclick).grid(row=0, column=0)		
+		topframe.grid(row=0, column=0, sticky="w")			
+		tkinter.Button(topframe, height="1", text="Add Skill", command=lambda v="": self.Add_Edit_Button_Onclick(v)).grid(row=0, column=0)		
 		tkinter.Button(topframe, height="1", text="Calculate Build", command=self.Create_Schedule).grid(row=0, column=1)	
 		tkinter.Button(topframe, text="Clear All", command=self.ClearAll_Button_Onclick).grid(row=0, column=2, sticky="w", pady="1")	
 		
+		# this is frame will hold the title of the build schedule frame. This is done to allow the other frame to scroll but not lose the title header
 		title_scrollframe = Pmw.ScrolledFrame(myframe_inner, usehullsize = 1, hull_width = 530, hull_height = 26 )		
 		title_scrollframe.configure(hscrollmode = "none")		
 		title_scrollframe.grid(row=3, column=0, sticky="w")		
 		title_scrollframe_inner = title_scrollframe.interior()						
 		
+		# add all labels to the tittle header
 		tkinter.Frame(title_scrollframe_inner).grid(row=3, column=0, columnspan=3)	
 		tkinter.Label(title_scrollframe_inner, width="3", bg="lightgray", text="Hide").grid(row=0, column=0, padx="1")
 		tkinter.Label(title_scrollframe_inner, width="6", bg="lightgray", text="Order").grid(row=0, column=1, padx="1")
@@ -124,13 +158,18 @@ class Skills_Panel:
 		return myframe
 		
 		
+	# The build frame does nothing but store multiple rows of Build List Skill objects. See that class below for more information	
 	def Create_Build_Frame(self, panel):
-		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 547, hull_height = 444)			
+		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 547, hull_height = 446)			
 		myframe.configure(hscrollmode = "none")					
+		myframe.bindtags("SkP_build")
 		
 		return myframe			
 		
-		
+	# This frame contains:
+	# PMW counter object that is used to change what level the schedule frame is displaying
+	# 3 radio buttons that change what skills will appear in the schedule frame
+	# A title header for the schedule frame which allows that frame scroll independently of the header
 	def Create_Schedule_Header(self, panel):
 		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 530, hull_height = 50)
 		myframe.component("borderframe").config(borderwidth=0)
@@ -139,11 +178,17 @@ class Skills_Panel:
 						
 		topframe = tkinter.Frame(myframe_inner)	
 		topframe.grid(row=0, column=0, sticky="w")	
+		
+		# The level counter will show a number between 0 and 100. This number indicates what level to show the training for in the schedule frame
 		tlvl_frame = tkinter.Frame(topframe)
-		tlvl_frame.grid(row=0, column=0, sticky="w", padx=3, pady="1")	
+		tlvl_frame.grid(row=0, column=0, sticky="w", padx=3, pady="1")			
 		self.level_counter = Pmw.Counter(tlvl_frame, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Training at Level', entryfield_value = 0, datatype = "numeric", entryfield_modifiedcommand=self.Update_Schedule_Frames )
 		self.level_counter.grid(row=0, column=0, sticky="w", pady="1")
 		
+		# These radio buttons are linked together and determine what rows will be shown in the schedule frame
+		# Show All Skills - Every skill the profession can train in is shown.
+		# Show All Trained - Only show skills that the character has trained it, regardless of level. If the character has 1 or more ranks in a skill at level 100, the skill will be shown on every level.
+		# Shown Trained this Level - Only show skills that were trained in at this specific level.
 		tkinter.Radiobutton(topframe, anchor="w", text="Show All Skills", command=self.Update_Schedule_Frames, var=self.SkP_radio_var, value=1).grid(row=0, column=1)	
 		tkinter.Radiobutton(topframe, anchor="w", text="Show All Trained", command=self.Update_Schedule_Frames, var=self.SkP_radio_var, value=2).grid(row=0, column=2)		
 		tkinter.Radiobutton(topframe, anchor="w", text="Show Trained this Level", command=self.Update_Schedule_Frames, var=self.SkP_radio_var, value=3).grid(row=0, column=3)
@@ -162,15 +207,25 @@ class Skills_Panel:
 	
 		return myframe		
 		
-		
+
+	# This frame will hold SkP_schedule_row objects for skills the character can train in. For more information, please see the Skill class in Globals.py
 	def Create_Schedule_Frame(self, panel):
-		self.training_middle_scrollframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 530, hull_height = 369)		
-		self.training_middle_scrollframe_inner = self.training_middle_scrollframe.interior()
-		self.training_middle_scrollframe.configure(hscrollmode = "none")		
+		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 530, hull_height = 372)		
+		myframe_inner = myframe.interior()
+		myframe.configure(hscrollmode = "none")						
+		myframe.bindtags("SkP_schedule")					
+		myframe_inner.bindtags("SkP_schedule")
 	
-		return self.training_middle_scrollframe		
+		return myframe	
 	
 
+	# This frame contains information about PTP and MTP for the current level. 
+	# Earned - How many PTP/MTP where gained from increasing in level.
+	# Regained - This is the sum of the left over PTP/MTP from the previous level plus the difference between the total cost of all skill ranks from the previous level minus the total cost of all skill ranks from the current level
+	# Available - Earned PTP/MTP + Regained PTP/MTP
+	# Total Cost - Sum of all PTP/MTP costs from skills trained this level
+	# Converted - How many of one TP were converted to the other TP type
+	# Leftover - Available PTP/MTP - Total Cost - Converted 
 	def Create_Schedule_Footer(self, panel):
 		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 530, hull_height = 75)
 		myframe.configure(hscrollmode = "none", vscrollmode = "none")			
@@ -201,8 +256,15 @@ class Skills_Panel:
 		tkinter.Label(myframe_inner, width="10", bg="lightgray", textvar=self.vars_sfooter_mtp_leftover).grid(row=2, column=6, padx="1")		
 					
 		return myframe	
+
 		
-		
+	# The popup dialog box is used to allow add a new skill or edit an existing skill in the build frame. The frame consists of the following parts
+	# Skill Name - Drop down menu to select which skill to train in.
+	# Cost and Ranks - How many PTP and MTP it costs to train a single rank in the skill and the maximum ranks you can train in the skill for a single level.
+	# Training Order - Determines what order the planner will try to train the skill. If the skill cannot be fully trained at a level, ALL training below it is pushed back to the next level.
+	# Hide - Any skill with a checked Hide box will be ignored when build schedule is calculated.
+	# Goal - This is either a number greater that 0 for how many ranks to train in the skill or a rate (1x, 1.125x, 2.75x, etc) for how many ranks to train each level.
+	# Level Range - Indicates a range for 0 to 100. This is how much time you will give the planner to train to your Goal or how many level you want to train your Goal rate
 	def Create_Dialog_Box(self, panel, title, buttons):
 		dialog = Pmw.Dialog(panel,
             buttons = (buttons.split(",")),
@@ -230,21 +292,19 @@ class Skills_Panel:
 								
 		tkinter.Checkbutton(myframe_inner, command="", variable=self.vars_dialog_hide).grid(row=4, column=1, sticky="w")		
 	
-		if title == "Add Skill":
-			self.add_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-			self.add_order_menu.config(width=1, heigh=1)	
-			self.add_order_menu.grid(row=3, column=1, sticky="w")
-			self.add_skills_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_skill, "", command="")
-			self.add_skills_menu.config(width=27, heigh=1)	
-			self.add_skills_menu.grid(row=0, column=1, sticky="w", columnspan=4)		
-		elif title == "Edit Skill":
-			self.edit_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-			self.edit_order_menu.grid(row=3, column=1, sticky="w")
-			self.edit_order_menu.config(width=1, heigh=1)
-			self.edit_skills_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_skill, "", command="")
-			self.edit_skills_menu.config(width=27, heigh=1)	
-			self.edit_skills_menu.grid(row=0, column=1, sticky="w", columnspan=4)				
-				
+		
+		self.add_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_order_menu.config(width=1, heigh=1)	
+		self.dialog_menu_skill_names = tkinter.OptionMenu(myframe_inner, self.vars_dialog_skill, "", command="")
+		self.dialog_menu_skill_names.config(width=27, heigh=1)	
+		
+		self.edit_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_order_menu.config(width=1, heigh=1)			
+			
+		self.add_order_menu.grid(row=3, column=1, sticky="w")			
+		self.dialog_menu_skill_names.grid(row=0, column=1, sticky="w", columnspan=4)		
+		
+		
 		lvlframe = tkinter.Frame(myframe_inner)
 		lvlframe.grid(row=7, column=1, sticky="w", columnspan=4)	
 		Pmw.Counter(lvlframe, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Start', entryfield_value = 0, datatype = "numeric", entryfield_entry_textvariable=self.vars_dialog_slevel).grid(row=0, column=0, sticky="w")
@@ -254,17 +314,19 @@ class Skills_Panel:
 				
 			
 		return dialog
-				
+
 		
+	# This handles button all the button events that occur in the Add/Edit dialog box.	
 	def Dialog_Box_Onclick(self, result):
 		i = 0
 
+		# Occurs if the user clicks the Cancel button or the "x" in the upper right corner. Just close the box and don't do anything.
 		if result is None or result == "Cancel":
-			self.add_box.withdraw()
-			self.edit_box.withdraw()
+			self.dialog_box.withdraw()
+			self.dialog_box.grab_release()
 			return
 			
-		# Error checking for Add/Edit Skill choices
+		# Error checking for Add/Edit Skill choices. Makes sure that your Goal and Level Range is formatted correctly.
 		elif result == "Add Skill" or result == "Update Skill":
 			if int(self.vars_dialog_slevel.get()) > int(self.vars_dialog_tlevel.get()):
 				self.vars_dialog_errormsg.set("ERROR: Start level cannot be greater than target level." )
@@ -275,13 +337,15 @@ class Skills_Panel:
 			elif self.vars_dialog_goal.get()[-1] == "x" and float(self.vars_dialog_goal.get()[:-1]) > self.dialog_max_ranks:
 				self.vars_dialog_errormsg.set("ERROR: Goal rate cannot be greater than the skill's max ranks per level.")
 				return				
-			elif self.vars_dialog_goal.get()[-1] != "x" and	int(self.vars_dialog_goal.get()) > self.dialog_max_ranks	* (1 + int(self.vars_dialog_tlevel.get()) - int(self.vars_dialog_slevel.get()) ):
+			elif self.vars_dialog_goal.get()[-1] != "x" and	int(self.vars_dialog_goal.get()) > self.dialog_max_ranks * (1 + int(self.vars_dialog_tlevel.get()) ):
 				self.vars_dialog_errormsg.set("ERROR: Goal ranks cannot be achieved within level range.")
 				return					
 
-				
+		# Add a new skill the build skill list and update the build frame to show it.
+		# This creates a new Build_List_Skill object and appends it to the global build skill list to be referenced later
+		# The values the new skill is set to is determined by what was enter into the Add dialog box prior to clicking Add Skill
 		if result == "Add Skill":				
-			skill = globals.character.skills[self.vars_dialog_skill.get()]
+			skill = globals.character.skills_list[self.vars_dialog_skill.get()]
 			hide = "" 
 			if self.vars_dialog_hide.get() == "1":
 				hide = "x"
@@ -289,7 +353,8 @@ class Skills_Panel:
 				
 			globals.character.build_skills_list.insert(int(self.vars_dialog_order.get())-1, Build_List_Skill(self.ML_Frame.interior(), self.vars_dialog_skill.get(), hide, self.vars_dialog_order.get(), 
 			"%s / %s (%s)" % (skill.ptp_cost,skill.mtp_cost, skill.max_ranks), self.vars_dialog_slevel.get(), self.vars_dialog_tlevel.get(), self.vars_dialog_goal.get()))						
-			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].SkP_Edit_Button.config(command=lambda v=int(self.vars_dialog_order.get())-1: self.Edit_Button_Onclick(v))
+			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].SkP_Edit_Button.config(command=lambda v=int(self.vars_dialog_order.get())-1: self.Add_Edit_Button_Onclick(v))
+			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].Set_Training_Rate()
 			
 			if self.menu_size-1 > 1:
 				self.edit_order_menu["menu"].insert_command("end", label=self.menu_size-1, command=lambda v=self.menu_size-1: self.vars_dialog_order.set(v))				
@@ -297,11 +362,15 @@ class Skills_Panel:
 			
 			for skill in globals.character.build_skills_list:
 				skill.order.set(i+1)
-				skill.SkP_Edit_Button.config(command=lambda v=i: self.Edit_Button_Onclick(v))
-				skill.SkP_Info_Row.grid(row=i, column=0)			
+				skill.SkP_Edit_Button.config(command=lambda v=i: self.Add_Edit_Button_Onclick(v))
+				skill.SkP_Build_Row.grid(row=i, column=0)			
 				i += 1			
-			self.add_box.withdraw()		
+			self.dialog_box.withdraw()	
+			self.dialog_box.grab_release()	
 		
+		# Updates an existing build skill entry. 
+		# The new information for the entry is take from the Edit verison of the Dialog box and can change every attribute for the entry
+		# Once alterted, the build frame is updated with build_skill_list
 		elif result == "Update Skill":
 			skill = globals.character.build_skills_list.pop(self.vars_dialog_edit_location.get())
 			skill.name.set(self.vars_dialog_skill.get())
@@ -317,63 +386,100 @@ class Skills_Panel:
 				skill.hide.set("")			
 			
 			globals.character.build_skills_list.insert(int(self.vars_dialog_order.get())-1, skill)
+			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].Set_Training_Rate()
 			for skill in globals.character.build_skills_list:	
 				skill.order.set(i+1)
-				skill.SkP_Edit_Button.config(command=lambda v=i: self.Edit_Button_Onclick(v))
-				skill.SkP_Info_Row.grid(row=i, column=0)			
+				skill.SkP_Edit_Button.config(command=lambda v=i: self.Add_Edit_Button_Onclick(v))
+				skill.SkP_Build_Row.grid(row=i, column=0)			
 				i += 1						
-			self.edit_box.withdraw()				
+			self.dialog_box.withdraw()	
+			self.dialog_box.grab_release()			
 		
+		# Current selected entry in the build list is removed, the build list is updated with the correct entry order, and the build frame is updated to reflect the removal.
 		elif result == "Remove Skill":
-			globals.character.build_skills_list.pop(self.vars_dialog_edit_location.get()).SkP_Info_Row.grid_remove()
+			skill = globals.character.build_skills_list.pop(self.vars_dialog_edit_location.get())
+			skill.SkP_Build_Row.grid_remove()
+			globals.character.skills_list[skill.name.get()].Set_To_Default()
 			self.add_order_menu['menu'].delete("end", "end")
 			self.edit_order_menu['menu'].delete("end", "end")
 			self.menu_size -= 1
 			for skill in globals.character.build_skills_list:
 				skill.order.set(i+1)
-				skill.SkP_Edit_Button.config(command=lambda v=i: self.Edit_Button_Onclick(v))
-				skill.SkP_Info_Row.grid(row=i, column=0)			
+				skill.SkP_Edit_Button.config(command=lambda v=i: self.Add_Edit_Button_Onclick(v))
+				skill.SkP_Build_Row.grid(row=i, column=0)			
 				i += 1	
-			self.edit_box.withdraw()		
+			self.dialog_box.withdraw()	
+			self.dialog_box.grab_release()
+
+			
+	# This function is called to display the popup dialog box that allows a user to add a new skill or edit an existing skill.
+	# Clicking the Add Skill button in the Build Header frame will show the Add version of this box
+	# Clicking an existing Skill's Edit button will show the Edit version of this box
+	def Add_Edit_Button_Onclick(self, location):
+		# Because the dialog box is used for both adding and editing skills, we need to remove all the menu widgets before adding add menu again
+		self.add_order_menu.grid_remove()
+		self.edit_order_menu.grid_remove()		
 		
-		
-	def Add_Button_Onclick(self):
-		skill = globals.skills_list["Armor Use"]
-		self.vars_dialog_skill.set("Armor Use")
-		self.vars_dialog_info.set("%s/%s (%s)" % (skill.ptp_cost, skill.mtp_cost, skill.max_ranks))
-		self.vars_dialog_order.set(self.menu_size)
-		self.vars_dialog_hide.set("0")
-		self.vars_dialog_goal.set("")
-		self.vars_dialog_slevel.set("0")
-		self.vars_dialog_tlevel.set("100")	
+		if location == "":
+			skill = globals.character.skills_list["Armor Use"]
+			self.vars_dialog_skill.set("Armor Use")
+			self.vars_dialog_order.set(self.menu_size)
+			self.vars_dialog_hide.set("0")
+			self.vars_dialog_goal.set("")
+			self.vars_dialog_slevel.set("0")
+			self.vars_dialog_tlevel.set("100")		
+			
+			self.add_order_menu.grid(row=3, column=1, sticky="w")	
+			
+			# If the last time we used the dialog box was as an edit box, change the buttons to the add version
+			if self.dialog_box.component("buttonbox").button(0)["text"] == "Update Skill":
+				self.dialog_box.component("buttonbox").delete("Update Skill")
+				self.dialog_box.component("buttonbox").delete("Remove Skill")		
+				self.dialog_box.component("buttonbox").insert("Add Skill", command=lambda v="Add Skill": self.Dialog_Box_Onclick(v))	
+		else:
+			build_skill = globals.character.build_skills_list[int(location)]
+			skill = globals.character.skills_list[build_skill.name.get()]
+			self.vars_dialog_skill.set(build_skill.name.get())
+			self.vars_dialog_order.set(build_skill.order.get())
+			self.vars_dialog_slevel.set(build_skill.slvl.get())
+			self.vars_dialog_tlevel.set(build_skill.tlvl.get())
+			self.vars_dialog_goal.set(build_skill.goal.get())		
+				
+			self.vars_dialog_edit_location.set(int(location))
+			
+			if build_skill.hide.get() == "x":
+				self.vars_dialog_hide.set("1")	
+			else:
+				self.vars_dialog_hide.set("0")					
+			
+			self.edit_order_menu.grid(row=3, column=1, sticky="w")	
+			
+			# If the last time we used the dialog box was as an add box, change the buttons to the edit version
+			if self.dialog_box.component("buttonbox").button(0)["text"] == "Add Skill":
+				self.dialog_box.component("buttonbox").delete("Add Skill")
+				self.dialog_box.component("buttonbox").insert("Remove Skill", command=lambda v="Remove Skill": self.Dialog_Box_Onclick(v))	
+				self.dialog_box.component("buttonbox").insert("Update Skill", command=lambda v="Update Skill": self.Dialog_Box_Onclick(v))			
+			
+			
+		self.vars_dialog_info.set("%s / %s (%s)" % (skill.ptp_cost, skill.mtp_cost, skill.max_ranks))
 		self.vars_dialog_errormsg.set("")
-		self.dialog_max_ranks = skill.max_ranks
-		self.add_box.show()
+		self.dialog_max_ranks = skill.max_ranks									
+				
+		self.dialog_box.show()
+		self.dialog_box.grab_set()
+
+
+	# When the Clear All button is clicked, the build_skills_list is emptied, all PTP/MTP totals lists are reset, the menu sizes are set to 1 and level counter set back to 0
+	def ClearAll_Button_Onclick(self):	
 		
-		
-	def Edit_Button_Onclick(self, location):
-		build_skill = globals.character.build_skills_list[int(location)]
-		skill = globals.skills_list[build_skill.name.get()]
-		self.vars_dialog_skill.set(build_skill.name.get())
-		self.vars_dialog_info.set("%s/%s (%s)" % (skill.ptp_cost, skill.mtp_cost, skill.max_ranks))
-		self.vars_dialog_order.set(build_skill.order.get())
-		self.vars_dialog_slevel.set(build_skill.slvl.get())
-		self.vars_dialog_tlevel.set(build_skill.tlvl.get())
-		self.vars_dialog_goal.set(build_skill.goal.get())		
-		self.vars_dialog_errormsg.set("")
-		self.vars_dialog_edit_location.set(int(location))
-		self.dialog_max_ranks = skill.max_ranks
-		self.edit_box.show()
-		
-		
-	def ClearAll_Button_Onclick(self):		
-		for row in self.schedule_skills_list:
+		for key, row in globals.character.skills_list.items():
 			row.Set_To_Default()
 			row.SkP_schedule_row.grid_remove()
 			
 		for skill in globals.character.build_skills_list:	
-			skill.SkP_Info_Row.grid_remove()
+			skill.SkP_Build_Row.grid_remove()
 			
+		# Fun fact, if you try to do delete(1, end)	on an option menue that only has 1 object in it, it throws a python error. So this checks is needed.
 		if self.menu_size > 1:
 			self.add_order_menu['menu'].delete(1, "end")
 			self.edit_order_menu['menu'].delete(1, "end")
@@ -393,151 +499,224 @@ class Skills_Panel:
 		
 		self.SkP_radio_var.set(1)
 		self.level_counter.setvalue(0)
+		self.ML_Frame.yview("moveto", 0, "units")
+		self.MR_Frame.yview("moveto", 0, "units")
 		self.Update_Schedule_Frames()
 
 		
+	# When the Calculate Build button is pushed the planner will map out level by level, skill by skill (in the build list) what ranks are trained at what level.
+	# This method is by far the most process intense and time consuming to execute. Clicking the button does have a noticeable delay, but considering everything it does it's pretty low.
+	# This method will also call on a number of different Skill object methods as well. Please review the Skill class in Globals.py for more information.
 	def Create_Schedule(self):		
-		goal = 0; tranks = 0; estimated_ranks = 0
+		abort_loops = 0; error_text = ""
 		
-		globals.character.scheduled_skills_list = {}
 		# Clear schedule before using it.
-		for row in self.schedule_skills_list:
+		for key, row in globals.character.skills_list.items():	
 			row.Set_To_Default()
-			row.SkP_schedule_row.grid_remove()
-				
-		for bskill in globals.character.build_skills_list:
-			if bskill.hide.get() == "x":
-				continue
-				
-			for row in self.schedule_skills_list:               #figure out a better way to do this later on
-#				print("%s %s" % (row.name, bskill.name))
-				if row.name == bskill.name.get():
+			row.SkP_schedule_row.grid_remove()			
+					
+		# We will use the adjusted rate to determine skill ranks since we need the base training rate to reset all the adjustments
+		for bskill in globals.character.build_skills_list:		
+			i = 0
+			for r in bskill.base_training_rate:
+				bskill.adjusted_training_rate[i] = r	
+				i += 1		
+		
+		# Loop through each level. All levels need to be covered regardless of what the level range of the skills in the build list 
+		for lvl in range(0, 101):	
+			if abort_loops:
+				break
+			ptp_earned = globals.character.ptp_by_level[lvl].get()
+			mtp_earned = globals.character.mtp_by_level[lvl].get()
+			ptp_regained = 0
+			mtp_regained = 0	
+			ptp_available = 0
+			mtp_available = 0
+			ptp_converted_to_mtp = 0
+			mtp_converted_to_ptp = 0
+			ptp_converted_at_level = 0
+			mtp_converted_at_level = 0	
+			
+			ptp_cost = 0
+			mtp_cost = 0
+			prev_pleftover = 0
+			prev_mleftover = 0
+			prev_pconverted = 0
+			prev_mconverted = 0
+			
+			subskills_calculated = []
+			ss_ptp_regain = 0
+			ss_mtp_regain = 0
+			
+			push_back = 0	
+			
+			# Get the convered TP and leftover TP from the previous level
+			if lvl > 0:
+				prev_pleftover += self.total_leftover_ptp_by_level[lvl-1].get()	
+				prev_mleftover += self.total_leftover_mtp_by_level[lvl-1].get()			
+				prev_pconverted += self.total_converted_ptp_by_level[lvl-1].get()	
+				prev_mconverted += self.total_converted_mtp_by_level[lvl-1].get()	
+			
+			# Calculating the regained TP needs to be done for each skill at each level to get an accurate count of the TP. We need ALL the TP before we can determine if the skills cost can be meet
+			for key, sskill in globals.character.skills_list.items():	
+				if lvl == 0:
 					break
 					
-			if bskill.goal.get()[-1] == "x":
-				goal = float(bskill.goal.get()[:-1])
-				start = int(bskill.slvl.get())
-				end = int(bskill.tlvl.get()) + 1
-				for i in range(start, end):
-					tranks = row.total_ranks_by_level[i].get()
-					estimated_ranks = goal * (i+1)
-					mod_ranks = estimated_ranks % 1
-					mod_goal = goal % 1
-					if ( mod_ranks == .9 or 
-						mod_ranks == .99 or 
-						mod_ranks == .999
-					   ) and  ( mod_goal == .3 or 
-						mod_goal == .33 or 
-						mod_goal == .333					   
-					   ):
-						estimated_ranks = int(math.ceil(estimated_ranks))					   
+				if sskill.subskill_group != "NONE":
+					if not sskill.subskill_group in subskills_calculated:					
+						(ss_ptp_regain, ss_mtp_regain) = globals.character.Calculate_Subskill_Regained_TP(lvl, sskill.subskill_group)
+						ptp_regained += ss_ptp_regain
+						mtp_regained += ss_mtp_regain
+						subskills_calculated.append(sskill.subskill_group)
+				else:
+					sskill.Calculate_TP_Regain(lvl, lvl)
+					ptp_regained += sskill.ptp_regained_at_level[lvl].get()
+					mtp_regained += sskill.mtp_regained_at_level[lvl].get()
+										
+			ptp_regained += prev_pconverted - prev_mconverted / 2
+			mtp_regained += prev_mconverted - prev_pconverted / 2
+			
+			ptp_available = ptp_earned + prev_pleftover + ptp_regained + prev_mconverted - prev_pconverted
+			mtp_available = mtp_earned + prev_mleftover + mtp_regained + prev_pconverted - prev_mconverted
+			
+			# Go through each skill in the build list. The order of skills denotes what will be trained first. 			
+			for bskill in globals.character.build_skills_list:	
+				if abort_loops:
+					break
+				ranks_needed = 0; ranks_taken = 0; subskill_ranks = 0
+				ptp_cost_at_level = 0; mtp_cost_at_level = 0		
+				
+				# Skip this skill if it is hidden, falls outside the level range,  has no ranks needed to be trained this level
+				if bskill.hide.get() == "x" or int(bskill.slvl.get()) > lvl or int(bskill.tlvl.get()) < lvl or int(bskill.adjusted_training_rate[lvl]) == 0:
+					continue									
+							
+				# If a skill cannot be fully trained, the remaining ranks for that and all ranks of every skill after it will be added to the ranks that need to be trained next level.
+				if push_back == 1:
+					bskill.adjusted_training_rate[lvl+1] = bskill.adjusted_training_rate[lvl+1] + bskill.adjusted_training_rate[lvl]
+					continue	
+							
+				row = globals.character.skills_list[bskill.name.get()]
+				ranks_taken = bskill.adjusted_training_rate[lvl]	
+				
+				subskill_tranks = globals.character.Get_Total_Ranks_Of_Subskill(bskill.name.get(), lvl, row.subskill_group)
+
+				
+				# Current skill would add too many ranks to the skill. This happens if a person tries to train the same skill (or subskill) more than once in a set range
+				if row.max_ranks * (1+lvl) < row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl] + subskill_tranks:
+					if lvl == int(bskill.tlvl.get()):
+						error_text += "ERROR: Unable to train %s ranks in %s at level %s. %s (maximum) vs. %s (desired) ranks." % (bskill.adjusted_training_rate[lvl], row.name, lvl, row.max_ranks * (1+lvl), row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl])								
+						abort_loops = 1
+						break
+						
+					# If we are not at the last level, we might be able to train some of the ranks even if we can't train them all. Try to figure out how many we can afford and set that to ranks_taken
+					elif row.max_ranks * (1+lvl) >= row.total_ranks_by_level[lvl].get() + 1 + subskill_tranks:
+						j = ranks_taken
+						for k in range(j, 0, -1):				
+							if row.max_ranks * (1+lvl) >= row.total_ranks_by_level[lvl].get() + k:				
+								ranks_taken = k				
+								break
+								#moves on to next part of the loop
 					else:
-						estimated_ranks = int(math.floor(estimated_ranks))
-#					print("%s %s" % (estimated_ranks, tranks))
-					row.Calculate_Ranks_Info(i, estimated_ranks-tranks-start)	
-					globals.character.scheduled_skills_list[row.name] = row
-			else:
-				row.Calculate_Ranks_Info(int(bskill.slvl.get()), int(bskill.goal.get()))
-				globals.character.scheduled_skills_list[row.name] = row
-#				goal = int(bskill.goal.get())
-#				taken = 0
-#				start_lvl = int(bskill.slvl.get())
-#				ptp_arr = []
-#				mtp_arr = []
-#				while(taken < goal):
-#					for i in range(start_lvl, 101):
-#						ptp_arr[i] = self.total_leftover_ptp_by_level[i].get()
-#						mtp_arr[i] = self.total_leftover_mtp_by_level[i].get()
+						ranks_taken = 0
 						
-#					for i in range(start_lvl, int(bskill.tlvl.get()) + 1):
-				# TODO
-				# This isn't do able at the moment since I can't get an up to date count of ptp/mtp left after taking a rank.
-				# It also needs to calculate out to 100 just to be sure it doesn't go negative later on.
-				# I may need to redo design to get this to work but I am going to leave it along for now
-				#
-				# Place ranks up to a certain number
-				# favor spreading ranks over the entire level range and
-				# front load ranks. By that I mean take ranks earlier in the level range and multiple ranks if need be.
-				# hardest part will be deciding if it is possible to take a rank on a level with low TP. 1.5x could break a build unless accounted for, for example
-				
-		
-			
-		# Calculate the values for the Schedule Footer
-#		abr_skill_list = []
-#		for row in self.schedule_skills_list:
-#			if row.total_ranks_by_level[100].get() > 0:				
-#				abr_skill_list.append(row)
-			
-		for i in range(0, 101):
-			pcost = 0; mcost = 0; pregain = 0; mregain = 0; prev_pleftover = 0; prev_mleftover = 0; ava_ptp = 0; ava_mtp = 0; convert_ptp = 0; convert_mtp = 0
-			prev_pconverted = 0; prev_mconverted = 0
+				# Determine if we can afford these new ranks. Try to use TP conversion if we need to
+				j = ranks_taken
+				ptp_needed = 0
+				mtp_needed = 0
+				for k in range(j, -1, -1):
+					if k <= 0:
+						ranks_taken = 0
+						break
 						
-			for row in self.schedule_skills_list:
-				if row.total_ranks_by_level[100].get() == 0:							
-					continue
-#			for row in abr_skill_list:
-				pregain += row.ptp_regained_at_level[i].get()
-				mregain += row.mtp_regained_at_level[i].get()
-				pcost += row.ptp_cost_at_level[i].get()
-				mcost += row.mtp_cost_at_level[i].get()
-			
-			if i > 0:
-				prev_pleftover = self.total_leftover_ptp_by_level[i-1].get()
-				prev_mleftover = self.total_leftover_mtp_by_level[i-1].get()
-				prev_pconverted = self.total_converted_ptp_by_level[i-1].get()
-				prev_mconverted = self.total_converted_mtp_by_level[i-1].get()
-				pregain += prev_pconverted
-				mregain += prev_mconverted
+					(ptp_cost_at_level, mtp_cost_at_level) = row.Get_Next_Ranks_Cost(lvl, subskill_tranks, k)
+					if ptp_available >= ptp_cost + ptp_cost_at_level and mtp_available >= mtp_cost + mtp_cost_at_level:
+						ranks_taken = k
+						break
+
+					if ptp_available + mtp_converted_to_ptp / 2 < ptp_cost + ptp_cost_at_level:
+						ptp_needed = ptp_cost_at_level + ptp_cost - ptp_available - ptp_converted_to_mtp
+						
+						if ptp_needed > (mtp_available - mtp_converted_to_ptp - mtp_cost) / 2:
+							continue
+							
+						while ptp_cost + ptp_cost_at_level > ptp_available + mtp_converted_at_level/2:
+							mtp_converted_at_level += 2		
+						ranks_taken = k
+						mtp_converted_to_ptp += mtp_converted_at_level
+						break
+						
+					elif mtp_available + ptp_converted_to_mtp / 2 < mtp_cost + mtp_cost_at_level:
+						mtp_needed = mtp_cost_at_level + mtp_cost - mtp_available - mtp_converted_to_ptp
+						
+						if mtp_needed > (ptp_available - ptp_converted_to_mtp - ptp_cost) / 2:
+							continue					
+
+						while mtp_cost + mtp_cost_at_level > mtp_available + ptp_converted_at_level/2:
+							ptp_converted_at_level += 2		
+						ranks_taken = k
+						ptp_converted_to_mtp += ptp_converted_at_level
+						break			
 				
-			ava_ptp = prev_pleftover + globals.character.ptp_by_level[i].get() + pregain
-			ava_mtp = prev_mleftover + globals.character.mtp_by_level[i].get() + mregain 
-			
-#			print(ava_mtp)
-#			print(mcost)
-#			if ava_ptp < pcost and ava_mtp < mcost:
-#				print("jere")
-#				globals.error_dialogmsg.set("Skill Panel: Build becomes untrainable at lvl: " % i)	
-#				globals.error_dialog.show()	
-			if ava_ptp < pcost:
-				while ava_mtp - convert_mtp > 1 and convert_mtp/2 + ava_ptp < pcost:
-					convert_mtp += 2			
-				if ava_mtp - convert_mtp <= 1:
-					globals.error_event = 1
-			elif ava_mtp < mcost:
-				while ava_ptp - convert_ptp > 1 and convert_ptp/2 + ava_mtp < mcost:
-					convert_ptp += 2			
-				if ava_ptp - convert_ptp <= 1:
-					globals.error_event = 1
+				
+				# Error checking
+				if ranks_taken < bskill.adjusted_training_rate[lvl] and lvl >= int(bskill.tlvl.get()):
+					error_text += "ERROR: Failed to meet training goal %s ranks by target level %s for %s. Aborting calculation." % (bskill.goal.get(), lvl, row.name)															
+					abort_loops = 1
+					break
 					
-			self.total_regained_ptp_by_level[i].set(pregain)
-			self.total_regained_mtp_by_level[i].set(mregain)
-			self.total_cost_ptp_by_level[i].set(pcost)
-			self.total_cost_mtp_by_level[i].set(mcost)			
-			self.total_available_ptp_by_level[i].set(ava_ptp)
-			self.total_available_mtp_by_level[i].set(ava_mtp)	
-			self.total_converted_ptp_by_level[i].set(convert_ptp)
-			self.total_converted_mtp_by_level[i].set(convert_mtp)		
-			self.total_leftover_ptp_by_level[i].set(ava_ptp - pcost + convert_mtp/2 - convert_ptp)
-			self.total_leftover_mtp_by_level[i].set(ava_mtp - mcost + convert_ptp/2 - convert_mtp)
-			
-			if globals.error_event:
-				break
-			
-		if globals.error_event:
-			globals.error_dialogmsg.set("Skill Panel: Build becomes untrainable at lvl: %s" % i)	
-			globals.error_dialog.show()	
-			self.level_counter.setvalue(i)
+				
+				# If we actually took some ranks, train them now
+				if ranks_taken > 0:
+					(ptp_cost_at_level, mtp_cost_at_level) = row.Get_Next_Ranks_Cost(lvl, subskill_tranks, ranks_taken)		
+					ptp_cost += ptp_cost_at_level
+					mtp_cost += mtp_cost_at_level	
+					row.Train_New_Ranks(lvl, subskill_tranks, ranks_taken)
+					
+					
+				if ranks_taken < bskill.adjusted_training_rate[lvl]:
+					error_text += "ERROR: Couldn't train %s ranks in %s at level %s (trained %s ranks).\nPushing back remaining training to next level.\n\n" % (bskill.adjusted_training_rate[lvl], row.name, lvl, ranks_taken)							
+				#	if bskill.goal.get()[-1] != "x":
+				#		bskill.Update_Adjusted_Training(lvl+1, row.total_ranks_by_level[lvl].get())
+				#	else:
+				#		bskill.adjusted_training_rate[lvl+1] = bskill.adjusted_training_rate[lvl+1] + bskill.adjusted_training_rate[lvl] - ranks_taken
+					bskill.adjusted_training_rate[lvl+1] = bskill.adjusted_training_rate[lvl+1] + bskill.adjusted_training_rate[lvl] - ranks_taken
+					push_back = 1
+				
+
+
+			# Set the totals for this level once we completed the skill training						
+			self.total_regained_ptp_by_level[lvl].set(ptp_regained)
+			self.total_regained_mtp_by_level[lvl].set(mtp_regained)	
+			self.total_cost_ptp_by_level[lvl].set(ptp_cost)
+			self.total_cost_mtp_by_level[lvl].set(mtp_cost)
+			self.total_available_ptp_by_level[lvl].set(ptp_available)
+			self.total_available_mtp_by_level[lvl].set(mtp_available)	
+			self.total_leftover_ptp_by_level[lvl].set(ptp_available - ptp_cost + mtp_converted_to_ptp/2 - ptp_converted_to_mtp)
+			self.total_leftover_mtp_by_level[lvl].set(mtp_available - mtp_cost + ptp_converted_to_mtp/2 - mtp_converted_to_ptp)		
+			self.total_converted_ptp_by_level[lvl].set(ptp_converted_to_mtp)	
+			self.total_converted_mtp_by_level[lvl].set(mtp_converted_to_ptp)
+
+		# Display an error if something didn't go right	
+		if error_text != "":		
+			globals.info_dialog.Show_Message(error_text)
 	
 		self.Update_Schedule_Frames()
-		globals.character.StP_Update_Resources()
+		globals.character.Update_Statistics()
+		
 
-			
+	# This is called when user changes the level counter or when the user's build has been recalculated.
+	# It uses what ever the current level is and updates the schedule frame and schedule footer
 	def Update_Schedule_Frames(self):
+		if self.level_counter.getvalue() == "":
+			return
 		level = int(self.level_counter.getvalue())
-		i = 0
-#		print(self.SkP_radio_var.get())
-		for row in self.schedule_skills_list:
-			if self.SkP_radio_var.get() == 1 or (self.SkP_radio_var.get() == 2 and row.total_ranks_by_level[100].get() > 0) or (self.SkP_radio_var.get() == 3 and row.ranks_by_level[level].get() > 0):
+		i = 0	
+		
+		# Go through each skill in the profession knows 
+		# Show skill if: Show All Skills is checked, Show All Trained is checked and the character has at least 1 rank in it, Show Trained this Level is checked and they have ranks for this level
+		for key in globals.skill_names:		
+			row = globals.character.skills_list[key]
+			if row.active_skill == 1 and (self.SkP_radio_var.get() == 1 or (self.SkP_radio_var.get() == 2 and row.total_ranks_by_level[100].get() > 0) or (self.SkP_radio_var.get() == 3 and row.ranks_by_level[level].get() > 0)):
 				if row.ranks_by_level[level].get() > 0:
 					row.cost.set("%s / %s" % (row.ptp_cost_at_level[level].get(), row.mtp_cost_at_level[level].get()))
 				else:
@@ -564,44 +743,30 @@ class Skills_Panel:
 		self.vars_sfooter_mtp_leftover.set(self.total_leftover_mtp_by_level[level].get())
 		
 		
-	def SkP_Update_Skills(self):	
-		self.add_skills_menu['menu'].delete(0, "end")
-		self.edit_skills_menu['menu'].delete(0, "end")
-		i = 0
-		
-		for row in self.schedule_skills_list:
-			row.SkP_schedule_row.grid_remove()
-		self.schedule_skills_list = []
-		
-		for s in globals.skills:
-			if globals.character.skills[s] == "":
-				continue
-			skill = globals.character.skills[s].name
-			self.add_skills_menu['menu'].add_command(label=skill, command=lambda s=skill: self.Skills_Menu_Onchange(s))
-			self.edit_skills_menu['menu'].add_command(label=skill, command=lambda s=skill: self.Skills_Menu_Onchange(s))
-			self.schedule_skills_list.append(Schedule_List_Skill(globals.character.skills[s].name, self.MR_Frame))
-			self.schedule_skills_list[i].SkP_schedule_row.grid(row=i, column=0)
-			i += 1
-			
-		self.level_counter.setvalue(0)
-		self.Create_Schedule()
-		
-
+	# When skills drop down menu in the dialog box is changed, update the skill name, skill cost, and max ranks
 	def Skills_Menu_Onchange(self, name):
-		skill = globals.skills_list[name]
+		skill = globals.character.skills_list[name]
 		self.vars_dialog_skill.set(name)
 		self.vars_dialog_info.set("%s/%s (%s)" % (skill.ptp_cost, skill.mtp_cost, skill.max_ranks))
 		self.dialog_max_ranks = skill.max_ranks
+
 	
-	
-	def Get_Skill_By_Name(self, name):
-		for row in self.schedule_skills_list:
-			if row.name == name:
-				return row
-				
-		return None		
+	# This allows mouse scrolling in the build frame. Anything with the bind tag SkP_Build will allow the scrolling
+	def Scroll_Build_Frame(self, event):
+		self.ML_Frame.yview("scroll", -1*(event.delta/120), "units")
 		
-	
+		
+	# This allows mouse scrolling in the schedule frame. Anything with the bind tag SkP_Schedule will allow the scrolling	
+	def Scroll_Schedule_Frame(self, event):
+		self.MR_Frame.yview("scroll", -1*(event.delta/120), "units")	
+
+
+	# Wrapper function used by Globals.py to create a new Skill from Character file.		
+	def Create_Build_List_Skill(self, parent, name, hidden, order, info, start, target, goal):
+		return Build_List_Skill(parent, name, hidden, order, info, start, target, goal)
+		
+		
+# This class holds all the information for a specific skill the character wants to train in. These skills are shown the build frame using the object's SkP_Build_Row	frame
 class Build_List_Skill:
 	def __init__(self, parent, name, hidden, order, info, start, target, goal):
 		self.name = tkinter.StringVar()
@@ -611,9 +776,11 @@ class Build_List_Skill:
 		self.slvl = tkinter.StringVar()
 		self.tlvl = tkinter.StringVar()
 		self.goal = tkinter.StringVar()
-		self.SkP_Info_Row = tkinter.Frame(parent)
+		self.SkP_Build_Row = tkinter.Frame(parent)
 		self.SkP_Edit_Button = ""
-				
+		self.base_training_rate = [0 for i in range(101)]
+		self.adjusted_training_rate = [0 for i in range(101)]
+								
 		self.name.set(name)
 		self.hide.set(hidden)
 		self.order.set(order)
@@ -621,131 +788,105 @@ class Build_List_Skill:
 		self.slvl.set(start)
 		self.tlvl.set(target)
 		self.goal.set(goal)
+		self.SkP_Build_Row.bindtags("SkP_build")
 		
-		tkinter.Label(self.SkP_Info_Row, width=3, bg="lightgray", textvariable=self.hide).grid(row=0, column=0, sticky="w", padx="1", pady="1")
-		tkinter.Label(self.SkP_Info_Row, width=6, bg="lightgray", textvariable=self.order).grid(row=0, column=2, padx="1", pady="1")
-		tkinter.Label(self.SkP_Info_Row, width="26", anchor="w", bg="lightgray", textvariable=self.name).grid(row=0, column=3, padx="1", pady="1")
-		tkinter.Label(self.SkP_Info_Row, width="12", bg="lightgray", textvar=self.info).grid(row=0, column=4, padx="1", pady="1")
-		tkinter.Label(self.SkP_Info_Row, width=5, bg="lightgray", textvariable=self.goal).grid(row=0, column=5, padx="1")
-		tkinter.Label(self.SkP_Info_Row, width=5, bg="lightgray", textvariable=self.slvl).grid(row=0, column=6, padx="1")
-		tkinter.Label(self.SkP_Info_Row, width=5, bg="lightgray", textvariable=self.tlvl).grid(row=0, column=7, padx="1")
-		self.SkP_Edit_Button = tkinter.Button(self.SkP_Info_Row, text="Edit", command="")
-		self.SkP_Edit_Button.grid(row=0, column=8, padx="3")		
+		L1 = tkinter.Label(self.SkP_Build_Row, width=3, bg="lightgray", textvariable=self.hide)
+		L1.grid(row=0, column=0, padx="1", pady="1")
+		L1.bindtags("SkP_build")
+		L2 = tkinter.Label(self.SkP_Build_Row, width=6, bg="lightgray", textvariable=self.order)
+		L2.grid(row=0, column=1, padx="1", pady="1")
+		L2.bindtags("SkP_build")
+		L3 = tkinter.Label(self.SkP_Build_Row, width="26", anchor="w", bg="lightgray", textvariable=self.name)
+		L3.grid(row=0, column=2, padx="1", pady="1")
+		L3.bindtags("SkP_build")
+		L4 = tkinter.Label(self.SkP_Build_Row, width="12", bg="lightgray", textvar=self.info)
+		L4.grid(row=0, column=3, padx="1", pady="1")
+		L4.bindtags("SkP_build")
+		L5 = tkinter.Label(self.SkP_Build_Row, width=5, bg="lightgray", textvariable=self.goal)
+		L5.grid(row=0, column=4, padx="1")
+		L5.bindtags("SkP_build")
+		L6 = tkinter.Label(self.SkP_Build_Row, width=5, bg="lightgray", textvariable=self.slvl)
+		L6.grid(row=0, column=5, padx="1")
+		L6.bindtags("SkP_build")
+		L7 = tkinter.Label(self.SkP_Build_Row, width=5, bg="lightgray", textvariable=self.tlvl)
+		L7.grid(row=0, column=6, padx="1")
+		L7.bindtags("SkP_build")
+		self.SkP_Edit_Button = tkinter.Button(self.SkP_Build_Row, text="Edit", command="")
+		self.SkP_Edit_Button.grid(row=0, column=7, padx="3")	
 
 		
-class Schedule_List_Skill:
-	def __init__(self, name, parent):
-		self.name = name
-		self.cost = tkinter.StringVar()
-		self.ranks = tkinter.IntVar()
-		self.total_ranks = tkinter.IntVar()
-		self.bonus = tkinter.IntVar()
-		self.SkP_schedule_row = tkinter.Frame(parent.interior())			
+	# This takes either a number or rates (1x, 2x) and maps it out across the level range.
+	# Numbers will be front loaded with extra ranks if the ranks cannot be spread across the level ranks.
+	# Rates will set the skill ranks evenly over the level range
+	def Set_Training_Rate(self):
+		self.base_training_rate = [0 for i in range(101)]
+		self.adjusted_training_rate = [0 for i in range(101)]
+		start = int(self.slvl.get())
+		end = int(self.tlvl.get())
 		
-		tkinter.Label(self.SkP_schedule_row, width="26", bg="lightgray", anchor="w", text=self.name).grid(row=0, column=0, padx="1", pady="1")
-		tkinter.Label(self.SkP_schedule_row, width="8", bg="lightgray", textvariable=self.ranks).grid(row=0, column=1, padx="1", pady="1")		 
-		tkinter.Label(self.SkP_schedule_row, width="12", bg="lightgray", textvariable=self.cost).grid(row=0, column=2, padx="1", pady="1")	 		
-		tkinter.Label(self.SkP_schedule_row, width="10", bg="lightgray", textvariable=self.total_ranks).grid(row=0, column=3, padx="1", pady="1")	
-		tkinter.Label(self.SkP_schedule_row, width="11", bg="lightgray", textvariable=self.bonus).grid(row=0, column=4, padx="1", pady="1")	
-
-		self.ranks_by_level = [tkinter.IntVar() for i in range(101)]
-		self.total_ranks_by_level = [tkinter.IntVar() for i in range(101)]
-		self.bonus_by_level = [tkinter.IntVar() for i in range(101)]
-		self.ptp_cost_at_level = [tkinter.IntVar() for i in range(101)]
-		self.mtp_cost_at_level = [tkinter.IntVar() for i in range(101)]
-		self.total_ptp_cost_at_level = [tkinter.IntVar() for i in range(101)]
-		self.total_mtp_cost_at_level = [tkinter.IntVar() for i in range(101)]
-		self.ptp_regained_at_level = [tkinter.IntVar() for i in range(101)]
-		self.mtp_regained_at_level = [tkinter.IntVar() for i in range(101)]
-		
-		self.Set_To_Default()
-		
-	def Set_To_Default(self):
-		for i in range(101):
-			self.ranks_by_level[i].set(0)
-			self.total_ranks_by_level[i].set(0)
-			self.bonus_by_level[i].set(0)
-			self.ptp_cost_at_level[i].set(0)
-			self.mtp_cost_at_level[i].set(0)
-			self.total_ptp_cost_at_level[i].set(0)
-			self.total_mtp_cost_at_level[i].set(0)
-			self.ptp_regained_at_level[i].set(0)
-			self.mtp_regained_at_level[i].set(0)
-		
-	def Calculate_Ranks_Info(self, level, ranks):
-		skill = globals.skills_list[self.name]		
-		pcost = 0	
-		mcost = 0			
-		if level == 0:
-			prev_total_ranks = 0			
-		else:
-			prev_total_ranks = self.total_ranks_by_level[level-1].get()
-			self.Calcuate_Total_Cost(level-1, prev_total_ranks)
-
-#		self.ranks_by_level[level].set(ranks)			
-		self.ranks_by_level[level].set(self.ranks_by_level[level].get() + ranks)					
-			
-		# Set Total Ranks and Bonus for each level
-		for i in range(level, 101):
-			self.total_ranks_by_level[i].set(ranks + prev_total_ranks)
-			self.bonus_by_level[i].set(self.Calculate_Skill_Bonus(ranks + prev_total_ranks))
-								
+		# Map out a Rate
+		if self.goal.get()[-1] == "x":
+			goal = float(self.goal.get()[:-1])
+			prev_ranks = 0
+			for i in range(0, 101):
+				if i < start or i > end:
+					continue					
+				estimated_ranks = goal * (i+1-start)   # We need to factor in the start number too. If we don't it will front load a bunch of ranks on the start level
 				
-		# Calculate the PTP and MTP cost for training in the skill. 
-		for x in range(1, ranks+1):
-#			print("%s vs %s" % (prev_total_ranks+x, level+1))
-			if x + prev_total_ranks > 2 * (level + 1):
-#				print("triple: %s" % (skill.ptp_cost * 4))
-				pcost += skill.ptp_cost * 4
-				mcost += skill.mtp_cost * 4
-			elif x + prev_total_ranks > (level + 1):
-#				print("double: %s" % (skill.ptp_cost * 2))
-				pcost += skill.ptp_cost * 2
-				mcost += skill.mtp_cost * 2
+				mod_ranks = round(estimated_ranks % 1, 3)
+				mod_goal = goal % 1
+				
+				# We need to round up for anything at .9 or with the rate of 1/3. .999999... ~= 1 in this case
+				if ( mod_ranks == .9 or mod_ranks == .99 or mod_ranks == .999 ) and ( mod_goal == .3 or mod_goal == .33 or mod_goal == .333 ):		
+					self.base_training_rate[i] = int(math.ceil(estimated_ranks) - prev_ranks)
+					prev_ranks = math.ceil(estimated_ranks)		   
+				else:		
+					self.base_training_rate[i] = int(math.floor(estimated_ranks) - prev_ranks)
+					prev_ranks = math.floor(estimated_ranks)
+				
+		# Map out a Number	
+		else:
+			goal = int(self.goal.get())
+			target = end + 1
+			spanning = end - start + 1
+			ranks_taken = 0
+			if spanning >= goal:				
+				for i in range(start, target):	
+					self.base_training_rate[i] = 1
+					ranks_taken += 1
+					if ranks_taken >= goal:
+						break
 			else:
-#				print("single: %s" % skill.ptp_cost)
-				pcost += skill.ptp_cost
-				mcost += skill.mtp_cost		
-				
-		self.ptp_cost_at_level[level].set(pcost)
-		self.mtp_cost_at_level[level].set(mcost)
-				
-		self.Calcuate_Total_Cost(level, prev_total_ranks)
-		
-		self.ptp_regained_at_level[level].set(max(0, self.total_ptp_cost_at_level[level-1].get() - self.total_ptp_cost_at_level[level].get()))
-		self.mtp_regained_at_level[level].set(max(0, self.total_mtp_cost_at_level[level-1].get() - self.total_mtp_cost_at_level[level].get()))
-				
-	def Calculate_Skill_Bonus(self, ranks):
-		if ranks >= 40:
-			return (ranks - 40) + 140
-		elif ranks >= 30:
-			return 2 * (ranks - 30) + 120
-		elif ranks >= 20:
-			return 3 * (ranks - 20) + 90
-		elif ranks >= 10:
-			return 4 * (ranks - 10) + 50
-		else:
-			return ranks * 5
-				
-	# This functions will calculate the cost a skill using all existing ranks relative to a specific level.
-	def Calcuate_Total_Cost(self, level, total_ranks):
-		skill = globals.skills_list[self.name]
-		triple_train = max(0, total_ranks - 2 * (level + 1))
-		double_train = max(0, total_ranks - triple_train - (level + 1))
-		single_train = max(0, total_ranks - triple_train - double_train)		
+				base_ranks = math.floor(goal / spanning)
+				remainder = goal % spanning 
+				for i in range(start, target):
+					if remainder > 0 and remainder > ranks_taken:
+						self.base_training_rate[i] = base_ranks + 1					
+						ranks_taken += 1
+					else:
+						self.base_training_rate[i] = base_ranks		
 
-		self.total_ptp_cost_at_level[level].set(skill.ptp_cost * single_train  +  2 * skill.ptp_cost * double_train  +  4 * skill.ptp_cost * triple_train)
-		self.total_mtp_cost_at_level[level].set(skill.mtp_cost * single_train  +  2 * skill.mtp_cost * double_train  +  4 * skill.mtp_cost * triple_train)
-#		print("level %s: regained PTP/MTP %s/%s" % (level, self.ptp_regained_at_level[level].get(), self.mtp_regained_at_level[level].get()))
-#		print(" %s, %s, %s" % (single_train, double_train, triple_train))
-#		print("cost now %s: cost prev %s" % (self.total_ptp_cost_at_level[level].get(), self.total_ptp_cost_at_level[level-1].get()))
+	
+	# This is used to figure out a new training rate when we had to do a push back from calculating the schedule
+	def Update_Adjusted_Training(self, new_start, ranks_taken):
+		self.adjusted_training_rate = [0 for i in range(101)]
+		goal = int(self.goal.get()) - ranks_taken
+		target = int(self.tlvl.get()) + 1
+		spanning = int(self.tlvl.get()) - new_start + 1
+		ranks_taken = 0
+		if spanning >= goal:				
+			for i in range(new_start, target):	
+				self.adjusted_training_rate[i] = 1
+				ranks_taken += 1
+				if ranks_taken >= goal:
+					break
+		else:
+			base_ranks = math.floor(goal / spanning)
+			remainder = goal % spanning 
+			for i in range(new_start, target):
+				if remainder > 0 and remainder > ranks_taken:
+					self.adjusted_training_rate[i] = base_ranks + 1					
+					ranks_taken += 1
+				else:
+					self.adjusted_training_rate[i] = base_ranks		
 		
-		
-#	def Get_Next_Rank_Type(self, level):
-		# Returns 1 if single train, 2 if double train, 3 if triple train
-#		if self.total_ranks_by_level[level] + 1 > 2*(level+1):
-#			return 3
-#		elif self.total_ranks_by_level[level] + 1 > (level+1):
-#			return 2
-#		else:		
-#			return 1
