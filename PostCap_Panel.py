@@ -1035,7 +1035,7 @@ class PostCap_Panel:
 			self.sfooter_maneuver_title_row.grid(row=0, column=0, padx="1")	
 			self.sfooter_combat_row.grid(row=1, column=0, padx="1")	
 
-			if globals.character.profession.type == "Paladin" or globals.character.profession.type == "Rogue" or globals.character.profession.type == "Warrior":
+			if globals.character.profession.name == "Paladin" or globals.character.profession.name == "Rogue" or globals.character.profession.name == "Warrior":
 				self.sfooter_shield_row.grid(row=2, column=0, padx="1")	
 				self.sfooter_armor_row.grid(row=3, column=0, padx="1")	
 			
