@@ -13,7 +13,7 @@
 import sys
 from cx_Freeze import setup, Executable
 
-#base = None
+#base = None 
 if sys.platform == "win32":
 	base = "Win32GUI"	
 setup(name="GS4 Character Planner", version="2.3", description="GS4 Character Planner", executables=[Executable("Planner.py", base=base)])
