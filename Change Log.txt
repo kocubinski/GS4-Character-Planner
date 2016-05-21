@@ -1,0 +1,98 @@
+-Version 2.4- (Date: 5/21/2016)
+GENERAL CHANGES
+-Added the Post Cap panel. This panel allows characters to continue training in skills and maneuvers beyond level 100.
+-Reduced the width of the entire planner by 60 pixels
+
+
+STATISTICS PANEL CHANGES
+-Increased the width on all boxes in the growth header frame, growth row frame, and growth footer frame
+-Removed the Profession and Race labels from the statistics header frame and moved the Race drop down menu up next to the Profession drop down menu.
+-Added 2 new rows to panel. Total Experience and Exp. until Next. These will show you how much experience you have and how much experience you need to advanced in level.
+-Fixed a bug that made the health calculation formula to use the wrong constitution bonus
+-Panel height was increased to accomidate the 2 new rows.
+-Removed the resources boxes from the statistics footer (lower left) frame. These were redundent.
+
+SKILLS PANEL CHANGES
+-Renamed Total Bonus to Bonus and reduced the size of frames to adjust for the new size
+-Renamed Converted to conversions in the schedule footer frame
+-Made some adjustments to the PTP/MTP conversion formula. Should no longer result in having a negative amount of PTP/MTP regained.
+-Increased the height of the panel to match the size of the other panels
+
+MANEUVER PANEL CHANGES
+-Made Build_List_Maneuver objects mouse scrollable like Build_List_Skill objects
+-Dialog box will now should show the required prerequisites to take a skill
+
+DATEBASE CHANGES/FIXES
+-Added Striking Asp combat maneuver
+-Added Shielded Brawler combat maneuver to the database
+-Added Subdual Strike combat maneuver to the database
+-Removed the Quickstrike combat maneuver
+-Disarming Presense in now trainable by Rogues and no longer trainable by Paladins
+-Shield Charge Combat can no longer be train in by Bards, Rangers, Rogues profession 
+-Monks can no longer train in Bearhug, Coup de Grace, Shadow Mastery, Unarmed Specialist, Weapons Specialization I, II, III
+-Paladins can no longer train in the Bearhug combat maneuver
+-Paladins can now train in the Weapons Specialization I, II, III combat maneuvers
+-Rangers can now train in Garrote, and Shadow Mastery
+-Rogues can no longer train in the Protective Wall shield maneuver
+-Warrors can no longer train in Garrote
+-Warrors can now train in Parry Mastery
+-Shield Swiftness no longer allows Shield Focus Large/Tower as a prerequisite
+-Rank 3 of Predator's Eye now correctly costs 8 points instead of 7
+-Clerics, Empaths, Wizards and Sorcerers may only train once per level in Disarm Traps instead of 2 times per level
+-Clerics may only train once per level in Stalking and Hiding instead of 5 times per level
+-Empath's Multi Opponent Combat skill cost is now 15/10 instead of 13/0
+-Ranger's Blunt Weeapons skill cost is now 4/1 instead of 4/2
+-Ranger's Combat Maneuver skill cost is now 6/4 instead of 5/4
+-Ranger's Elemental Mana Control skill cost is now 0/15 instead of 0/10
+-Ranger's Perception skill cost is now 0/2 instead of 0/3
+-Ranger's Thrown Weeapons skill cost is now 3/1 instead of 2/1
+-Rogues can train 2 times per level in Shield Use instead of 1 time per level
+-Rogue's Elemental Mana Control skill cost is now 0/10 instead of 0/12
+-Sorcerer's Elemental Mana Control skill cost is now 0/3 instead of 0/10
+-Wizard's Edged Weapons skill cost is now 6/1 instead of 6/2
+-Wizard's Blunt Weapons skill cost is now 6/1 instead of 6/2
+-Wizards's Mental Mana Control skill cost is now 0/15 instead of 0/12
+-Wizards can train 1 time per level in Survival instead of 2 times per level
+-Warrior's Two Weapon Combat skill cost is now 2/2 instead of 3/4
+-Warrior's Stalking and Hiding skill cost is now 3/2 instead of 2/3 
+-Aelotoi race now has -5 Influence penalty
+-Aelotoi race now has Influence growth index is now -2 instead of 3
+-Dwarf race now has +5 Logic bonus
+-Dark Elf race now has Displine growth index is now -2 instead of 5
+-Dark Elf race now has Aura growth index is now 0 instead of -2
+-Giantman race now has -5 Logic penalty
+-Half Elf race now has Influence growth index is now 2 instead of 0
+-Half Krolvin race had almost all growth index parameters wrong. This are now fixed.
+-Ranger profession now has Intuition growth index is now 25 instead of 15
+
+
+
+-Version 2.3-
+
+GENERAL CHANGES
+-The File dropdown menu option "New Character" now clears the entire Planner to allow for easy creation of a new character.
+-The File dropdown menu option "Load Character" prompts the user for a GS4 Character .txt file and will populate the Planner with that character's build information. This action does not perform any calculations however.
+-The File dropdown menu option "Save Character As ..." lets the user save their work in the Planner to a .txt file. This file will contain the character's profession, race, base statistics, skills build, and all maneuver builds. No calculation are saved to this file.
+-Removed the Character.py file. The contents of this file where combined into globals.py
+-A large amount of code was moved from other .py files into the Character class now located in globals.py to allow for easier access by all Planner files and for save/loading character files.
+-All files where restructured to removed redundancy and make the code cleaner.
+-All files have more comments to explain what is going on.
+-The Planner can no longer be resized or maximized.
+-When a popup box appear on any panel, you can no longer interact with the main Planner GUI until the popup box closes.
+-Fixed a lot of errors in the GS4 SQL database.
+
+STATISTICS PANEL CHANGES
+-You can use the Up and Down arrows to move between the statistic boxes.
+-Changing professions no longer makes the Planner lag for 2-3 seconds.
+
+SKILLS PANEL CHANGES
+-Calculating a character's build has been redone and improved. In addition to allow users to use a rate (2x, 1.5x, etc) for a skill goal, user can specify the number of ranks they want total. (ie 24 ranks of Arcane Symbols)
+-The Planner will attempt to train in as many skills each level but will stop if it cannot fully train all the ranks in each skill. For rates this is the calculated number for that level (2x is 2 ranks, 1.5x might be 1 or 2 ranks) while numbers are ALL the ranks. If the Planner does stop because it can't train all the ranks, a push back occurs. This will move all remaining untrained ranks for that skill and all the ranks for EVERY SKILL below it on the training schedule will be moved to the next level, combining them with any existing training at that level. In short, if you can't train everything, the planner will keep trying every level until you can train all the ranks or you exceed a target level in a skill.
+-Calculating a build that cannot achieve all the ranks of a skill in its indicated level range will cause an error box to appear to inform the user. This also aborts any further skill schedule calculations.
+-The schedule calculation takes skill subgroups (Spell Research, everything that falls under a specific Lore) into consideration when determine skill costs and max ranks.
+-You can use the mouse wheel to scroll in the build and schedule frames if they contain enough data.
+
+MANEUVER PANEL CHANGES
+-Similar to the Skills Panel, this panel will use a push back if it cannot train every rank for a maneuver at a given level.
+-The schedule calculation takes maneuver prerequisites into consideration when determining if you can train in a maneuver. This will trigger a push back and will try again each level until it can train all the ranks or it ends with an error.
+-You can use the mouse wheel to scroll in the build and schedule frames if they contain enough data.
