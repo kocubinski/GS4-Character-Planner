@@ -11,12 +11,12 @@ class Maneuvers_Panel
 	def Create_Schedule_Footer(self, panel):
 	def Create_Dialog_Box(self, panel, title, buttons):
 	def Dialog_Box_Onclick(self, result):
+	def Dialog_Menu_Onchange(self, name):
 	def Add_Edit_Button_Onclick(self, location):
 	def Clear_Button_Onclick(self, style):		
 	def Maneuver_Style_Onchange(self, result):	
-	def Create_Schedule(self):	
+	def Plan_Training_Schedule(self):	
 	def Update_Schedule_Frames(self):	
-	def Dialog_Menu_Onchange(self, name):
 	def Scroll_Build_Frame(self, event):	
 	def Scroll_Schedule_Frame(self, event):
 	def Create_Build_List_Maneuver(self, parent, name, type, hidden, order, start, target, goal, ranks_arr ):
@@ -65,6 +65,7 @@ class Maneuvers_Panel:
 		self.vars_dialog_armor_maneuver = tkinter.StringVar()
 		self.vars_dialog_order = tkinter.StringVar()
 		self.vars_dialog_info = tkinter.StringVar()
+		self.vars_dialog_prerequisites = tkinter.StringVar()
 		self.vars_dialog_hide = tkinter.StringVar()
 		self.vars_dialog_goal = tkinter.StringVar()
 		self.vars_dialog_slevel = tkinter.StringVar()
@@ -155,8 +156,8 @@ class Maneuvers_Panel:
 		self.man_select_menu.config(width=6, heigh=1)	
 		self.man_select_menu.grid(row=0, column=0, sticky="w")		
 		tkinter.Button(topframe, height="1", text="Add Maneuver", command=lambda v="": self.Add_Edit_Button_Onclick(v)).grid(row=0, column=1)		
-		tkinter.Button(topframe, height="1", text="Calculate", command=lambda : self.Create_Schedule(self.maneuver_mode.get())).grid(row=0, column=2)		
-		tkinter.Button(topframe, height="1", text="Calculate All", command=lambda v="All": self.Create_Schedule(v)).grid(row=0, column=3)	
+		tkinter.Button(topframe, height="1", text="Calculate Build", command=lambda : self.Plan_Training_Schedule(self.maneuver_mode.get())).grid(row=0, column=2)		
+		tkinter.Button(topframe, height="1", text="Calculate All", command=lambda v="All": self.Plan_Training_Schedule(v)).grid(row=0, column=3)	
 		tkinter.Button(topframe, text="Clear", command=lambda v="": self.Clear_Button_Onclick(v)).grid(row=0, column=4, sticky="w", pady="1")	
 		tkinter.Button(topframe, text="Clear All", command=lambda v="All": self.Clear_Button_Onclick(v)).grid(row=0, column=5, sticky="w", pady="1")	
 		
@@ -201,7 +202,7 @@ class Maneuvers_Panel:
 		topframe.grid(row=0, column=0, sticky="w")	
 		tlvl_frame = tkinter.Frame(topframe)
 		tlvl_frame.grid(row=0, column=0, sticky="w", padx=3, pady="1")	
-		self.level_counter = Pmw.Counter(tlvl_frame, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Training at Level', entryfield_value = 0, datatype = "numeric", entryfield_modifiedcommand=self.Update_Schedule_Frames )
+		self.level_counter = Pmw.Counter(tlvl_frame, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Manevuers at Level', entryfield_value = 0, datatype = "numeric", entryfield_modifiedcommand=self.Update_Schedule_Frames )
 		self.level_counter.grid(row=0, column=0, sticky="w", pady="1")
 		
 		tkinter.Radiobutton(topframe, anchor="w", text="All", command=self.Update_Schedule_Frames, var=self.ManP_radio_var, value=1).grid(row=0, column=1)	
@@ -286,6 +287,7 @@ class Maneuvers_Panel:
 	# This frame consists of the following parts:
 	# Maneuver Name - Drop down menu to select which skill to train in.
 	# Cost per Rank - How many training points it costs for each rank of the maneuver and the maximum ranks you can train in the skill for a single level.
+	# Prerequisites - What maneuvers/skills ranks/Guild skills, this maneuver requires beyond any ranks can be taken.	
 	# Training Order - Determines what order the planner will try to train the maneuver. If the maneuver cannot be fully trained at a level, ALL training below it is pushed back to the next level.
 	# Hide - Any maneuver with a checked Hide box will be ignored when build schedule is calculated.
 	# Goal - This is a number greater that 0 for how many ranks to train in the maneuver.
@@ -298,9 +300,9 @@ class Maneuvers_Panel:
 			
 		dialog.transient(panel)	
 		dialog.resizable(width=0, height=0)		
-		dialog.geometry('315x280+600+300')
+		dialog.geometry('315x330+600+300')
 				
-		myframe = Pmw.ScrolledFrame(dialog.interior(), usehullsize = 1, hull_width = 315, hull_height = 280)
+		myframe = Pmw.ScrolledFrame(dialog.interior(), usehullsize = 1, hull_width = 315, hull_height = 330)
 		myframe.configure(hscrollmode = "none", vscrollmode = "none")		
 		myframe.grid(row=0, column=0, sticky="nw")	
 		myframe_inner = myframe.interior()	
@@ -308,14 +310,16 @@ class Maneuvers_Panel:
 		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Maneuver Name").grid(row=0, column=0, sticky="w")
 		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Cost per Rank").grid(row=1, column=0, sticky="w")
 		tkinter.Label(myframe_inner, width="30", anchor="w", textvar=self.vars_dialog_info).grid(row=1, column=1, sticky="w")
-		tkinter.Label(myframe_inner, width="13", anchor="w", text="").grid(row=2, column=0, sticky="w")
-		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Training Order").grid(row=3, column=0, sticky="w")
-		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Hide").grid(row=4, column=0, sticky="w")
-		tkinter.Label(myframe_inner, width="13", anchor="w", text="").grid(row=5, column=0, sticky="w")
-		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Goal").grid(row=6, column=0, sticky="w", pady=1)
-		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Level Range").grid(row=7, column=0, sticky="w")			
-								
-		tkinter.Checkbutton(myframe_inner, command="", variable=self.vars_dialog_hide).grid(row=4, column=1, sticky="w")		
+		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Prerequisites").grid(row=2, column=0, sticky="w")
+		tkinter.Label(myframe_inner, width="30", anchor="w", justify="left", textvar=self.vars_dialog_prerequisites).grid(row=2, column=1, sticky="w")
+		tkinter.Label(myframe_inner, width="13", anchor="w", text="").grid(row=3, column=0, sticky="w")
+		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Training Order").grid(row=4, column=0, sticky="w")
+		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Hide").grid(row=5, column=0, sticky="w")
+		tkinter.Checkbutton(myframe_inner, command="", variable=self.vars_dialog_hide).grid(row=5, column=1, sticky="w")	
+		tkinter.Label(myframe_inner, width="13", anchor="w", text="").grid(row=6, column=0, sticky="w")
+		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Goal").grid(row=7, column=0, sticky="w", pady=1)
+		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Level Range").grid(row=8, column=0, sticky="w")			
+									
 	
 
 		self.add_combat_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
@@ -340,16 +344,17 @@ class Maneuvers_Panel:
 		self.edit_armor_order_menu.config(width=1, heigh=1)	
 			
 			
-		self.add_combat_order_menu.grid(row=3, column=1, sticky="w")
+		self.add_combat_order_menu.grid(row=4, column=1, sticky="w")
 		self.dialog_combat_names_menu.grid(row=0, column=1, sticky="w", columnspan=4)	
 
-				
+		goal_box = tkinter.Entry(myframe_inner, width="6", justify="center", validate="key", validatecommand="", textvariable=self.vars_dialog_goal).grid(row=7, column=1, sticky="w", padx=2)				
+		
 		lvlframe = tkinter.Frame(myframe_inner)
-		lvlframe.grid(row=7, column=1, sticky="w", columnspan=4)	
+		lvlframe.grid(row=8, column=1, sticky="w", columnspan=4)	
 		Pmw.Counter(lvlframe, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Start', entryfield_value = 0, datatype = "numeric", entryfield_entry_textvariable=self.vars_dialog_slevel).grid(row=0, column=0, sticky="w")
 		Pmw.Counter(lvlframe, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Target', entryfield_value = 0, datatype = "numeric", entryfield_entry_textvariable=self.vars_dialog_tlevel).grid(row=0, column=1, sticky="w", columnspan=2)
-		goal_box = tkinter.Entry(myframe_inner, width="6", justify="center", validate="key", validatecommand="", textvariable=self.vars_dialog_goal).grid(row=6, column=1, sticky="w", padx=2)
-		tkinter.Label(myframe_inner, anchor="w", font="-weight bold", wraplength=300, justify="left", textvariable=self.vars_dialog_errormsg).grid(row=8, column=0, sticky="w", columnspan=4)
+
+		tkinter.Label(myframe_inner, anchor="w", font="-weight bold", wraplength=300, justify="left", textvariable=self.vars_dialog_errormsg).grid(row=9, column=0, sticky="w", columnspan=4)
 				
 			
 		return dialog
@@ -382,7 +387,7 @@ class Maneuvers_Panel:
 				self.vars_dialog_errormsg.set("ERROR: Start level cannot be greater than target level." )
 				return
 			elif len(goal) == 0 or goal == "0" or not re.search(r"(^\d{1,3}$)", goal):
-				self.vars_dialog_errormsg.set("ERROR: Goal must be number greater than 0.")
+				self.vars_dialog_errormsg.set("ERROR: Goal must be number greater than 0 and less than 304.")
 				return				
 			elif int(goal) > man.max_ranks:
 				self.vars_dialog_errormsg.set("ERROR: Goal is greater than maximum maneuver ranks.")
@@ -528,6 +533,25 @@ class Maneuvers_Panel:
 				i += 1	
 			self.dialog_box.withdraw()		
 			self.dialog_box.grab_release()
+		self.vars_sfooter_armor_leftover.set(self.total_leftover_armor_points_by_level[level].get())
+				
+	
+	# When a new maneuver is clicked from the maneuver drop down menu in the popup dialog box, this method will update the dialog box with the newly chosen maneuver
+	def Dialog_Menu_Onchange(self, name):
+		prof_type = globals.character.profession.type	
+	
+		if self.maneuver_mode.get() == "Combat":
+			man = globals.character.combat_maneuvers_list[name]
+			self.vars_dialog_combat_maneuver.set(name)				
+		elif self.maneuver_mode.get() == "Shield":
+			man = globals.character.shield_maneuvers_list[name]
+			self.vars_dialog_shield_maneuver.set(name)				
+		elif self.maneuver_mode.get() == "Armor":
+			man = globals.character.armor_maneuvers_list[name]
+			self.vars_dialog_armor_maneuver.set(name)		
+			
+		self.vars_dialog_prerequisites.set(man.prerequisites_displayed)	
+		self.vars_dialog_info.set("%s,    %s,    %s,    %s,    %s" % (man.Get_Cost_At_Rank(1, prof_type), man.Get_Cost_At_Rank(2, prof_type), man.Get_Cost_At_Rank(3, prof_type), man.Get_Cost_At_Rank(4, prof_type), man.Get_Cost_At_Rank(5, prof_type)))		
 		
 	
 	# This function is called to display the popup dialog box that allows a user to add a new meneuver or edit an existing meneuver.
@@ -553,36 +577,36 @@ class Maneuvers_Panel:
 			self.vars_dialog_order.set(self.combat_menu_size)	
 			if location == "":			
 				self.vars_dialog_combat_maneuver.set(char_man.name)
-				self.add_combat_order_menu.grid(row=3, column=1, sticky="w")	
+				self.add_combat_order_menu.grid(row=4, column=1, sticky="w")	
 			else:
 				man = globals.character.build_combat_maneuvers_list[int(location)]
 				char_man = globals.character.combat_maneuvers_list[man.name.get()]
 				self.vars_dialog_combat_maneuver.set(man.name.get())
-				self.edit_combat_order_menu.grid(row=3, column=1, sticky="w")			
+				self.edit_combat_order_menu.grid(row=4, column=1, sticky="w")			
 		elif self.maneuver_mode.get() == "Shield":
 			char_man = globals.character.shield_maneuvers_list[self.dialog_shield_names_menu['menu'].entrycget(0, "label")]	
 			self.dialog_shield_names_menu.grid(row=0, column=1, sticky="w", columnspan=4)	
 			self.vars_dialog_order.set(self.shield_menu_size)
 			if location == "":			
 				self.vars_dialog_shield_maneuver.set(char_man.name)
-				self.add_shield_order_menu.grid(row=3, column=1, sticky="w")		
+				self.add_shield_order_menu.grid(row=4, column=1, sticky="w")		
 			else:
 				man = globals.character.build_shield_maneuvers_list[int(location)]
 				char_man = globals.character.shield_maneuvers_list[man.name.get()]
 				self.vars_dialog_shield_maneuver.set(man.name.get())		
-				self.edit_shield_order_menu.grid(row=3, column=1, sticky="w")					
+				self.edit_shield_order_menu.grid(row=4, column=1, sticky="w")					
 		elif self.maneuver_mode.get() == "Armor":
 			char_man = globals.character.armor_maneuvers_list[self.dialog_armor_names_menu['menu'].entrycget(0, "label")]
 			self.dialog_armor_names_menu.grid(row=0, column=1, sticky="w", columnspan=4)	
 			self.vars_dialog_order.set(self.armor_menu_size)
 			if location == "":			
 				self.vars_dialog_armor_maneuver.set(char_man.name)
-				self.add_armor_order_menu.grid(row=3, column=1, sticky="w")		
+				self.add_armor_order_menu.grid(row=4, column=1, sticky="w")		
 			else:
 				man = globals.character.build_armor_maneuvers_list[int(location)]
 				char_man = globals.character.armor_maneuvers_list[man.name.get()]
 				self.vars_dialog_armor_maneuver.set(man.name.get())		
-				self.edit_armor_order_menu.grid(row=3, column=1, sticky="w")		
+				self.edit_armor_order_menu.grid(row=4, column=1, sticky="w")		
 
 		# Location determines if this is the Add or Edit version of this box. A lack of Location means it is the Add version.
 		# Location is used as a reference for what number frame called this function. IE: Location 4 is the 4th maneuver in the build list.
@@ -614,6 +638,7 @@ class Maneuvers_Panel:
 				self.dialog_box.component("buttonbox").insert("Remove Maneuver", command=lambda v="Remove Maneuver": self.Dialog_Box_Onclick(v))	
 				self.dialog_box.component("buttonbox").insert("Update Maneuver", command=lambda v="Update Maneuver": self.Dialog_Box_Onclick(v))	
 			
+		self.vars_dialog_prerequisites.set(char_man.prerequisites_displayed)	
 		self.vars_dialog_info.set("%s,    %s,    %s,    %s,    %s" % (char_man.Get_Cost_At_Rank(1, prof_type), char_man.Get_Cost_At_Rank(2, prof_type), char_man.Get_Cost_At_Rank(3, prof_type), char_man.Get_Cost_At_Rank(4, prof_type), char_man.Get_Cost_At_Rank(5, prof_type) ))		
 		self.dialog_box.show()
 		self.dialog_box.grab_set()
@@ -738,7 +763,7 @@ class Maneuvers_Panel:
 	# When the Calculate button is pushed the planner will map out level by level, maneuver by maneuver (in the build list) what ranks are trained at what level for the current maneuver style.
 	# Calculate All will do this for Combat, Shield, Armor in that order.
 	# This method will also call on a number of different Maneuver object methods as well. Please review the Maneuver class in Globals.py for more information.
-	def Create_Schedule(self, style):
+	def Plan_Training_Schedule(self, style):
 		error_text = ""
 		schedule_names = []
 		prof_type = globals.character.profession.type
@@ -757,6 +782,7 @@ class Maneuvers_Panel:
 			slevel = 0; tlevel = 0; ranks_taken = 0; ranks_needed = 0
 			next_rank_cost = 0; available = 0; cost_at_level = 0; prev_leftover = 0
 			tranks = 0; tcost = 0; new_min = 0; 
+			
 			for i in range(0, 101):
 				total_available_array[i].set(0)
 				total_cost_array[i].set(0)
@@ -774,10 +800,7 @@ class Maneuvers_Panel:
 				skill_name = "Armor Use"
 				blist = globals.character.build_armor_maneuvers_list
 				slist = globals.character.armor_maneuvers_list				
-				
-			if len(blist) == 0:
-				continue				
-		
+						
 			for key, row in slist.items():
 				row.Set_To_Default()
 				
@@ -870,7 +893,10 @@ class Maneuvers_Panel:
 			
 		if error_text != "":
 			globals.info_dialog.Show_Message(error_text)
-	
+
+#		globals.character.Update_Statistics()
+		for i in range(101):
+			globals.character.Update_Resources(i)	
 		self.Update_Schedule_Frames()	
 
 		
@@ -925,23 +951,6 @@ class Maneuvers_Panel:
 		self.vars_sfooter_combat_leftover.set(self.total_leftover_combat_points_by_level[level].get())
 		self.vars_sfooter_shield_leftover.set(self.total_leftover_shield_points_by_level[level].get())
 		self.vars_sfooter_armor_leftover.set(self.total_leftover_armor_points_by_level[level].get())
-				
-	
-	# When a new maneuver is clicked from the maneuver drop down menu in the popup dialog box, this method will update the dialog box with the newly chosen maneuver
-	def Dialog_Menu_Onchange(self, name):
-		prof_type = globals.character.profession.type	
-	
-		if self.maneuver_mode.get() == "Combat":
-			man = globals.character.combat_maneuvers_list[name]
-			self.vars_dialog_combat_maneuver.set(name)				
-		elif self.maneuver_mode.get() == "Shield":
-			man = globals.character.shield_maneuvers_list[name]
-			self.vars_dialog_shield_maneuver.set(name)				
-		elif self.maneuver_mode.get() == "Armor":
-			man = globals.character.armor_maneuvers_list[name]
-			self.vars_dialog_armor_maneuver.set(name)		
-			
-		self.vars_dialog_info.set("%s,    %s,    %s,    %s,    %s" % (man.Get_Cost_At_Rank(1, prof_type), man.Get_Cost_At_Rank(2, prof_type), man.Get_Cost_At_Rank(3, prof_type), man.Get_Cost_At_Rank(4, prof_type), man.Get_Cost_At_Rank(5, prof_type)))		
 
 	
 	# This allows mouse scrolling in the build frame. Anything with the bind tag SkP_Build will allow the scrolling
@@ -959,7 +968,7 @@ class Maneuvers_Panel:
 		return Build_List_Maneuver(parent, name, type, hidden, order, start, target, goal, ranks_arr )
 		
 		
-# This class holds all the information for a specific maneuver the character wants to train in. These skills are shown the build frame using the object's ManP_Build_Row frame		
+# This class holds all the information for a specific maneuver the character wants to train in. These maneuvers are shown the build frame using the object's ManP_Build_Row frame		
 class Build_List_Maneuver:
 	def __init__(self, parent, name, type, hidden, order, start, target, goal, ranks_arr ):
 		self.name = tkinter.StringVar()
@@ -995,16 +1004,38 @@ class Build_List_Maneuver:
 		self.tlvl.set(target)
 		self.goal.set(goal)
 				
-		tkinter.Label(self.ManP_Build_Row, width=3, bg="lightgray", textvariable=self.hide).grid(row=0, column=0, sticky="w", padx="1", pady="1")
-		tkinter.Label(self.ManP_Build_Row, width=6, bg="lightgray", textvariable=self.order).grid(row=0, column=2, padx="1", pady="1")
-		tkinter.Label(self.ManP_Build_Row, width="26", anchor="w", bg="lightgray", textvariable=self.name).grid(row=0, column=3, padx="1", pady="1")
-		tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[0]).grid(row=0, column=4, padx="1", pady="1")
-		tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[1]).grid(row=0, column=5, padx="1", pady="1")
-		tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[2]).grid(row=0, column=6, padx="1", pady="1")
-		tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[3]).grid(row=0, column=7, padx="1", pady="1")
-		tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[4]).grid(row=0, column=8, padx="1", pady="1")
-		tkinter.Label(self.ManP_Build_Row, width=5, bg="lightgray", textvariable=self.goal).grid(row=0, column=9, padx="1")
-		tkinter.Label(self.ManP_Build_Row, width=5, bg="lightgray", textvariable=self.slvl).grid(row=0, column=10, padx="1")
-		tkinter.Label(self.ManP_Build_Row, width=5, bg="lightgray", textvariable=self.tlvl).grid(row=0, column=11, padx="1")
+		L1 = tkinter.Label(self.ManP_Build_Row, width=3, bg="lightgray", textvariable=self.hide)
+		L1.grid(row=0, column=0, sticky="w", padx="1", pady="1")
+		L1.bindtags("ManP_build")
+		L2 = tkinter.Label(self.ManP_Build_Row, width=6, bg="lightgray", textvariable=self.order)
+		L2.grid(row=0, column=2, padx="1", pady="1")
+		L2.bindtags("ManP_build")
+		L3 = tkinter.Label(self.ManP_Build_Row, width="26", anchor="w", bg="lightgray", textvariable=self.name)
+		L3.grid(row=0, column=3, padx="1", pady="1")
+		L3.bindtags("ManP_build")
+		L4 = tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[0])
+		L4.grid(row=0, column=4, padx="1", pady="1")
+		L4.bindtags("ManP_build")
+		L5 = tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[1])
+		L5.grid(row=0, column=5, padx="1", pady="1")
+		L5.bindtags("ManP_build")
+		L6 = tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[2])
+		L6.grid(row=0, column=6, padx="1", pady="1")
+		L6.bindtags("ManP_build")
+		L7 = tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[3])
+		L7.grid(row=0, column=7, padx="1", pady="1")
+		L7.bindtags("ManP_build")
+		L8 = tkinter.Label(self.ManP_Build_Row, width="3", bg="lightgray", textvar=self.ranks[4])
+		L8.grid(row=0, column=8, padx="1", pady="1")
+		L8.bindtags("ManP_build")
+		L9 = tkinter.Label(self.ManP_Build_Row, width=5, bg="lightgray", textvariable=self.goal)
+		L9.grid(row=0, column=9, padx="1")
+		L9.bindtags("ManP_build")
+		L10 = tkinter.Label(self.ManP_Build_Row, width=5, bg="lightgray", textvariable=self.slvl)
+		L10.grid(row=0, column=10, padx="1")
+		L10.bindtags("ManP_build")
+		L11 = tkinter.Label(self.ManP_Build_Row, width=5, bg="lightgray", textvariable=self.tlvl)
+		L11.grid(row=0, column=11, padx="1")
+		L11.bindtags("ManP_build")
 		self.ManP_Edit_Button = tkinter.Button(self.ManP_Build_Row, text="Edit", command="")
 		self.ManP_Edit_Button.grid(row=0, column=12, padx="3")		
