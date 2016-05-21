@@ -1,11 +1,78 @@
 # This file contains variables used by all the other planner files.
 
+# INDEX OF CLASSES AND METHODS
+'''	
+class Character:
+	def __init__(self):
+	def Load_Character(self):
+	def Save_Character(self):
+	def Update_Statistics(self):	
+	def Update_Resources(self, level):
+	def Is_Prime_Stat(self, stat):
+	def Update_Skills(self):
+	def Calculate_Subskill_Regained_TP(self, level, subskill_group):
+	def Get_Total_Ranks_Of_Subskill(self, name, level, subskill_group):
+	def Update_Maneuvers(self):
+	def Meets_Maneuver_Prerequisites(self, level, name, type):
+	def Get_Last_Training_Interval(self, exp, type, subtype):	
+
+class Race:
+	def __init__(self, arr):
+
+class Profession:
+	def __init__(self, arr):
+	
+class Statistic:	
+	def __init__(self, parent, name):	
+	def Set_To_Default(self):	
+	def Create_Statistic_Row_Frame(self, panel, stat):
+	def Create_Growth_Row_Frame(self, parent):
+	def Update_Growth_Frame(self):		
+	def Entrybox_Validate(self, d, S, s, P):	
+	def Entrybox_On_Move(self, event):
+	def Set_Stat_Importance(self, action):
+	
+class Skill:
+	def __init__(self, arr):
+	def Set_To_Default(self):
+	def Set_To_Default_Postcap(self):	
+	def Update_Skill_Information(self, arr):
+	def Create_SkP_schedule_row(self, parent):	
+	def Create_PcP_schedule_row(self, parent):
+	def Train_New_Ranks(self, level, subskill_ranks, ranks):
+	def Get_Skill_Bonus(self, ranks):
+	def Calculate_TP_Regain(self, start, end):
+	def Get_Total_Skill_Cost(self, subskill_ranks, current_level, tranks_level):
+	def Get_Next_Ranks_Cost(self, level, subskill_ranks, new_ranks):
+	def Train_Postcap_Ranks(self, ranks, subskill_ranks, exp):	
+	
+class Maneuver:
+	def __init__(self, schedule_parent, arr):
+	def Set_To_Default(self):
+	def Set_To_Default_Postcap(self):	
+	def Button_Onclick(self, result):
+	def Create_ManP_schedule_row(self, parent):
+	def Create_PcP_schedule_row(self, parent):
+	def Get_Cost_At_Rank(self, rank, prof_type):	
+	def Get_Total_Cost_At_Rank(self, start_rank, new_ranks, prof_type):			
+	def Train_New_Ranks(self, level, ranks, prof_type):	
+	def Train_Postcap_Ranks(self, exp, ranks, prof_type):	
+	
+class Information_Dialog:
+	def __init__(self):
+	def Set_To_Default(self):
+	def Show_Message(self, msg):
+	def Scroll_Inner_Frame(self, event):	
+'''
+
 #!/usr/bin/python
 
 import tkinter
 import tkinter.filedialog
 import math
 import Pmw
+import re
+import collections
 
 # The Character object holds all the values and objects related to the character from across all the panels.
 # These values can be easily accessed by all other panels and allows the planner to save and load character build file with minimum effort.
@@ -18,13 +85,13 @@ class Character:
 		self.profession = ""
 		
 		self.statistics_list = {}         	# Contains a list of Statistic objects using the name of each statistic as a key
-		self.stat_bonus = {}            	# Contains a list of bonuses for each statistic (calculted by race) using the name of each statistic as a key
+		self.racial_stat_bonus = {}            	# Contains a list of bonuses for each statistic (calculted by race) using the name of each statistic as a key
 		self.stat_adj = {}					# Contains a list of statistic adjustments (combination of race and profession growths) using the name of each statistic as a key
 		
 		# Initialize the above variables
 		for stat in statistics:
 			self.statistics_list[stat] = Statistic(self, stat)
-			self.stat_bonus[stat] = tkinter.IntVar()
+			self.racial_stat_bonus[stat] = tkinter.IntVar()
 			self.stat_adj[stat] = tkinter.IntVar()
 			
 		# People like seeing the decimal form of their starting Training Point values when determining their starting stats. The rounded down value of each is using for the by_level variables
@@ -66,15 +133,34 @@ class Character:
 		self.total_combat_points_by_level = [tkinter.IntVar() for i in range(101)]
 		self.total_shield_points_by_level = [tkinter.IntVar() for i in range(101)]
 		self.total_armor_points_by_level = [tkinter.IntVar() for i in range(101)]
-							
+		
+		
+		# Post Cap variables
+		# variables for build list
+		self.postcap_build_skills_list = []
+		self.postcap_build_combat_maneuvers_list = []
+		self.postcap_build_armor_maneuvers_list = []
+		self.postcap_build_shield_maneuvers_list = []		 
+		self.postcap_skill_training_by_interval = collections.OrderedDict()		
+		self.postcap_total_skill_cost_by_interval = collections.OrderedDict()    # Includes both the PTP/MTP cost at a specific interval and the cumulative PTP/MTP cost for all intervals up to (and including) a specific interval
+		self.postcap_TP_conversions_by_interval = collections.OrderedDict()      # Format A/B|C/D   A=PTP converted this interval, B=same as A but for MTP, C=Cumulative PTP converted at this interval including this interval, D=same as C but for MTP
+		
+		self.postcap_combat_training_by_interval = collections.OrderedDict()		
+		self.postcap_total_combat_cost_by_interval = collections.OrderedDict()    
+		self.postcap_shield_training_by_interval = collections.OrderedDict()		
+		self.postcap_total_shield_cost_by_interval = collections.OrderedDict()    
+		self.postcap_armor_training_by_interval = collections.OrderedDict()		
+		self.postcap_total_armor_cost_by_interval = collections.OrderedDict()    
+
 
 	# This method will prompt the user for a .txt file and will populate the Character class with the information saved in the file
 	def Load_Character(self):
-		global statistics, panels, char_name, version, root
+		global statistics, panels, char_name, title, version, root, notebook
 		char_file = tkinter.filedialog.askopenfile(initialdir="Characters", filetypes=[("Text files","*.txt")], mode='r', title="Load GS4 Character")
 		stat_panel = panels["Statistics"]
 		skills_panel = panels["Skills"]
 		man_panel = panels["Maneuvers"]
+		postcap_panel = panels["Post Cap"]
 		read_mode = ""
 		
 		# If the user cancelled out of the file prompt, end the method immediately
@@ -82,7 +168,14 @@ class Character:
 			return
 		
 		char_name = char_file.name.split("/")[-1].split("\\")[-1].split(".")[0]
-		root.title("Gemstone IV Character Planner %s - %s" % (version, char_name))
+		root.title("%s %s - %s" % (title, version, char_name))
+		
+		# Clear all the panels so we have a clean slate
+		for stat, obj in self.statistics_list.items():
+			obj.Set_To_Default()
+		skills_panel.ClearAll_Button_Onclick()
+		man_panel.Clear_Button_Onclick("All")
+		postcap_panel.Clear_Button_Onclick("All")		
 		
 		# Read the file line by line and remove the end of line character "\n" at the end of each line if it is present
 		line = char_file.readline()
@@ -115,6 +208,22 @@ class Character:
 				continue
 			elif line == "==ARMOR MANEUVERS BUILD LIST==":
 				read_mode = "armor"
+				line = char_file.readline()
+				continue
+			elif line == "==SKILLS POSTCAP BUILD LIST==":
+				read_mode = "skill postcap"
+				line = char_file.readline()
+				continue
+			elif line == "==COMBAT MANEUVERS POSTCAP BUILD LIST==":
+				read_mode = "combat postcap"
+				line = char_file.readline()
+				continue
+			elif line == "==SHIELD MANEUVERS POSTCAP BUILD LIST==":
+				read_mode = "shield postcap"
+				line = char_file.readline()
+				continue
+			elif line == "==ARMOR MANEUVERS POSTCAP BUILD LIST==":
+				read_mode = "armor postcap"
 				line = char_file.readline()
 				continue
 			
@@ -157,6 +266,32 @@ class Character:
 				self.build_armor_maneuvers_list.insert(location, man_panel.Create_Build_List_Maneuver(man_panel.ML_Frame.interior(), parts[0], 
 				"Armor", parts[1], location, parts[3], parts[4], parts[2], (man.cost_by_rank[0], man.cost_by_rank[1], man.cost_by_rank[2], man.cost_by_rank[3], man.cost_by_rank[4]) ))						
 					
+
+			# Post cap lines are treated almost the same as the precap lines.
+			elif read_mode == "skill postcap":
+				skill = self.skills_list[parts[0]]
+				location = len(self.postcap_build_skills_list)
+				self.postcap_build_skills_list.insert(location, postcap_panel.Create_Postcap_Build_List_Skill(postcap_panel.ML_Frame.interior(), parts[0], parts[1], location,
+				"%s / %s (%s)" % (skill.ptp_cost,skill.mtp_cost, skill.max_ranks), parts[2]) )						
+				self.postcap_build_skills_list[location].PcP_Edit_Button.config(command=lambda v=location: postcap_panel.Add_Edit_Button_Onclick(v))
+				self.postcap_build_skills_list[location].Set_Training_Rate()				
+			elif read_mode == "combat postcap":
+				man = self.combat_maneuvers_list[parts[0]]
+				location = len(self.postcap_build_combat_maneuvers_list)
+				self.postcap_build_combat_maneuvers_list.insert(location, postcap_panel.Create_Postcap_Build_List_Maneuver(postcap_panel.ML_Frame.interior(), parts[0], 
+				"Combat", parts[1], location, parts[2], (man.cost_by_rank[0], man.cost_by_rank[1], man.cost_by_rank[2], man.cost_by_rank[3], man.cost_by_rank[4]) ) )						
+			elif read_mode == "shield postcap":
+				man = self.shield_maneuvers_list[parts[0]]
+				location = len(self.postcap_build_shield_maneuvers_list)
+				self.postcap_build_shield_maneuvers_list.insert(location, postcap_panel.Create_Postcap_Build_List_Maneuver(postcap_panel.ML_Frame.interior(), parts[0], 
+				"Shield", parts[1], location, parts[2], (man.cost_by_rank[0], man.cost_by_rank[1], man.cost_by_rank[2], man.cost_by_rank[3], man.cost_by_rank[4]) ) )		
+			elif read_mode == "armor postcap":
+				man = self.armor_maneuvers_list[parts[0]]
+				location = len(self.postcap_build_armor_maneuvers_list)
+				self.postcap_build_armor_maneuvers_list.insert(location, postcap_panel.Create_Postcap_Build_List_Maneuver(postcap_panel.ML_Frame.interior(), parts[0], 
+				"Armor", parts[1], location, parts[2], (man.cost_by_rank[0], man.cost_by_rank[1], man.cost_by_rank[2], man.cost_by_rank[3], man.cost_by_rank[4]) ) )
+
+				
 			# End of the loop, read the next line.		
 			line = char_file.readline()
 	
@@ -222,8 +357,66 @@ class Character:
 			
 		man_panel.maneuver_mode.set("")
 		man_panel.Maneuver_Style_Onchange("Combat")
-	
-	
+			
+			
+		# Postcap panel works mostly the same as the Skills and Maneuvers panels
+		i = 0 
+		for skill in self.postcap_build_skills_list:
+			skill.order.set(i+1)
+			skill.PcP_Edit_Button.config(command=lambda v=i: postcap_panel.Add_Edit_Button_Onclick(v))
+			skill.PcP_Build_Row.grid(row=i, column=0)					
+			i += 1					
+		postcap_panel.skills_menu_size = i+1
+		if postcap_panel.skills_menu_size > 1:
+			for j in range(2, postcap_panel.skills_menu_size+1):
+				if j > 2:
+					postcap_panel.edit_skill_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: postcap_panel.vars_dialog_order.set(v))	
+				postcap_panel.add_skill_order_menu["menu"].insert_command("end", label=j, command=lambda v=j: postcap_panel.vars_dialog_order.set(v))	
+				
+		i = 0 
+		for man in self.postcap_build_combat_maneuvers_list:
+			man.order.set(i+1)
+			man.PcP_Edit_Button.config(command=lambda v=i: postcap_panel.Add_Edit_Button_Onclick(v))
+			i += 1					
+		postcap_panel.combat_menu_size = i+1
+		if postcap_panel.combat_menu_size > 1:
+			for j in range(2, postcap_panel.combat_menu_size+1):
+				if j > 2:
+					postcap_panel.edit_combat_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: postcap_panel.vars_dialog_order.set(v))	
+				postcap_panel.add_combat_order_menu["menu"].insert_command("end", label=j, command=lambda v=j: postcap_panel.vars_dialog_order.set(v))	
+				
+		i = 0 
+		for man in self.postcap_build_shield_maneuvers_list:
+			man.order.set(i+1)
+			man.PcP_Edit_Button.config(command=lambda v=i: postcap_panel.Add_Edit_Button_Onclick(v))
+			i += 1					
+		postcap_panel.shield_menu_size = i+1
+		if postcap_panel.shield_menu_size > 1:
+			for j in range(2, postcap_panel.shield_menu_size+1):
+				if j > 2:
+					postcap_panel.edit_shield_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: postcap_panel.vars_dialog_order.set(v))	
+				postcap_panel.add_shield_order_menu["menu"].insert_command("end", label=j, command=lambda v=j: postcap_panel.vars_dialog_order.set(v))	
+				
+		i = 0 
+		for man in self.postcap_build_armor_maneuvers_list:
+			man.order.set(i+1)
+			man.PcP_Edit_Button.config(command=lambda v=i: postcap_panel.Add_Edit_Button_Onclick(v))
+			i += 1			
+		postcap_panel.armor_menu_size = i+1
+		if postcap_panel.armor_menu_size > 1:
+			for j in range(2, postcap_panel.armor_menu_size+1):
+				if j > 2:
+					postcap_panel.edit_armor_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: postcap_panel.vars_dialog_order.set(v))	
+				postcap_panel.add_armor_order_menu["menu"].insert_command("end", label=j, command=lambda v=j: postcap_panel.vars_dialog_order.set(v))			
+			
+		postcap_panel.goal_mode.set("Skills")
+		postcap_panel.PostCap_Style_Onchange("Skills")		
+		
+		# We are done. Change to the first panel.
+		notebook.selectpage("Statistics")
+
+		
+	# Opens a .txt file and reads in information one line at a time and populates the planner with the new information
 	def Save_Character(self):
 		global statistics, char_name, version, root
 		char_file = tkinter.filedialog.asksaveasfile(initialdir="Characters", defaultextension=".txt", mode='w', title="Save GS4 Character As ...")
@@ -261,7 +454,28 @@ class Character:
 			for man in self.build_armor_maneuvers_list:			
 				char_file.write("%s:%s:%s:%s:%s\n" % (man.name.get(), man.hide.get(), man.goal.get(), man.slvl.get(), man.tlvl.get()) )
 
+				
+		if self.postcap_build_skills_list:
+			char_file.write("==SKILLS POSTCAP BUILD LIST==\n")	
+			for skill in self.postcap_build_skills_list:			
+				char_file.write("%s:%s:%s\n" % (skill.name.get(), skill.hide.get(), skill.goal.get()) )	
+				
+		if self.postcap_build_combat_maneuvers_list:
+			char_file.write("==COMBAT MANEUVERS POSTCAP BUILD LIST==\n")	
+			for man in self.postcap_build_combat_maneuvers_list:			
+				char_file.write("%s:%s:%s\n" % (man.name.get(), man.hide.get(), man.goal.get()) )		
 			
+		if self.postcap_build_shield_maneuvers_list:
+			char_file.write("==SHIELD MANEUVERS POSTCAP BUILD LIST==\n")	
+			for man in self.postcap_build_shield_maneuvers_list:			
+				char_file.write("%s:%s:%s\n" % (man.name.get(), man.hide.get(), man.goal.get()) )
+			
+		if self.postcap_build_armor_maneuvers_list:
+			char_file.write("==ARMOR MANEUVERS POSTCAP BUILD LIST==\n")	
+			for man in self.postcap_build_armor_maneuvers_list:			
+				char_file.write("%s:%s:%s\n" % (man.name.get(), man.hide.get(), man.goal.get()) )				
+
+				
 	# Calculate the PTP, MTP, Health, Mana, Stamina, Spirit over 100 levels. This is called after the statistics growth method has been called.
 	def Update_Statistics(self):	
 		global panels
@@ -298,14 +512,7 @@ class Character:
 			# Only use the statistic values given at level 0 to determine starting mana			
 			if i == 0:
 				self.total_ptp_by_level[0].set(math.floor(PTP_sum))
-				self.total_mtp_by_level[0].set(math.floor(MTP_sum))					
-			
-				M_bonus1 = self.statistics_list[self.profession.mana_statistics[0]].values_by_level[0].get()
-				M_bonus2 = self.statistics_list[self.profession.mana_statistics[1]].values_by_level[0].get()
-				M_bonus1 = 0 if M_bonus1 == "" else int(M_bonus1)
-				M_bonus2 = 0 if M_bonus2 == "" else int(M_bonus2)
-				M_bonus1 = (M_bonus1 - 50) / 2 + self.stat_bonus[self.profession.mana_statistics[0]].get()
-				M_bonus2 = (M_bonus2 - 50) / 2 + self.stat_bonus[self.profession.mana_statistics[1]].get()	
+				self.total_mtp_by_level[0].set(math.floor(MTP_sum))		
 				
 				self.ptp_base.set(PTP_sum)
 				self.mtp_base.set(MTP_sum)				
@@ -323,37 +530,10 @@ class Character:
 					panels['Statistics'].mtp_bgs[i] = "#00FF00"
 				else:
 					panels['Statistics'].mtp_bgs[i] = "lightgrey"
-					
-					
-			# Health calculation. Combines stats, Physical Training ranks, Combat Toughness maneuver ranks
-			PF_ranks = 0 if not "Physical Fitness" in self.skills_list else	self.skills_list["Physical Fitness"].total_ranks_by_level[i].get() 
-			Combat_Toughness = 0 # (10 * total_man_ranks_by_level[i]["Combat Toughness-combat"] + 5) or 0
-			H_str = float(0) if self.statistics_list["Strength"].values_by_level[0].get() == "" else float(self.statistics_list["Strength"].values_by_level[0].get())
-			H_con = float(0) if self.statistics_list["Constitution"].values_by_level[0].get() == "" else float(self.statistics_list["Constitution"].values_by_level[0].get())
-			con_bonus = float(0) if self.statistics_list["Constitution"].values_by_level[0].get() == "" else float(self.statistics_list["Constitution"].values_by_level[0].get())
-			con_bonus = int(math.floor((con_bonus - 50) / 2 + self.stat_bonus["Constitution"].get()))
-			self.health_by_level[i].set(min(math.floor((H_str + H_con) / 10) + PF_ranks*5, self.race.max_health + con_bonus) + Combat_Toughness)
-		
-			# Mana calculation. Just factor in the Harness power ranks at this level
-			HP_ranks = 0 if not "Harness Power" in self.skills_list else self.skills_list["Harness Power"].total_ranks_by_level[i].get() 		
-			HP_mana = i*3 + HP_ranks-i if HP_ranks > i else HP_ranks*3
-			self.mana_by_level[i].set(max(int(math.floor(M_bonus1 + M_bonus2) / 4), 0) + HP_mana)
-	
-			# Stamina calculation.
-			PF_bonus = 0 if not "Physical Fitness" in self.skills_list else	self.skills_list["Physical Fitness"].bonus_by_level[i].get() 
-			S_str = (STR - 50) / 2 + self.stat_bonus["Strength"].get()
-			S_con = (CON - 50) / 2 + self.stat_bonus["Constitution"].get()
-			S_agi = (AGI - 50) / 2 + self.stat_bonus["Agility"].get()
-			S_dis = (DIS - 50) / 2 + self.stat_bonus["Discipline"].get()
-			
-			self.stamina_by_level[i].set(int(max(S_con + (S_str + S_agi + S_dis) / 3 + math.floor(PF_bonus / 3), 0)))
-					
-			# Spirit calculation
-			spirit = math.floor(AUR/10)
-			if (AUR - (spirit * 10)) >= 5:
-				spirit += 1
-			self.spirit_by_level[i].set(int(round(spirit))) 
-		
+				
+			# Calculate the resources values for this level
+			self.Update_Resources(i)
+
 
 		# Sets the background colors of the cells.	
 		i = 0
@@ -367,6 +547,68 @@ class Character:
 			i += 1	
 
 			
+	# Used to calculate the character's health, mana, stamina, and spirit from level 0 to 100.
+	# Called by Update Statistics method but also called manually by the Skills and Maneuver panels to update without calling Update Statistics directory
+	def Update_Resources(self, level):
+		i = level
+		postcap_mode = 0		
+		
+		# Handle Postcap calculations later
+		if level > 100:
+			i == 100
+			postcap_mode = 1	
+			
+		STR = float(0) if self.statistics_list["Strength"].values_by_level[i].get() == "" else float(self.statistics_list["Strength"].values_by_level[i].get())
+		CON = float(0) if self.statistics_list["Constitution"].values_by_level[i].get() == "" else float(self.statistics_list["Constitution"].values_by_level[i].get())
+#		DEX = float(0) if self.statistics_list["Dexterity"].values_by_level[i].get() == "" else float(self.statistics_list["Dexterity"].values_by_level[i].get())
+		AGI = float(0) if self.statistics_list["Agility"].values_by_level[i].get() == "" else float(self.statistics_list["Agility"].values_by_level[i].get())
+		DIS = float(0) if self.statistics_list["Discipline"].values_by_level[i].get() == "" else float(self.statistics_list["Discipline"].values_by_level[i].get())
+		AUR = float(0) if self.statistics_list["Aura"].values_by_level[i].get() == "" else float(self.statistics_list["Aura"].values_by_level[i].get())
+#		LOG = float(0) if self.statistics_list["Logic"].values_by_level[i].get() == "" else float(self.statistics_list["Logic"].values_by_level[i].get())
+#		INT = float(0) if self.statistics_list["Intuition"].values_by_level[i].get() == "" else float(self.statistics_list["Intuition"].values_by_level[i].get())
+#		WIS = float(0) if self.statistics_list["Wisdom"].values_by_level[i].get() == "" else float(self.statistics_list["Wisdom"].values_by_level[i].get())
+#		INF = float(0) if self.statistics_list["Influence"].values_by_level[i].get() == "" else float(self.statistics_list["Influence"].values_by_level[i].get())
+			
+		
+		# Health calculation. Combines stats, Physical Training ranks, Combat Toughness maneuver ranks
+		PF_ranks = 0 if not "Physical Fitness" in self.skills_list else	self.skills_list["Physical Fitness"].total_ranks_by_level[i].get() 
+		Combat_Toughness = (10 * int(self.combat_maneuvers_list["Combat Toughness"].total_ranks_by_level[i].get()) + 5)
+		if Combat_Toughness == 5:
+			Combat_Toughness = 0
+		H_str = float(0) if self.statistics_list["Strength"].values_by_level[0].get() == "" else float(self.statistics_list["Strength"].values_by_level[0].get())
+		H_con = float(0) if self.statistics_list["Constitution"].values_by_level[0].get() == "" else float(self.statistics_list["Constitution"].values_by_level[0].get())
+		base_con = math.floor((H_str + H_con) / 10)
+		con_bonus = float(0) if self.statistics_list["Constitution"].values_by_level[i].get() == "" else float(self.statistics_list["Constitution"].values_by_level[i].get())
+		con_bonus = int(math.floor((con_bonus - 50) / 2 + self.racial_stat_bonus["Constitution"].get()))
+		self.health_by_level[i].set(max(0, min(base_con + con_bonus + PF_ranks*5, self.race.max_health + con_bonus)) + Combat_Toughness)
+	
+		# Mana calculation. Just factor in the Harness power ranks at this level
+		M_bonus1 = self.statistics_list[self.profession.mana_statistics[0]].values_by_level[0].get()
+		M_bonus2 = self.statistics_list[self.profession.mana_statistics[1]].values_by_level[0].get()
+		M_bonus1 = 0 if M_bonus1 == "" else int(M_bonus1)
+		M_bonus2 = 0 if M_bonus2 == "" else int(M_bonus2)
+		M_bonus1 = (M_bonus1 - 50) / 2 + self.racial_stat_bonus[self.profession.mana_statistics[0]].get()
+		M_bonus2 = (M_bonus2 - 50) / 2 + self.racial_stat_bonus[self.profession.mana_statistics[1]].get()	
+		HP_ranks = 0 if not "Harness Power" in self.skills_list else self.skills_list["Harness Power"].total_ranks_by_level[i].get() 		
+		HP_mana = i*3 + HP_ranks-i if HP_ranks > i else HP_ranks*3
+		self.mana_by_level[i].set(max(int(math.floor(M_bonus1 + M_bonus2) / 4), 0) + HP_mana)
+
+		# Stamina calculation.
+		PF_bonus = 0 if not "Physical Fitness" in self.skills_list else	self.skills_list["Physical Fitness"].bonus_by_level[i].get() 
+		S_str = (STR - 50) / 2 + self.racial_stat_bonus["Strength"].get()
+		S_con = (CON - 50) / 2 + self.racial_stat_bonus["Constitution"].get()
+		S_agi = (AGI - 50) / 2 + self.racial_stat_bonus["Agility"].get()
+		S_dis = (DIS - 50) / 2 + self.racial_stat_bonus["Discipline"].get()
+		
+		self.stamina_by_level[i].set(int(max(S_con + (S_str + S_agi + S_dis) / 3 + math.floor(PF_bonus / 3), 0)))
+				
+		# Spirit calculation
+		spirit = math.floor(AUR/10)
+		if (AUR - (spirit * 10)) >= 5:
+			spirit += 1
+		self.spirit_by_level[i].set(int(round(spirit))) 		
+		
+		
 	# Small function that determines if the profession considers stat a prime statistic. The multiplier for determining TP is returned. 2 if yes, 1 if no
 	def Is_Prime_Stat(self, stat):
 		try:
@@ -380,6 +622,7 @@ class Character:
 	def Update_Skills(self):
 		global db_cur, db_con, skill_names, panels, Skill
 		skill_panel = panels['Skills']
+		postcap_panel = panels['Post Cap']
 		
 		name = self.profession.name.lower()
 		db_cur.execute("SELECT name, %s_ptp, %s_mtp, %s_max_ranks FROM Skills" % (name, name, name))		
@@ -393,19 +636,24 @@ class Character:
 		# Reset the scrolling on the schedule and build frames		
 		skill_panel.dialog_menu_skill_names['menu'].delete(0, "end")
 		skill_panel.ML_Frame.yview("moveto", 0, "units")
-		skill_panel.MR_Frame.yview("moveto", 0, "units")
+		skill_panel.MR_Frame.yview("moveto", 0, "units")	
+		postcap_panel.dialog_skill_names_menu['menu'].delete(0, "end")
+		postcap_panel.ML_Frame.yview("moveto", 0, "units")
+		postcap_panel.MR_Frame.yview("moveto", 0, "units")
 		
 		# Remove all the skills 
 		for key, row in self.skills_list.items():
-			if row.SkP_schedule_row == "":
+			if row.SkP_schedule_row == "" or row.PcP_schedule_row == "":
 				break
 			row.SkP_schedule_row.grid_remove()
+			row.PcP_schedule_row.grid_remove()
 		
 		# Add all the skills from the skills_list to the schedule frame that the profession can use (ie: spell research)
 		i = 0
 		for name in skill_names:				
 			if self.skills_list[name].active_skill:
 				skill_panel.dialog_menu_skill_names['menu'].add_command(label=name, command=lambda s=name: skill_panel.Skills_Menu_Onchange(s))
+				postcap_panel.dialog_skill_names_menu['menu'].add_command(label=name, command=lambda s=name: postcap_panel.Dialog_Menu_Onchange(s))
 				self.skills_list[name].SkP_schedule_row.grid(row=i, column=0)
 				i += 1
 			
@@ -415,7 +663,14 @@ class Character:
 		skill_panel.MR_Frame.yview("moveto", 0, "units")
 		skill_panel.Update_Schedule_Frames()
 		
-	
+		postcap_panel.PcP_radio_var.set(1)
+		postcap_panel.goal_mode.set("Skills")
+		postcap_panel.experience_counter.setvalue(7572500)
+		postcap_panel.ML_Frame.yview("moveto", 0, "units")
+		postcap_panel.MR_Frame.yview("moveto", 0, "units")
+		postcap_panel.Update_Schedule_Frames()
+
+		
 	# Because Skills with the same subgroup need to be taken into account when calculating cost and max ranks, this method will determine how much TP to refund for each subgroup.
 	def Calculate_Subskill_Regained_TP(self, level, subskill_group):
 		global skill_names
@@ -457,7 +712,7 @@ class Character:
 		return ( max(0, prev_pcost - pcost), max(0, prev_mcost - mcost) )
 			
 	
-	# Given a subskill group and a skill name, find all the skills that have that subskills EXECEPT for "skill name" and return the combined total ranks for those skills
+	# Given a subskill group and a skill name, find all the skills that have that subskills EXCEPT for "skill name" and return the combined total ranks for those skills
 	def Get_Total_Ranks_Of_Subskill(self, name, level, subskill_group):
 		global skill_names
 		total = 0
@@ -473,17 +728,52 @@ class Character:
 			total += skill.total_ranks_by_level[level].get()
 		return total
 
+
+	# Given a subskill group and a skill name, find all the skills that have that subskills EXCEPT for "skill name" and return the combined total ranks for those skills for precap levels and up to and including the given interval
+	def Get_Total_Postcap_Ranks_Of_Subskill(self, name, interval, subskill_group):
+		global skill_names
+		total = 0
+		exp = 0
+		
+		if subskill_group == "NONE":
+			return 0
+				
+		for s in skill_names:
+			skill = self.skills_list[s]
+			if s == name or skill.subskill_group != subskill_group:
+				continue
+				
+			total += skill.total_ranks_by_level[100].get()
+			
+			if len(skill.postcap_exp_intervals) == 0:
+				continue
+				
+			if interval in skill.postcap_exp_intervals:
+				exp = interval
+			else:
+				exp = self.Get_Last_Training_Interval(interval-1, "skills", s)
+				if exp == 0:
+					continue
+			 
+			total += int(skill.postcap_total_ranks_at_interval[exp])
+		return total
+		
 		
 	# This method is called when the Profession is changed. Using the new profession, it determines what maneuver that profession can learn and adds them the manevuer lists.
 	def Update_Maneuvers(self):
 		global combat_maneuver_names, shield_maneuver_names, armor_maneuver_names, panels
-		man_panel = panels['Maneuvers']										
+		man_panel = panels['Maneuvers']		
+		postcap_panel = panels['Post Cap']		
 		prof = self.profession.name
 		
 		# Clear the maneuvers before adding the new maneuvers
 		man_panel.dialog_combat_names_menu['menu'].delete(0, "end")
 		man_panel.dialog_armor_names_menu['menu'].delete(0, "end")
 		man_panel.dialog_shield_names_menu['menu'].delete(0, "end")
+		postcap_panel.dialog_combat_names_menu['menu'].delete(0, "end")
+		postcap_panel.dialog_armor_names_menu['menu'].delete(0, "end")
+		postcap_panel.dialog_shield_names_menu['menu'].delete(0, "end")
+		
 		if man_panel.armor_menu_size > 1:
 			man_panel.add_armor_order_menu['menu'].delete(1, "end")
 			if man_panel.armor_menu_size > 2:
@@ -498,7 +788,27 @@ class Character:
 			man_panel.add_shield_order_menu['menu'].delete(1, "end")
 			if man_panel.shield_menu_size > 1:		
 				man_panel.edit_shield_order_menu['menu'].delete(1, "end")
-			man_panel.shield_menu_size = 1	
+			man_panel.shield_menu_size = 1			
+		
+		if postcap_panel.armor_menu_size > 1:
+			postcap_panel.add_armor_order_menu['menu'].delete(1, "end")
+			if postcap_panel.armor_menu_size > 2:
+				postcap_panel.edit_armor_order_menu['menu'].delete(1, "end")
+			postcap_panel.armor_menu_size = 1	
+		if postcap_panel.combat_menu_size > 1:
+			postcap_panel.add_combat_order_menu['menu'].delete(1, "end")
+			if postcap_panel.combat_menu_size > 2:
+				postcap_panel.edit_combat_order_menu['menu'].delete(1, "end")
+			postcap_panel.combat_menu_size = 1	
+		if postcap_panel.shield_menu_size > 1:		
+			postcap_panel.add_shield_order_menu['menu'].delete(1, "end")
+			if postcap_panel.shield_menu_size > 1:		
+				postcap_panel.edit_shield_order_menu['menu'].delete(1, "end")
+			postcap_panel.shield_menu_size = 1			
+		
+		postcap_panel.man_select_menu['menu'].delete(1, "end")	
+		postcap_panel.ML_Frame.yview("moveto", 0, "units")
+		postcap_panel.MR_Frame.yview("moveto", 0, "units")	
 		
 		man_panel.man_select_menu['menu'].delete(0, "end")	
 		man_panel.ML_Frame.yview("moveto", 0, "units")
@@ -523,16 +833,19 @@ class Character:
 			man.Set_To_Default()	
 			if man.availability[prof]:
 				man_panel.dialog_combat_names_menu['menu'].add_command(label=name, command=lambda s=name: man_panel.Dialog_Menu_Onchange(s))
+				postcap_panel.dialog_combat_names_menu['menu'].add_command(label=name, command=lambda s=name: postcap_panel.Dialog_Menu_Onchange(s))
 		for name in shield_maneuver_names:
 			man = self.shield_maneuvers_list[name]
 			man.Set_To_Default()	
 			if man.availability[prof]:
 				man_panel.dialog_shield_names_menu['menu'].add_command(label=name, command=lambda s=name: man_panel.Dialog_Menu_Onchange(s))
+				postcap_panel.dialog_shield_names_menu['menu'].add_command(label=name, command=lambda s=name: postcap_panel.Dialog_Menu_Onchange(s))
 		for name in armor_maneuver_names:
 			man = self.armor_maneuvers_list[name]
 			man.Set_To_Default()	
 			if man.availability[prof]:
 				man_panel.dialog_armor_names_menu['menu'].add_command(label=name, command=lambda s=name: man_panel.Dialog_Menu_Onchange(s))
+				postcap_panel.dialog_armor_names_menu['menu'].add_command(label=name, command=lambda s=name: postcap_panel.Dialog_Menu_Onchange(s))
 						
 		# Remove/Add the Shield and Armor options to the maneuver style menue and show the Shield and Armor footers 
 		if prof == "Warrior" or prof == "Rogue" or prof == "Paladin":
@@ -541,16 +854,24 @@ class Character:
 			man_panel.man_select_menu["menu"].insert_command("end", label="Combat", command=lambda s="Combat": man_panel.Maneuver_Style_Onchange(s))
 			man_panel.man_select_menu["menu"].insert_command("end", label="Shield", command=lambda s="Shield": man_panel.Maneuver_Style_Onchange(s))
 			man_panel.man_select_menu["menu"].insert_command("end", label="Armor", command=lambda s="Armor": man_panel.Maneuver_Style_Onchange(s))
+			postcap_panel.man_select_menu["menu"].insert_command("end", label="Combat", command=lambda s="Combat": postcap_panel.PostCap_Style_Onchange(s))
+			postcap_panel.man_select_menu["menu"].insert_command("end", label="Shield", command=lambda s="Shield": postcap_panel.PostCap_Style_Onchange(s))
+			postcap_panel.man_select_menu["menu"].insert_command("end", label="Armor", command=lambda s="Armor": postcap_panel.PostCap_Style_Onchange(s))
 		else:		
 			man_panel.man_select_menu["menu"].insert_command("end", label="Combat", command=lambda s="Combat": man_panel.Maneuver_Style_Onchange(s))
+			postcap_panel.man_select_menu["menu"].insert_command("end", label="Combat", command=lambda s="Combat": postcap_panel.PostCap_Style_Onchange(s))
 			man_panel.sfooter_shield_row.grid_remove()
 			man_panel.sfooter_armor_row.grid_remove()		
 			
-		# Finally reset the maneuvers panel
+		# Finally reset the maneuvers and post cap panel
 		man_panel.ManP_radio_var.set(1)
 		man_panel.level_counter.setvalue(0)		
 		man_panel.maneuver_mode.set("")
 		man_panel.Maneuver_Style_Onchange("Combat")	
+		postcap_panel.PcP_radio_var.set(1)
+		postcap_panel.experience_counter.setvalue(7572500)	
+		postcap_panel.goal_mode.set("Skills")	
+		postcap_panel.PostCap_Style_Onchange("Skills")	
 
 	
 	# Checks to see if the character meets the prerequisites to train in a maneuver at a given level.
@@ -563,9 +884,14 @@ class Character:
 			man = self.armor_maneuvers_list[name]
 			
 		requirements = man.prerequisites
+		postcap_mode = 0
 		or_valid = 0
 		and_valid = 0
 		true_valid = 1
+		
+		if level > 100:
+			level = 100
+			postcap_mode = 1
 		
 		if requirements == "NONE":
 			return True
@@ -583,10 +909,22 @@ class Character:
 				semi_parts = opart.split(":")
 				if semi_parts[0] == "CM":
 					val = self.combat_maneuvers_list[semi_parts[1]].total_ranks_by_level[level].get()
+					if postcap_mode:
+						man = self.combat_maneuvers_list[semi_parts[1]]
+						if len(man.postcap_exp_intervals) > 1:
+							val += man.postcap_total_ranks_at_interval[man.postcap_exp_intervals[-1]]
 				elif semi_parts[0] == "SM":
 					val = self.shield_maneuvers_list[semi_parts[1]].total_ranks_by_level[level].get()
+					if postcap_mode:
+						man = self.shield_maneuvers_list[semi_parts[1]]
+						if len(man.postcap_exp_intervals) > 1:
+							val += man.postcap_total_ranks_at_interval[man.postcap_exp_intervals[-1]]
 				elif semi_parts[0] == "Skill":
-					val = self.skills_list[semi_parts[1]].total_ranks_by_level[level].get()			
+					val = self.skills_list[semi_parts[1]].total_ranks_by_level[level].get()		
+					if postcap_mode:
+						man = self.skills_list[semi_parts[1]]
+						if len(man.postcap_exp_intervals) > 1:
+							val += man.postcap_total_ranks_at_interval[man.postcap_exp_intervals[-1]]	
 			
 				if val >= int(semi_parts[2]):
 					or_valid = 1
@@ -601,6 +939,60 @@ class Character:
 		else:
 			return False
 
+			
+	# Used by the Post Cap panel to find the nearest exp interval that the character has trained in a skill, combat, shield, armor maneuver	
+	def Get_Last_Training_Interval(self, exp, type, subtype):	
+		global character
+		if exp % 2500 != 0:
+			exp -= exp % 2500
+		
+		intervals = []
+		
+		if type == "skills":
+			if subtype == "":
+				search_list = self.postcap_skill_training_by_interval
+			else:
+				search_list = character.skills_list[subtype].postcap_ranks_at_interval
+		elif type == "combat":
+			if subtype == "":
+				search_list = self.postcap_combat_training_by_interval
+			else:
+				search_list = character.combat_maneuvers_list[subtype].postcap_ranks_at_interval
+		elif type == "shield":
+			if subtype == "":
+				search_list = self.postcap_shield_training_by_interval
+			else:
+				search_list = character.shield_maneuvers_list[subtype].postcap_ranks_at_interval
+		elif type == "armor":
+			if subtype == "":
+				search_list = self.postcap_armor_training_by_interval
+			else:
+				search_list = character.armor_maneuvers_list[subtype].postcap_ranks_at_interval
+				
+		
+		for key in search_list.keys():
+			intervals.append(key)
+		
+#		if exp < 7572500 or len(intervals) == 0:
+#			return 7572500		
+		if len(intervals) == 0:
+			return 0		
+		elif exp in search_list:
+			return exp
+			
+		# If it ...
+		if exp < intervals[0]:
+			return intervals[0]
+		elif exp > intervals[-1]:
+			return intervals[-1]
+		
+		prev = intervals[0]
+		for val in intervals:
+			if prev == val or exp > val:
+				prev = val	
+			else:
+				return prev 
+			
 			
 # The Race object hold all the information for the character's current race. 	
 class Race:
@@ -672,7 +1064,7 @@ class Statistic:
 		var.trace_variable("w", self.Entrybox_On_Update)
 		
 		self.display_label = tkinter.Label(frame, width="20", anchor="w", bg="lightgray", textvar=self.display_var)
-		tkinter.Label(frame, width="10", bg="lightgray", textvar=self.parent.stat_bonus[stat]).grid(row=0, column=1, padx="1", pady="1")
+		tkinter.Label(frame, width="10", bg="lightgray", textvar=self.parent.racial_stat_bonus[stat]).grid(row=0, column=1, padx="1", pady="1")
 		tkinter.Label(frame, width="10", bg="lightgray", textvar=self.parent.stat_adj[stat]).grid(row=0, column=2, padx="1", pady="1")
 		self.entrybox = tkinter.Entry(frame, width="6", justify="center", validate="key", validatecommand=mycmd, textvariable=var)
 		
@@ -689,7 +1081,7 @@ class Statistic:
 		frame = tkinter.Frame(parent)	
 	
 		for i in range(101):
-			tkinter.Label(frame, width=5, bg=self.StP_display_bgs[i], textvar=self.StP_display_values[i]).grid(row=0, column=i, padx="1", pady="1")	
+			tkinter.Label(frame, width=6, bg=self.StP_display_bgs[i], textvar=self.StP_display_values[i]).grid(row=0, column=i, padx="1", pady="1")	
 			
 		return frame		
 	
@@ -710,8 +1102,9 @@ class Statistic:
 		for cell in self.StP_growth_row.winfo_children():	
 			cell["bg"] = self.StP_display_bgs[i]
 			i += 1
+
 			
-	
+	# Calculates the growth of the statistics and sets the value and bonus by level variables from 0-100. Also sets the cell background colors for when an increase happens
 	def Calculate_Growth(self):		
 		if self.StP_growth_row == "":           #ignore the call if the training frame has not been created yet
 			return 0
@@ -733,7 +1126,7 @@ class Statistic:
 			if i != 0:	
 				self.values_by_level[i].set(S)	
 				
-			self.bonuses_by_level[i].set(int((S - 50) / 2) + self.parent.stat_bonus[self.name].get())
+			self.bonuses_by_level[i].set(int((S - 50) / 2) + self.parent.racial_stat_bonus[self.name].get())
 									
 
 			if i > 0 and self.bonuses_by_level[i].get() > self.bonuses_by_level[i-1].get():
@@ -829,7 +1222,14 @@ class Skill:
 		self.ranks = tkinter.IntVar()
 		self.total_ranks = tkinter.IntVar()
 		self.bonus = tkinter.IntVar()		
-		self.SkP_schedule_row = ""		
+		self.sum_cost = tkinter.IntVar()		
+		self.SkP_schedule_row = ""			
+		self.postcap_cost = tkinter.StringVar()
+		self.postcap_ranks = tkinter.IntVar()
+		self.postcap_total_ranks = tkinter.IntVar()
+		self.postcap_bonus = tkinter.IntVar()		
+		self.postcap_sum_cost = tkinter.StringVar()			
+		self.PcP_schedule_row = ""		
 		
 		self.ranks_by_level = [tkinter.IntVar() for i in range(101)]
 		self.total_ranks_by_level = [tkinter.IntVar() for i in range(101)]
@@ -840,11 +1240,18 @@ class Skill:
 		self.total_mtp_cost_at_level = [tkinter.IntVar() for i in range(101)]
 		self.ptp_regained_at_level = [tkinter.IntVar() for i in range(101)]
 		self.mtp_regained_at_level = [tkinter.IntVar() for i in range(101)]
-					
+		
+		# Used by Postcap panel
+		self.postcap_exp_intervals = []
+		self.postcap_ranks_at_interval = collections.OrderedDict()
+		self.postcap_total_ranks_at_interval = collections.OrderedDict()
+		self.postcap_cost_at_interval = collections.OrderedDict()
+		
+			
 		self.Set_To_Default()
 		
 
-	# Resets the Skill object	
+	# Resets the Skill object for the Skills panel
 	def Set_To_Default(self):
 		for i in range(101):
 			self.ranks_by_level[i].set(0)
@@ -856,6 +1263,13 @@ class Skill:
 			self.total_mtp_cost_at_level[i].set(0)
 			self.ptp_regained_at_level[i].set(0)
 			self.mtp_regained_at_level[i].set(0)
+			
+	# Resets the Skill object for the Postcap panel	
+	def Set_To_Default_Postcap(self):
+		self.postcap_exp_intervals = []
+		self.postcap_ranks_at_interval.clear()
+		self.postcap_total_ranks_at_interval.clear()
+		self.postcap_cost_at_interval.clear()		
 
 			
 	# When a new Profession is chosen, this method will be called for each Skill to change the costs and max ranks.
@@ -885,20 +1299,51 @@ class Skill:
 		L1 = tkinter.Label(self.SkP_schedule_row, width="26", bg="lightgray", anchor="w", text=self.name)
 		L1.grid(row=0, column=0, padx="1", pady="1")
 		L1.bindtags("SkP_schedule")
-		L2 = tkinter.Label(self.SkP_schedule_row, width="8", bg="lightgray", textvariable=self.ranks)	 
+		L2 = tkinter.Label(self.SkP_schedule_row, width="6", bg="lightgray", textvariable=self.ranks)	 
 		L2.grid(row=0, column=1, padx="1", pady="1")	
 		L2.bindtags("SkP_schedule")
-		L3 = tkinter.Label(self.SkP_schedule_row, width="12", bg="lightgray", textvariable=self.cost) 		
+		L3 = tkinter.Label(self.SkP_schedule_row, width="8", bg="lightgray", textvariable=self.cost) 		
 		L3.grid(row=0, column=2, padx="1", pady="1")	
 		L3.bindtags("SkP_schedule")
 		L4 = tkinter.Label(self.SkP_schedule_row, width="10", bg="lightgray", textvariable=self.total_ranks)
 		L4.bindtags("SkP_schedule")		
 		L4.grid(row=0, column=3, padx="1", pady="1")	
-		L5 = tkinter.Label(self.SkP_schedule_row, width="11", bg="lightgray", textvariable=self.bonus)	
+		L5 = tkinter.Label(self.SkP_schedule_row, width="6", bg="lightgray", textvariable=self.bonus)	
 		L5.grid(row=0, column=4, padx="1", pady="1")
 		L5.bindtags("SkP_schedule")		
+		L6 = tkinter.Label(self.SkP_schedule_row, width="10", bg="lightgray", textvariable=self.sum_cost)	
+		L6.grid(row=0, column=5, padx="1", pady="1")
+		L6.bindtags("SkP_schedule")		
 	
-	
+
+	# The schedule row shows the training for the current level in the skill, the cost of that training and the training and bonus for the total ranks the character has in the skill
+	def Create_PcP_schedule_row(self, parent):		
+		if self.PcP_schedule_row != "":
+			return
+			
+		self.PcP_schedule_row = tkinter.Frame(parent)	
+		self.PcP_schedule_row.bindtags("PcP_schedule")
+		
+		L1 = tkinter.Label(self.PcP_schedule_row, width="25", bg="lightgray", anchor="w", text=self.name)
+		L1.grid(row=0, column=0, padx="1", pady="1")
+		L1.bindtags("PcP_schedule")
+		L2 = tkinter.Label(self.PcP_schedule_row, width="4", bg="lightgray", textvariable=self.postcap_ranks)	 
+		L2.grid(row=0, column=1, padx="1", pady="1")	
+		L2.bindtags("PcP_schedule")
+		L3 = tkinter.Label(self.PcP_schedule_row, width="6", bg="lightgray", textvariable=self.postcap_cost) 		
+		L3.grid(row=0, column=2, padx="1", pady="1")	
+		L3.bindtags("PcP_schedule")
+		L4 = tkinter.Label(self.PcP_schedule_row, width="8", bg="lightgray", textvariable=self.postcap_total_ranks)
+		L4.bindtags("PcP_schedule")		
+		L4.grid(row=0, column=3, padx="1", pady="1")	
+		L5 = tkinter.Label(self.PcP_schedule_row, width="4", bg="lightgray", textvariable=self.postcap_bonus)	
+		L5.grid(row=0, column=4, padx="1", pady="1")
+		L5.bindtags("PcP_schedule")		
+		L6 = tkinter.Label(self.PcP_schedule_row, width="10", bg="lightgray", textvariable=self.postcap_sum_cost)	
+		L6.grid(row=0, column=5, padx="1", pady="1")
+		L6.bindtags("PcP_schedule")	
+
+		
 	# This method will calculate the cost of training "ranks" ranks in this skill at "level". This cost is based on the current level and the total number of ranks + subskill_ranks.
 	# The cost is returned at the end of the method after the new ranks are added to the ranks_this_level and total_ranks_by_level variables.
 	def Train_New_Ranks(self, level, subskill_ranks, ranks):
@@ -929,10 +1374,10 @@ class Skill:
 		self.ptp_cost_at_level[level].set(pcost)
 		self.mtp_cost_at_level[level].set(mcost)	
 		
+		pcost = 0	
+		mcost = 0
 		# Set Total Ranks and Bonus for each level
 		for i in range(level, 101):
-			pcost = 0	
-			mcost = 0
 			if i > level:
 				ranks = self.ranks_by_level[i].get()					
 						
@@ -940,11 +1385,12 @@ class Skill:
 			self.bonus_by_level[i].set(self.Get_Skill_Bonus(ranks + prev_total_ranks))
 			prev_total_ranks = self.total_ranks_by_level[i].get()
 			
-			if i == level or (i > 0 and self.total_ranks_by_level[i-1].get() > i):				
-				# This will calculate the cost a skill using all existing ranks relative to a specific level.
+			# This will calculate the cost a skill using all existing ranks relative to a specific level.
+			if i == level or (self.total_ranks_by_level[i].get() > prev_total_ranks):				
 				(tpcost, tmcost) = self.Get_Total_Skill_Cost(subskill_ranks, i, i)		
-				self.total_ptp_cost_at_level[i].set(tpcost)
-				self.total_mtp_cost_at_level[i].set(tmcost)
+				
+			self.total_ptp_cost_at_level[i].set(tpcost)
+			self.total_mtp_cost_at_level[i].set(tmcost)
 			
 				
 	# A short method that takes the number of ranks and converts it's bonus counterpart
@@ -981,8 +1427,8 @@ class Skill:
 		tranks = self.total_ranks_by_level[tranks_level].get()
 		
 		triple_train = max(0, tranks + subskill_ranks - 2 * (current_level + 1))
-		double_train = max(0, tranks + subskill_ranks- triple_train - (current_level + 1))
-		single_train = max(0, tranks + subskill_ranks- triple_train - double_train)		
+		double_train = max(0, tranks + subskill_ranks - triple_train - (current_level + 1))
+		single_train = max(0, tranks + subskill_ranks - triple_train - double_train)		
 				
 		pcost = self.ptp_cost * single_train  +  2 * self.ptp_cost * double_train  +  4 * self.ptp_cost * triple_train
 		mcost = self.mtp_cost * single_train  +  2 * self.mtp_cost * double_train  +  4 * self.mtp_cost * triple_train	
@@ -991,10 +1437,20 @@ class Skill:
 		
 		
 	# Figures out how much it would cost to take "new_ranks" number of ranks in this skill given level, total ranks, and subskill ranks
-	def Get_Next_Ranks_Cost(self, level, subskill_ranks, new_ranks):			
-		total_ranks = self.total_ranks_by_level[level].get()
+	def Get_Next_Ranks_Cost(self, level, subskill_ranks, new_ranks):
+		total_ranks = 0
+		postcap_ranks = 0
 		pcost = 0; mcost = 0; end = new_ranks+1
 
+		# Calculate the ranks using the post cap ranks
+		if level > 100:
+			level = 100
+			total_ranks = self.total_ranks_by_level[100].get()
+			for key, val in self.postcap_ranks_at_interval.items():
+				total_ranks += val
+		else:						
+			total_ranks = self.total_ranks_by_level[level].get()
+		
 		if total_ranks + new_ranks + subskill_ranks > self.max_ranks * (level+1):
 			return (9999, 9999)
 		
@@ -1009,9 +1465,41 @@ class Skill:
 				pcost += self.ptp_cost
 				mcost += self.mtp_cost		
 		
-		return (pcost, mcost)
-				
+		return (pcost, mcost)				
 
+		
+	# Train addition ranks past level 100. "exp" is the experience interval these ranks will be trained in		
+	def Train_Postcap_Ranks(self, ranks, subskill_ranks, exp):
+		global character
+
+		(pcost, mcost) = self.Get_Next_Ranks_Cost(101, subskill_ranks, ranks)	
+
+		# If training at this experience interval already exists, append this new training cost on the end
+		if exp in self.postcap_cost_at_interval:
+			self.postcap_cost_at_interval[exp] = "%s|%s/%s" % (self.postcap_cost_at_interval[exp], pcost, mcost)
+		else:
+			self.postcap_cost_at_interval[exp] = "%s/%s" % (pcost, mcost)
+
+		
+		self.postcap_exp_intervals.append(exp)			
+
+		# Add the new ranks to the ranks at this interval or set them to the new ranks if no training has happened at this level before		
+		if exp not in self.postcap_ranks_at_interval:
+			self.postcap_ranks_at_interval[exp] = ranks
+		else:
+			self.postcap_ranks_at_interval[exp] += ranks			
+
+		# Update the training by interval for the character object		
+		if exp in character.postcap_skill_training_by_interval.keys():
+			if self.name in character.postcap_skill_training_by_interval[exp]:
+				new_training = character.postcap_skill_training_by_interval[exp].replace("%s:%s" % (self.name, self.postcap_ranks_at_interval[exp]-ranks), "%s:%s" % (self.name, self.postcap_ranks_at_interval[exp]))
+				character.postcap_skill_training_by_interval.update( {exp : new_training })
+			else:
+				character.postcap_skill_training_by_interval.update({ exp : "%s|%s:%s" % (character.postcap_skill_training_by_interval[exp], self.name, ranks) })
+		else:
+			character.postcap_skill_training_by_interval.update( {exp : "%s:%s" % (self.name, ranks) })
+						
+				
 # Each maneuver object contains all the information about a maneuver as well as methods to update, reset, and train ranks in the maneuver
 class Maneuver:
 	def __init__(self, schedule_parent, arr):
@@ -1024,7 +1512,12 @@ class Maneuver:
 		self.cost_by_rank = [arr[4], arr[5], arr[6], arr[7], arr[8]]
 		self.availability = {}
 		self.prerequisites = arr['prerequisites']	
+		self.prerequisites_displayed = re.sub("(CM:)|(SM:)|(Skill:)", "", self.prerequisites)
+		self.prerequisites_displayed = re.sub(":([0-9]+)", ": \g<1> ranks", self.prerequisites_displayed)
+		self.prerequisites_displayed = re.sub("&", " AND\n", self.prerequisites_displayed)
+		self.prerequisites_displayed = re.sub("\|", " OR\n", self.prerequisites_displayed)
 		self.ManP_schedule_row = ""		
+		self.PcP_schedule_row = ""		
 	
 		self.ranks_by_level = [tkinter.IntVar() for i in range(101)]
 		self.cost_at_level = [tkinter.IntVar() for i in range(101)]
@@ -1034,7 +1527,18 @@ class Maneuver:
 		self.cost = tkinter.StringVar()
 		self.ranks = tkinter.IntVar()
 		self.total_ranks = tkinter.IntVar()
-		self.combined_cost = tkinter.IntVar()
+		self.combined_cost = tkinter.IntVar()	
+		self.postcap_cost = tkinter.StringVar()
+		self.postcap_ranks = tkinter.IntVar()
+		self.postcap_total_ranks = tkinter.IntVar()
+		self.postcap_sum_cost = tkinter.StringVar()	
+	
+		# Used by Postcap panel
+		self.postcap_exp_intervals = []
+		self.postcap_ranks_at_interval = collections.OrderedDict()
+		self.postcap_total_ranks_at_interval = collections.OrderedDict()
+		self.postcap_cost_at_interval = collections.OrderedDict()
+		
 	
 		for prof in professions:
 			self.availability[prof] = arr['available_'+prof.lower()]
@@ -1047,7 +1551,7 @@ class Maneuver:
 		self.Set_To_Default()
 
 
-	# Resets the Skill object			
+	# Resets the Maneuver object for the Maneuver panel
 	def Set_To_Default(self):
 		self.cost.set("")
 		self.ranks.set(0)
@@ -1061,7 +1565,14 @@ class Maneuver:
 			self.combined_cost_by_level[i].set(0)			
 
 		self.ManP_schedule_row.grid_remove()
-	
+
+	# Resets the Maneuver object for the Postcap panel
+	def Set_To_Default_Postcap(self):
+		self.postcap_exp_intervals = []
+		self.postcap_ranks_at_interval.clear()
+		self.postcap_total_ranks_at_interval.clear()
+		self.postcap_cost_at_interval.clear()	
+		
 
 	# The schedule row shows the training for the current level in the maneuver, the cost of that training and the training for the total ranks the character has in the maneuver	
 	def Create_ManP_schedule_row(self, parent):
@@ -1084,10 +1595,35 @@ class Maneuver:
 		L5.grid(row=0, column=4, padx="1", pady="1")
 		L5.bindtags("ManP_schedule")		
 
-	
+		
+	# The schedule row shows the training for the current experience interval in the maneuver, the cost of that training and the training for the total ranks the character has in the maneuver	
+	def Create_PcP_schedule_row(self, parent):
+		self.PcP_schedule_row = tkinter.Frame(parent)	
+		self.PcP_schedule_row.bindtags("PcP_schedule")
+		
+		L1 = tkinter.Label(self.PcP_schedule_row, width="26", bg="lightgray", anchor="w", text=self.name)
+		L1.grid(row=0, column=0, padx="1", pady="1")
+		L1.bindtags("PcP_schedule")
+		L2 = tkinter.Label(self.PcP_schedule_row, width="8", bg="lightgray", textvariable=self.postcap_ranks)	 
+		L2.grid(row=0, column=1, padx="1", pady="1")	
+		L2.bindtags("PcP_schedule")
+		L3 = tkinter.Label(self.PcP_schedule_row, width="6", bg="lightgray", textvariable=self.postcap_cost) 		
+		L3.grid(row=0, column=2, padx="1", pady="1")	
+		L3.bindtags("PcP_schedule")
+		L4 = tkinter.Label(self.PcP_schedule_row, width="10", bg="lightgray", textvariable=self.postcap_total_ranks)
+		L4.bindtags("PcP_schedule")		
+		L4.grid(row=0, column=3, padx="1", pady="1")	
+		L5 = tkinter.Label(self.PcP_schedule_row, width="8", bg="lightgray", textvariable=self.postcap_sum_cost)	
+		L5.grid(row=0, column=4, padx="1", pady="1")
+		L5.bindtags("PcP_schedule")	
+
+		
 	# Figures out how much it cost to train in the maneuver at "rank" rank. 
 	# "prof_type" will determine if there is an additional cost to train in the skill. Only "combat" maneuvers have an extra cost.
 	def Get_Cost_At_Rank(self, rank, prof_type):
+		if rank > len(self.cost_by_rank):
+			return 9999
+			
 		if self.cost_by_rank[rank-1] == "-":
 			return "-"
 			
@@ -1140,9 +1676,58 @@ class Maneuver:
 		# Set Total Ranks and Bonus for each level
 		for i in range(level, 101):
 			self.total_ranks_by_level[i].set(new_total_ranks)				
-			self.combined_cost_by_level[i].set(tcost)				
-		
+			self.combined_cost_by_level[i].set(tcost)	
 
+ 		
+	# Train addition ranks past level 100. "exp" is the experience interval these ranks will be trained in
+	def Train_Postcap_Ranks(self, exp, ranks, prof_type):
+		global character
+		training_by_interval = ""
+		total_ranks = self.total_ranks_by_level[100].get()
+		
+		# Find out what kind of maneuver we are training
+		if self.type == "combat":
+			training_by_interval = character.postcap_combat_training_by_interval 
+		elif self.type == "shield":
+			training_by_interval = character.postcap_shield_training_by_interval 
+		elif self.type == "armor":
+			training_by_interval = character.postcap_armor_training_by_interval 
+		
+		# Get the total postcap ranks in this maneuver
+		for key, val in self.postcap_ranks_at_interval.items():
+			total_ranks += val
+			
+		# If the new ranks would go beyond the max ranks, send back an error number
+		cost = self.Get_Cost_At_Rank(total_ranks + 1, prof_type)			
+		if cost == "-":
+			return 9999
+
+		# If training at this experience interval already exists, append this new training cost on the end
+		if exp in self.postcap_cost_at_interval:
+			self.postcap_cost_at_interval[exp] = "%s|%s" % (self.postcap_cost_at_interval[exp], cost)
+		else:
+			self.postcap_cost_at_interval[exp] = "%s" % cost
+
+		
+		self.postcap_exp_intervals.append(exp)				
+		
+		# Add the new ranks to the ranks at this interval or set them to the new ranks if no training has happened at this level before
+		if exp not in self.postcap_ranks_at_interval:
+			self.postcap_ranks_at_interval[exp] = ranks
+		else:
+			self.postcap_ranks_at_interval[exp] += ranks
+			
+		# Update the training by interval for the character object
+		if exp in training_by_interval.keys():
+			if self.name in training_by_interval[exp]:
+				new_training = training_by_interval[exp].replace("%s:%s" % (self.name, self.postcap_ranks_at_interval[exp]-ranks), "%s:%s" % (self.name, self.postcap_ranks_at_interval[exp]))
+				training_by_interval.update( {exp : new_training })
+			else:
+				training_by_interval.update({ exp : "%s|%s:%s" % (training_by_interval[exp], self.name, ranks) })
+		else:
+			training_by_interval.update( {exp : "%s:%s" % (self.name, ranks) })		
+		
+			
 # The Planner's "Error Box". This dialog box will appear when an error or warning is triggered by the user.
 class Information_Dialog:
 	def __init__(self):
@@ -1178,6 +1763,7 @@ class Information_Dialog:
 		self.dialogbox.grab_set()
 
 		
+	# Allows the inner frame of the Dialog box to be mouse scrollable	
 	def Scroll_Inner_Frame(self, event):
 		self.myframe.yview("scroll", -1*(event.delta/120), "units")
 		
@@ -1185,18 +1771,46 @@ class Information_Dialog:
 	
 #Planner globals		
 root = tkinter.Tk()
-version = "v2.3"
+notebook = ""
 db_file = "GS4_Planner.db"
 db_con = ""
 db_cur = ""
 panels = {}
 info_dialog = Information_Dialog()
+title = "Hymore GS4 Character Planner"
+version = "v2.4"
 char_name = "New Character"
+		
 		
 # Statistics Panel globals		
 statistics = ["Strength", "Constitution", "Dexterity", "Agility", "Discipline", "Aura", "Logic", "Intuition", "Wisdom", "Influence"]
 professions = ["Bard", "Cleric", "Empath", "Monk", "Paladin", "Ranger", "Rogue", "Sorcerer", "Warrior", "Wizard"]
 races = ["Aelotoi", "Burghal Gnome", "Dark Elf", "Dwarf", "Elf", "Erithian", "Forest Gnome", "Giantman", "Half Elf", "Half Krolvin", "Halfling", "Human", "Sylvankind"]	
+
+# Calculate the experience needed and total earned from levels 0 - 100
+next_exp = [tkinter.StringVar() for i in range(101)]
+total_exp = [tkinter.StringVar() for i in range(101)]	
+next_exp[0].set(2500); next_exp[1].set(2500); next_exp[100].set("-")
+total_exp[0].set(0); total_exp[100].set(7572500)	
+for i in range(0, 100):		
+	if i > 49:
+		val = 500
+	elif i > 39:
+		val = 1000
+	elif i > 24:
+		val = 1500
+	elif i > 14:
+		val = 2000
+	else:
+		val = 2500	
+	
+	if i < 2:
+		next_exp[i].set( val )	
+	else:
+		next_exp[i].set( int(next_exp[i-1].get()) + val )
+	
+	if i > 0:
+		total_exp[i].set( int(total_exp[i-1].get()) + int(next_exp[i].get()) )
 	
 	
 # Skills Panel globals	
