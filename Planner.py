@@ -22,6 +22,7 @@ import Globals as globals
 import Statistics_Panel as StP
 import Skills_Panel as SkP
 import Maneuvers_Panel as ManP
+import PostCap_Panel as PcP
 
 
 # Planner is the primary window in the program that holds everything else.
@@ -53,15 +54,16 @@ class Planner:
 
 
 	def Menubar_Option_New_Character(self):
+		globals.char_name = "New Character"
 		for stat, obj in globals.character.statistics_list.items():
 			obj.Set_To_Default()
 		globals.panels['Skills'].ClearAll_Button_Onclick()
 		globals.panels['Maneuvers'].Clear_Button_Onclick("All")
-		globals.root.title("Gemstone IV Character Planner %s - New Character" % (globals.version))
+		globals.panels['Post Cap'].Clear_Button_Onclick("All")
+		globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))
 
 
 	def Menubar_Option_Load_Character(self):
-		self.Menubar_Option_New_Character()
 		globals.character.Load_Character()
 
 		
@@ -71,35 +73,39 @@ class Planner:
 		
 	# Method uses a Python megawidget, Notebook, to create and hold all the Panels	
 	def Create_Notebook(self, parent):
-		self.notebook = Pmw.NoteBook(self.parent,
+		globals.notebook = Pmw.NoteBook(self.parent,
                 tabpos = 'n',
          #       createcommand = PrintOne('Create'),
-                lowercommand = self.Notebook_OnHidePage,
-                raisecommand = self.Notebook_OnShowPage,
+         #       lowercommand = self.Notebook_OnHidePage,
+         #       raisecommand = self.Notebook_OnShowPage,
                 hull_width = 300,
                 hull_height = 300,
                 )				
-		self.notebook.pack(fill = 'both', expand = 1, padx = 5, pady = 5)
+		globals.notebook.pack(fill = 'both', expand = 1, padx = 5, pady = 5)
 		
 		# Create the pages (tabs) for each panel and add them to the notebook
-		page1 = self.notebook.add('Statistics')		
-		page2 = self.notebook.add('Skills')				
-		page3 = self.notebook.add('Maneuvers')		
+		page1 = globals.notebook.add('Statistics')		
+		page2 = globals.notebook.add('Skills')				
+		page3 = globals.notebook.add('Maneuvers')				
+		page4 = globals.notebook.add('Post Cap')	
 		self.pages['Statistics'] = tkinter.Frame(page1, background="white")
 		self.pages['Skills'] = tkinter.Frame(page2, background="white")
 		self.pages['Maneuvers'] = tkinter.Frame(page3, background="white")
+		self.pages['Post Cap'] = tkinter.Frame(page4, background="white")
 		self.pages['Statistics'].grid(row=0, column=0)
 		self.pages['Skills'].grid(row=0, column=1)
 		self.pages['Maneuvers'].grid(row=0, column=2)
+		self.pages['Post Cap'].grid(row=0, column=3)
 		
 		# Create each Panel. Each is added to the a global list so they can be referenced later
 		globals.panels['Statistics'] = StP.Statistics_Panel(self.pages['Statistics'])		
 		globals.panels['Skills'] = SkP.Skills_Panel(self.pages['Skills'])	
 		globals.panels['Maneuvers'] = ManP.Maneuvers_Panel(self.pages['Maneuvers'])
+		globals.panels['Post Cap'] = PcP.PostCap_Panel(self.pages['Post Cap'])
 	
 		# Set up defaults
 		globals.panels['Statistics'].Change_Race("Human")
-		globals.panels['Statistics'].Change_Profession("Warrior")  
+		globals.panels['Statistics'].Change_Profession("Warrior")  		
 
 	
 	# Temporary. This might be used to quickly load calculations for some Panels
@@ -125,8 +131,8 @@ if __name__ == "__main__":
 	globals.db_con = sqlite3.connect(globals.db_file)
 	globals.db_con.row_factory = sqlite3.Row
 	globals.db_cur = globals.db_con.cursor()
-	globals.root.title("Gemstone IV Character Planner %s - %s" % (globals.version, globals.char_name))
-	globals.root.geometry("1200x600")
+	globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))
+	globals.root.geometry("1140x600")
 	globals.root.resizable(0,0)
 	planner = Planner(globals.root)	
 	globals.root.mainloop();		
