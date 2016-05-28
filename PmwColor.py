@@ -5,6 +5,10 @@ import math
 import string
 import sys
 import tkinter
+#GS4 Planner edit
+import os
+
+
 
 _PI = math.pi
 _TWO_PI = _PI * 2
@@ -355,7 +359,19 @@ def bordercolors(root, colorName):
         darkValue = (60 * value) / 100
         darkRGB.append(darkValue)
 
-    return (
-        '#%04x%04x%04x' % (lightRGB[0], lightRGB[1], lightRGB[2]),
-        '#%04x%04x%04x' % (darkRGB[0], darkRGB[1], darkRGB[2])
+#    return (
+#        '#%04x%04x%04x' % (lightRGB[0], lightRGB[1], lightRGB[2]),
+#        '#%04x%04x%04x' % (darkRGB[0], darkRGB[1], darkRGB[2])
+#    )
+
+# GS4 Planner edit. Allows planner to work on MAC OSX.
+    if 'nt' in os.name:
+        return (		
+            '#%04x%04x%04x' % (lightRGB[0], lightRGB[1], lightRGB[2]),
+            '#%04x%04x%04x' % (darkRGB[0], darkRGB[1], darkRGB[2])	
+        )
+    else:
+        return (
+            '#%04i%04i%04i' % (lightRGB[0], lightRGB[1], lightRGB[2]),
+            '#%04i%04i%04i' % (darkRGB[0], darkRGB[1], darkRGB[2])
     )
