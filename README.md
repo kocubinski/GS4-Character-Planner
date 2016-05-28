@@ -7,3 +7,8 @@ A character planner for the MUD, Gemstone IV
 3. `cd ~/Downloads/GS4-Character-Planner` or wherever you unzipped it
 4. `python3 Create_Database.py`
 5. `python3 Planner.py` - This command will open the program
+
+LINUX USAGE:
+DEPENDENCIES: python vers. 3, tk, python-pmw
+$ python Create_Databse.py
+$ python Planner.py 
