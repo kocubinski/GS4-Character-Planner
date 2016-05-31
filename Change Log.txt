@@ -1,3 +1,11 @@
+-Version 2.4.2- (Date: 5/31/2016)
+GENERAL CHANGES
+Fixed a bug that was causing the planner to crash when the user tried to add an new Manevuer in the Maneuvers panel.
+
+-Version 2.4.1- (Date: 5/28/2016)
+GENERAL CHANGES
+Made a change to PmwColor.py to allow it to run on MAC OSX.
+
 -Version 2.4- (Date: 5/21/2016)
 GENERAL CHANGES
 -Added the Post Cap panel. This panel allows characters to continue training in skills and maneuvers beyond level 100.
