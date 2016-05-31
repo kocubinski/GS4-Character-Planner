@@ -533,7 +533,6 @@ class Maneuvers_Panel:
 				i += 1	
 			self.dialog_box.withdraw()		
 			self.dialog_box.grab_release()
-		self.vars_sfooter_armor_leftover.set(self.total_leftover_armor_points_by_level[level].get())
 				
 	
 	# When a new maneuver is clicked from the maneuver drop down menu in the popup dialog box, this method will update the dialog box with the newly chosen maneuver
