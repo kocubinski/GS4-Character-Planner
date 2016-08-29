@@ -20,9 +20,13 @@ import tkinter
 import Pmw
 import Globals as globals
 import Statistics_Panel as StP
+import Misc_Panel as MiP
 import Skills_Panel as SkP
 import Maneuvers_Panel as ManP
 import PostCap_Panel as PcP
+import Loadout_Panel as LdP
+#import Progression_Panel as ProgP
+#import Summary_Panel as SumP
 
 
 # Planner is the primary window in the program that holds everything else.
@@ -57,11 +61,15 @@ class Planner:
 		globals.char_name = "New Character"
 		for stat, obj in globals.character.statistics_list.items():
 			obj.Set_To_Default()
+		globals.panels['Misc'].Reset_Panel()
 		globals.panels['Skills'].ClearAll_Button_Onclick()
 		globals.panels['Maneuvers'].Clear_Button_Onclick("All")
 		globals.panels['Post Cap'].Clear_Button_Onclick("All")
-		globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))
-
+		globals.panels['Loadout'].Gear_ClearAll_Button_Onclick()
+		globals.panels['Loadout'].Effects_ClearAll_Button_Onclick()
+		
+		globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))		
+		globals.notebook.selectpage("Statistics")
 
 	def Menubar_Option_Load_Character(self):
 		globals.character.Load_Character()
@@ -85,23 +93,39 @@ class Planner:
 		
 		# Create the pages (tabs) for each panel and add them to the notebook
 		page1 = globals.notebook.add('Statistics')		
-		page2 = globals.notebook.add('Skills')				
-		page3 = globals.notebook.add('Maneuvers')				
-		page4 = globals.notebook.add('Post Cap')	
+		page2 = globals.notebook.add('Misc')		
+		page3 = globals.notebook.add('Skills')				
+		page4 = globals.notebook.add('Maneuvers')				
+		page5 = globals.notebook.add('Post Cap')				
+		page6 = globals.notebook.add('Loadout')				
+#		page7 = globals.notebook.add('Progression')					
+#		page8 = globals.notebook.add('Summary')	
 		self.pages['Statistics'] = tkinter.Frame(page1, background="white")
-		self.pages['Skills'] = tkinter.Frame(page2, background="white")
-		self.pages['Maneuvers'] = tkinter.Frame(page3, background="white")
-		self.pages['Post Cap'] = tkinter.Frame(page4, background="white")
+		self.pages['Misc'] = tkinter.Frame(page2, background="white")
+		self.pages['Skills'] = tkinter.Frame(page3, background="white")
+		self.pages['Maneuvers'] = tkinter.Frame(page4, background="white")
+		self.pages['Post Cap'] = tkinter.Frame(page5, background="white")
+		self.pages['Loadout'] = tkinter.Frame(page6, background="white")
+#		self.pages['Progression'] = tkinter.Frame(page7, background="white")
+#		self.pages['Summary'] = tkinter.Frame(page8, background="white")
 		self.pages['Statistics'].grid(row=0, column=0)
-		self.pages['Skills'].grid(row=0, column=1)
-		self.pages['Maneuvers'].grid(row=0, column=2)
-		self.pages['Post Cap'].grid(row=0, column=3)
+		self.pages['Misc'].grid(row=0, column=2)
+		self.pages['Skills'].grid(row=0, column=3)
+		self.pages['Maneuvers'].grid(row=0, column=4)
+		self.pages['Post Cap'].grid(row=0, column=5)
+		self.pages['Loadout'].grid(row=0, column=6)
+#		self.pages['Progression'].grid(row=0, column=7)
+#		self.pages['Summary'].grid(row=0, column=8)
 		
 		# Create each Panel. Each is added to the a global list so they can be referenced later
 		globals.panels['Statistics'] = StP.Statistics_Panel(self.pages['Statistics'])		
+		globals.panels['Misc'] = MiP.Misc_Panel(self.pages['Misc'])		
 		globals.panels['Skills'] = SkP.Skills_Panel(self.pages['Skills'])	
 		globals.panels['Maneuvers'] = ManP.Maneuvers_Panel(self.pages['Maneuvers'])
 		globals.panels['Post Cap'] = PcP.PostCap_Panel(self.pages['Post Cap'])
+		globals.panels['Loadout'] = LdP.Loadout_Panel(self.pages['Loadout'])
+#		globals.panels['Progression'] = ProgP.Progression_Panel(self.pages['Progression'])
+#		globals.panels['Summary'] = SumP.Summary_Panel(self.pages['Summary'])
 	
 		# Set up defaults
 		globals.panels['Statistics'].Change_Race("Human")
