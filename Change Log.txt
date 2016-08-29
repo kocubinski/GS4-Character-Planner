@@ -1,3 +1,25 @@
+-Version 2.5- (Date: 8/28/2016)
+GENERAL CHANGES
+-Added the Misc Panel. This panel will keep track of guild skill ranks and permanent character choices that do not belong in other panels.
+-Added the Loadout Panel. This panel lets you set what gear and spells your character is wearing.
+-Fixed an error that was causing save files to be erased when saving with postcap skill training.
+
+DATABASE CHANGES
+-The Professions table now contains 6 new columns for the guild skills for each profession
+-Added Guild Skill prerequisites to Steady Shield and Disarming Presence shield maneuvers
+-Added several new tables: Weapons, Armor, Shields, Effects. 
+
+MANEUVERS PANEL
+-Added Guild Skill prerequisites to the shield maneuvers Steady Shield and Disarming Presence.
+-The Add Maneuver dialog box also shows the type of each prerequisite using an abbreviation. For example "CM" stands for combat maneuver and "GS" stands for guild skill.
+
+POSTCAP PANEL
+-Planner now correctly gives up and displays an error box if the character would never have enough maneuver points to complete their maneuver training when trying to calculate a training plain.
+-Fixed a bug calculating that made the total cost for maneuvers display incorrectly if more than one maneuver was trained at the same experience interval.
+-Fixed several display bugs for manuever costs in the training build list frame.
+
+
+
 -Version 2.4.2- (Date: 5/31/2016)
 GENERAL CHANGES
 Fixed a bug that was causing the planner to crash when the user tried to add an new Manevuer in the Maneuvers panel.
@@ -10,7 +32,6 @@ Made a change to PmwColor.py to allow it to run on MAC OSX.
 GENERAL CHANGES
 -Added the Post Cap panel. This panel allows characters to continue training in skills and maneuvers beyond level 100.
 -Reduced the width of the entire planner by 60 pixels
-
 
 STATISTICS PANEL CHANGES
 -Increased the width on all boxes in the growth header frame, growth row frame, and growth footer frame
