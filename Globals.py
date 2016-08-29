@@ -84,8 +84,10 @@ class Character:
 		self.race = ""
 		self.profession = ""
 		
+		self.race_list = {}					# Contains a list of Race objects using the name of each race name as a key
+		self.profession_list = {}			# Contains a list of Profession objects using the name of each profession name as a key
 		self.statistics_list = {}         	# Contains a list of Statistic objects using the name of each statistic as a key
-		self.racial_stat_bonus = {}            	# Contains a list of bonuses for each statistic (calculted by race) using the name of each statistic as a key
+		self.racial_stat_bonus = {}         # Contains a list of bonuses for each statistic (calculted by race) using the name of each statistic as a key
 		self.stat_adj = {}					# Contains a list of statistic adjustments (combination of race and profession growths) using the name of each statistic as a key
 		
 		# Initialize the above variables
@@ -109,6 +111,13 @@ class Character:
 		self.stamina_by_level = [tkinter.IntVar() for i in range(101)]
 		self.spirit_by_level = [tkinter.IntVar() for i in range(101)]
 					
+		
+		# Misc Panel variables
+		self.deity = tkinter.StringVar()
+		self.elemental_attunement = tkinter.StringVar()
+		self.society = tkinter.StringVar()
+		self.society_rank = tkinter.StringVar()
+		self.guild_skills_ranks = [tkinter.StringVar() for i in range(6)]    # Let the profession object handle what the guild skills are. This hold the vars the for the Misc rows		
 		
 		# Skills Panel variables		
 		self.build_skills_list = []           # A list of Build_List_Skill objects that represent what the character wants to train in.
@@ -142,9 +151,8 @@ class Character:
 		self.postcap_build_armor_maneuvers_list = []
 		self.postcap_build_shield_maneuvers_list = []		 
 		self.postcap_skill_training_by_interval = collections.OrderedDict()		
-		self.postcap_total_skill_cost_by_interval = collections.OrderedDict()    # Includes both the PTP/MTP cost at a specific interval and the cumulative PTP/MTP cost for all intervals up to (and including) a specific interval
-		self.postcap_TP_conversions_by_interval = collections.OrderedDict()      # Format A/B|C/D   A=PTP converted this interval, B=same as A but for MTP, C=Cumulative PTP converted at this interval including this interval, D=same as C but for MTP
-		
+		self.postcap_total_skill_cost_by_interval = collections.OrderedDict()    # Includes both the PTP/MTP cost at a specific interval and the cumulative PTP/MTP cost for all intervals 	up to (and including) a specific interval
+		self.postcap_TP_conversions_by_interval = collections.OrderedDict()      # Format A/B|C/D   A=PTP converted this interval, B=same as A but for MTP, C=Cumulative PTP converted at this interval including this interval, D=same as C but for MTP		
 		self.postcap_combat_training_by_interval = collections.OrderedDict()		
 		self.postcap_total_combat_cost_by_interval = collections.OrderedDict()    
 		self.postcap_shield_training_by_interval = collections.OrderedDict()		
@@ -153,14 +161,20 @@ class Character:
 		self.postcap_total_armor_cost_by_interval = collections.OrderedDict()    
 
 
+		# Loadout Panel variables
+		self.loadout_gear_build_list = []
+		self.loadout_effects_build_list = []
+		
+		
 	# This method will prompt the user for a .txt file and will populate the Character class with the information saved in the file
 	def Load_Character(self):
-		global statistics, panels, char_name, title, version, root, notebook
+		global statistics, panels, char_name, title, version, root, notebook, db_cur, db_con
 		char_file = tkinter.filedialog.askopenfile(initialdir="Characters", filetypes=[("Text files","*.txt")], mode='r', title="Load GS4 Character")
 		stat_panel = panels["Statistics"]
 		skills_panel = panels["Skills"]
 		man_panel = panels["Maneuvers"]
 		postcap_panel = panels["Post Cap"]
+		loadout_panel = panels["Loadout"]
 		read_mode = ""
 		
 		# If the user cancelled out of the file prompt, end the method immediately
@@ -176,6 +190,8 @@ class Character:
 		skills_panel.ClearAll_Button_Onclick()
 		man_panel.Clear_Button_Onclick("All")
 		postcap_panel.Clear_Button_Onclick("All")		
+		loadout_panel.Gear_ClearAll_Button_Onclick()
+		loadout_panel.Effects_ClearAll_Button_Onclick()
 		
 		# Read the file line by line and remove the end of line character "\n" at the end of each line if it is present
 		line = char_file.readline()
@@ -192,6 +208,10 @@ class Character:
 				continue
 			elif line == "==STATISTICS INFORMATION==":
 				read_mode = "statistics"
+				line = char_file.readline()
+				continue
+			elif line == "==GUILD SKILLS RANKS==":
+				read_mode = "guild skills"
 				line = char_file.readline()
 				continue
 			elif line == "==SKILLS BUILD LIST==":
@@ -226,8 +246,16 @@ class Character:
 				read_mode = "armor postcap"
 				line = char_file.readline()
 				continue
+			elif line == "==GEAR BUILD LIST==":
+				read_mode = "gear"
+				line = char_file.readline()
+				continue
+			elif line == "==EFFECTS BUILD LIST==":
+				read_mode = "effects"
+				line = char_file.readline()
+				continue
 			
-			parts = line.split(":")            # Every field in the save file is divided by a semi-colon. Splitting on the semi-colon will give us the parts of the line.
+			parts = line.split(":")            # Every field in the save file line is divided by semi-colons. Splitting on the semi-colon will give us the individual parts of the line.
 			
 			# Character is for the profession and race. Since the profession determines skill costs of build_list_skill objects, it needs be set immediately.
 			if read_mode == "character":
@@ -237,9 +265,23 @@ class Character:
 				elif parts[0] == "Race":
 					stat_panel.race_dd.set(parts[1])		
 					stat_panel.Change_Race(panels["Statistics"].race_dd.get())		
+				elif parts[0] == "Deity":
+					self.deity.set(parts[1])
+				elif parts[0] == "Attunement":
+					self.elemental_attunement.set(parts[1])
+				elif parts[0] == "Society":
+					self.society.set(parts[1])
+					self.society_rank.set(parts[2])	
+					
 			# For statistics, update the appropriate statistic with the listed value. All statistics will be recalculated later
 			elif read_mode == "statistics":
 				self.statistics_list[parts[0]].values_by_level[0].set(parts[1])		
+				
+			elif read_mode == "guild skills":
+				if( parts[0] not in self.profession.guild_skills ):
+					continue
+				position = self.profession.guild_skills.index(parts[0])
+				self.guild_skills_ranks[position].set(parts[1])
 				
 			elif read_mode == "skill":
 				skill = self.skills_list[parts[0]]
@@ -274,7 +316,7 @@ class Character:
 				self.postcap_build_skills_list.insert(location, postcap_panel.Create_Postcap_Build_List_Skill(postcap_panel.ML_Frame.interior(), parts[0], parts[1], location,
 				"%s / %s (%s)" % (skill.ptp_cost,skill.mtp_cost, skill.max_ranks), parts[2]) )						
 				self.postcap_build_skills_list[location].PcP_Edit_Button.config(command=lambda v=location: postcap_panel.Add_Edit_Button_Onclick(v))
-				self.postcap_build_skills_list[location].Set_Training_Rate()				
+#				self.postcap_build_skills_list[location].Set_Training_Rate()				
 			elif read_mode == "combat postcap":
 				man = self.combat_maneuvers_list[parts[0]]
 				location = len(self.postcap_build_combat_maneuvers_list)
@@ -291,6 +333,43 @@ class Character:
 				self.postcap_build_armor_maneuvers_list.insert(location, postcap_panel.Create_Postcap_Build_List_Maneuver(postcap_panel.ML_Frame.interior(), parts[0], 
 				"Armor", parts[1], location, parts[2], (man.cost_by_rank[0], man.cost_by_rank[1], man.cost_by_rank[2], man.cost_by_rank[3], man.cost_by_rank[4]) ) )
 
+			
+			# Loadout lines for gear items and effects
+			elif read_mode == "gear":			
+				location = len(self.loadout_gear_build_list)
+				gear = Gear(location+1, parts[0], parts[2], parts[3], parts[1], "")	
+				gear.Create_LdP_row(loadout_panel.Gear_List_Frame.interior())		
+				gear.LdP_Row.grid(row=location, column=0)					
+				gear.Update_Display_Details()
+				
+				self.loadout_gear_build_list.insert(location, gear)			
+				
+			elif read_mode == "effects":
+				location = len(self.loadout_effects_build_list)
+				length = len(parts)
+				scaling_arr = []
+				
+				if length == 3 and parts[2] == "NONE":
+					scaling_arr = "NONE"
+				else:
+					for i in range(2, length):
+						data = parts[i].split("=")
+						scaling_arr.append("%s: %s" % (data[0], data[1]))
+						
+						
+				db_cur.execute("SELECT type, details, effect_tags, scaling_tags, override_options FROM Effects WHERE name = \"%s\" " % (parts[0]))
+				db_con.commit()		
+				data = db_cur.fetchone()		
+			
+				type = ""
+				for key, val in LdP_effect_display_types.items():
+					if val == data["type"]:
+						type = key
+						break
+				self.loadout_effects_build_list.insert(location, Effect(location, parts[0], type, data["type"], data["details"], data["scaling_tags"], scaling_arr, data["override_options"], data[1] ) )
+				
+				self.loadout_effects_build_list[location].Create_LdP_row(loadout_panel.Effects_List_Frame.interior())	
+				
 				
 			# End of the loop, read the next line.		
 			line = char_file.readline()
@@ -412,6 +491,34 @@ class Character:
 		postcap_panel.goal_mode.set("Skills")
 		postcap_panel.PostCap_Style_Onchange("Skills")		
 		
+		# Loadout panel. Load the gear list and effects list
+		i = 0 
+		for gear in self.loadout_gear_build_list:
+			gear.order.set(i+1)
+			gear.LdP_Edit_Button.config(command=lambda v=i: loadout_panel.Gear_Add_Edit_Button_Onclick(v))
+			i += 1					
+		loadout_panel.gear_menu_size = i+1
+		if loadout_panel.gear_menu_size > 1:
+			for j in range(2, loadout_panel.gear_menu_size+1):
+				if j > 2:
+					loadout_panel.dialog_gear_edit_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: loadout_panel.vars_dialog_order.set(v))	
+				loadout_panel.dialog_gear_add_order_menu["menu"].insert_command("end", label=j, command=lambda v=j: loadout_panel.vars_dialog_order.set(v))	
+		
+		i = 0 
+		for effect in self.loadout_effects_build_list:	
+			effect.order.set(i+1)
+			effect.LdP_Build_Row.grid(row=i, column=0)
+			effect.LdP_Edit_Button.config(command=lambda v=i: loadout_panel.Effects_Add_Edit_Button_Onclick(v))
+			i += 1					
+		loadout_panel.effects_menu_size = i+1
+		if loadout_panel.effects_menu_size > 1:
+			for j in range(2, loadout_panel.effects_menu_size+1):
+				if j > 2:
+					loadout_panel.dialog_effect_edit_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: loadout_panel.vars_dialog_order.set(v))	
+				loadout_panel.dialog_effect_add_order_menu["menu"].insert_command("end", label=j, command=lambda v=j: loadout_panel.vars_dialog_order.set(v))				
+		
+		
+		
 		# We are done. Change to the first panel.
 		notebook.selectpage("Statistics")
 
@@ -420,7 +527,11 @@ class Character:
 	def Save_Character(self):
 		global statistics, char_name, version, root
 		char_file = tkinter.filedialog.asksaveasfile(initialdir="Characters", defaultextension=".txt", mode='w', title="Save GS4 Character As ...")
-		
+		society_rank = self.society_rank.get()
+		if( society_rank == ""):
+			society_rank = 0 
+			self.society_rank.set(0)
+			
 		if char_file == None:
 			return		
 			
@@ -430,9 +541,25 @@ class Character:
 		char_file.write("==CHARACTER INFORMATION==\n")	
 		char_file.write("Profession:%s\n" % self.profession.name)	
 		char_file.write("Race:%s\n" % self.race.name)	
+		char_file.write("Deity:%s\n" % self.deity.get())	
+		char_file.write("Attunement:%s\n" % self.elemental_attunement.get())	
+		char_file.write("Society:%s:%s\n" % (self.society.get(), society_rank))	
+		
 		char_file.write("==STATISTICS INFORMATION==\n")	
 		for stat in statistics:
-			char_file.write("%s:%s\n" % (self.statistics_list[stat].name, self.statistics_list[stat].values_by_level[0].get()))
+			val = self.statistics_list[stat].values_by_level[0].get()
+			if( val == "" ):
+				val = 0
+			char_file.write("%s:%s\n" % (self.statistics_list[stat].name, val))
+			
+		char_file.write("==GUILD SKILLS RANKS==\n")			
+		for i in range(6):
+			if( self.profession.guild_skills[i] == "NONE" ):
+				continue
+			ranks = self.guild_skills_ranks[i].get()
+			if( ranks == "" ):
+				ranks = 0
+			char_file.write("%s:%s\n" % (self.profession.guild_skills[i], ranks))							
 			
 		if self.build_skills_list:
 			char_file.write("==SKILLS BUILD LIST==\n")	
@@ -475,6 +602,25 @@ class Character:
 			for man in self.postcap_build_armor_maneuvers_list:			
 				char_file.write("%s:%s:%s\n" % (man.name.get(), man.hide.get(), man.goal.get()) )				
 
+				
+		if self.loadout_gear_build_list:
+			char_file.write("==GEAR BUILD LIST==\n")	
+			for gear in self.loadout_gear_build_list:			
+				char_file.write("%s:%s:%s:%s\n" % (gear.name.get(), gear.type, gear.enchantment, gear.weight) )	
+		
+		if self.loadout_effects_build_list:
+			char_file.write("==EFFECTS BUILD LIST==\n")	
+			for effect in self.loadout_effects_build_list:		
+				scaling_info = ":"
+				if effect.scaling_arr != "NONE":
+					for item in effect.scaling_arr:
+						data = item.split(": ")
+						scaling_info += "%s=%s:" % (data[0], data[1])
+					scaling_info = scaling_info[:-1]
+				else:
+					scaling_info = ":NONE"
+				char_file.write("%s:%s%s\n" % (effect.name.get(), effect.hide.get(), scaling_info) )	
+						
 				
 	# Calculate the PTP, MTP, Health, Mana, Stamina, Spirit over 100 levels. This is called after the statistics growth method has been called.
 	def Update_Statistics(self):	
@@ -615,7 +761,7 @@ class Character:
 			self.profession.prime_statistics.index(stat)
 			return 2
 		except ValueError:
-			return 1
+			return 1		
 	
 	
 	# This method is called when the Profession is changed. It makes a database call using the new profession and gets the new skill costs and max ranks for that skill.
@@ -925,6 +1071,14 @@ class Character:
 						man = self.skills_list[semi_parts[1]]
 						if len(man.postcap_exp_intervals) > 1:
 							val += man.postcap_total_ranks_at_interval[man.postcap_exp_intervals[-1]]	
+				elif semi_parts[0] == "GS":
+					if not semi_parts[1] in self.profession.guild_skills:
+						val = 0
+					else:						
+						val = self.guild_skills_ranks[self.profession.guild_skills.index(semi_parts[1])].get()
+						if val == "":
+							val = 0
+						val = int(val)
 			
 				if val >= int(semi_parts[2]):
 					or_valid = 1
@@ -1023,7 +1177,8 @@ class Profession:
 		self.mana_statistics = [ arr['mana_statistic1'], arr['mana_statistic2'] ]
 		self.spell_circles = [ arr['spell_circle1'], arr['spell_circle2'] ]
 		if arr['spell_circle3'] != "NONE":
-			self.spell_circles.append(arr['spell_circle3'])
+			self.spell_circles.append(arr['spell_circle3'])			
+		self.guild_skills = [ arr['guild_skill1'], arr['guild_skill2'], arr['guild_skill3'], arr['guild_skill4'], arr['guild_skill5'], arr['guild_skill6'] ]		
 		self.statistic_growth = { "Strength": arr['strength_growth'], "Constitution": arr['constitution_growth'], "Dexterity": arr['dexterity_growth'], "Agility": arr['agility_growth'], "Discipline": arr['discipline_growth'], "Aura": arr['aura_growth'], "Logic": arr['logic_growth'], "Intuition": arr['intuition_growth'], "Wisdom": arr['wisdom_growth'], "Influence": arr['influence_growth'] }
 			
 
@@ -1263,6 +1418,7 @@ class Skill:
 			self.total_mtp_cost_at_level[i].set(0)
 			self.ptp_regained_at_level[i].set(0)
 			self.mtp_regained_at_level[i].set(0)
+
 			
 	# Resets the Skill object for the Postcap panel	
 	def Set_To_Default_Postcap(self):
@@ -1478,13 +1634,11 @@ class Skill:
 		if exp in self.postcap_cost_at_interval:
 			self.postcap_cost_at_interval[exp] = "%s|%s/%s" % (self.postcap_cost_at_interval[exp], pcost, mcost)
 		else:
-			self.postcap_cost_at_interval[exp] = "%s/%s" % (pcost, mcost)
-
-		
-		self.postcap_exp_intervals.append(exp)			
+			self.postcap_cost_at_interval[exp] = "%s/%s" % (pcost, mcost)			
 
 		# Add the new ranks to the ranks at this interval or set them to the new ranks if no training has happened at this level before		
-		if exp not in self.postcap_ranks_at_interval:
+		if exp not in self.postcap_ranks_at_interval:		
+			self.postcap_exp_intervals.append(exp)			
 			self.postcap_ranks_at_interval[exp] = ranks
 		else:
 			self.postcap_ranks_at_interval[exp] += ranks			
@@ -1512,7 +1666,8 @@ class Maneuver:
 		self.cost_by_rank = [arr[4], arr[5], arr[6], arr[7], arr[8]]
 		self.availability = {}
 		self.prerequisites = arr['prerequisites']	
-		self.prerequisites_displayed = re.sub("(CM:)|(SM:)|(Skill:)", "", self.prerequisites)
+		# Stupid back reference error! Makes me need to deal with the fact that None comes back instead of an empty string.
+		self.prerequisites_displayed = re.sub("(CM:)|(SM:)|(GS:)|(Skill:)", lambda m: "%s " %m.group(0) or '', self.prerequisites)
 		self.prerequisites_displayed = re.sub(":([0-9]+)", ": \g<1> ranks", self.prerequisites_displayed)
 		self.prerequisites_displayed = re.sub("&", " AND\n", self.prerequisites_displayed)
 		self.prerequisites_displayed = re.sub("\|", " OR\n", self.prerequisites_displayed)
@@ -1727,7 +1882,176 @@ class Maneuver:
 		else:
 			training_by_interval.update( {exp : "%s:%s" % (self.name, ranks) })		
 		
+
+# "Gear" is any in game item that can be equipped and used in combat such as weapons, shields, and armor
+# Gear objects are used in the Loadout panel
+class Gear:
+	def __init__(self, order, name, enchantment, weight, type, display_type ):
+		global LdP_gear_display_types
+		
+		self.name = tkinter.StringVar()
+		self.type = type
+		self.enchantment = enchantment
+		self.weight = weight
+		self.display_type = tkinter.StringVar()		
+		self.display_details = tkinter.StringVar()		
+		self.order = tkinter.StringVar()		
+		
+		self.LdP_Row = ""
+		self.LdP_Edit_Button = ""
+		
+		# Initialize defaults				
+		self.name.set(name)		
+		self.order.set(order)
+		self.display_details.set("")
+				
+		if(display_type != ""):
+			self.display_type.set(LdP_gear_display_types[display_type])
+		else:
+			self.display_type.set(LdP_gear_display_types[type])
+		
+		
+	# Create the build list row used in the Loadout panel
+	def Create_LdP_row(self, parent):
+		self.LdP_Row = tkinter.Frame(parent)	
+		self.LdP_Row.bindtags("LdP_gear")
+		
+		L1 = tkinter.Label(self.LdP_Row, width=5, bg="lightgray", textvariable=self.order)
+		L1.grid(row=0, column=0, padx="1", pady="1")
+		L1.bindtags("LdP_gear")
+		L2 = tkinter.Label(self.LdP_Row, width="22", anchor="w", bg="lightgray", textvariable=self.name)
+		L2.grid(row=0, column=1, padx="1", pady="1")
+		L2.bindtags("LdP_gear")
+		L3 = tkinter.Label(self.LdP_Row, width="8", anchor="w", bg="lightgray", textvariable=self.display_type)
+		L3.grid(row=0, column=2, padx="1", pady="1")
+		L3.bindtags("LdP_gear")
+		L4 = tkinter.Label(self.LdP_Row, width=20, anchor="w", bg="lightgray", textvariable=self.display_details)
+		L4.grid(row=0, column=3, padx="1")
+		L4.bindtags("LdP_gear")
+		self.LdP_Edit_Button = tkinter.Button(self.LdP_Row, text="Edit", command="")
+		self.LdP_Edit_Button.grid(row=0, column=7, padx="3")			
+
+		
+	# This method updates the details section of the LdP_row found on the Loadout panel
+	# Details will show the enchantment value, enchantment time (ie 3x) and weight
+	def Update_Display_Details(self):
+		whole_bonus = int(int(self.enchantment) / 5)
+		faction_bonus = int(int(self.enchantment) % 5)
+		
+		if( whole_bonus >= 0):
+			plus_text = "+"
+		else:
+			plus_text = ""	
 			
+		if( faction_bonus > 0):
+			faction_text = ".5"
+		else:
+			faction_text = ""	
+		
+		weight_text = ", %s lb" % self.weight
+		
+		self.display_details.set("%s%s (%s%sx)%s" %(plus_text, self.enchantment, whole_bonus, faction_text, weight_text))
+		
+# An "Effect" is a spell, enhancive or really any kind of buff/debuff that can affect the characters attributes
+# Effects are created on the Loadout panel, factored into the calculations made on the Progresson panel, and
+# stored as part of the global character object
+class Effect:
+	def __init__(self, order, name, type, display_type, details, scaling_tags, scaling_arr, options, hidden):
+		self.name = tkinter.StringVar()
+		self.type = tkinter.StringVar()		
+		self.display_type = tkinter.StringVar()	
+		self.order = tkinter.StringVar()			
+		self.scaling = tkinter.StringVar()		
+		self.details = tkinter.StringVar()
+		self.scaling_tags = scaling_tags
+		self.scaling_arr = scaling_arr
+		self.options = options		
+		self.LdP_Build_Row = ""
+		self.LdP_Edit_Button = ""	
+		self.hide = tkinter.StringVar()
+		
+		scaling = ""		
+		
+		# Initialize defaults	
+		self.name.set(name)
+		self.type.set(type)
+		self.display_type.set(display_type)
+		self.order.set(order)
+		self.details.set(details)
+		self.hide.set(hidden)
+		
+		if scaling_arr == "NONE":
+			scaling = "NONE"
+		else:
+			for item in scaling_arr:
+				scaling += "%s\n" % item
+			scaling = scaling[:-1]		
+		self.scaling.set(scaling)
+		
+		
+	# Create the build list row used in the Loadout panel
+	def Create_LdP_row(self, parent):
+		self.LdP_Build_Row = tkinter.Frame(parent)
+		
+		self.details_frame = Pmw.ScrolledFrame(self.LdP_Build_Row, usehullsize = 1, hull_width = 196, hull_height = 36)
+		self.details_frame.component("borderframe").config(borderwidth=0)
+		self.details_frame.configure(hscrollmode = "none", vscrollmode = "dynamic")	
+		
+		self.scaling_frame = Pmw.ScrolledFrame(self.LdP_Build_Row, usehullsize = 1, hull_width = 146, hull_height = 36)
+		self.scaling_frame.component("borderframe").config(borderwidth=0)
+		self.scaling_frame.configure(hscrollmode = "none", vscrollmode = "dynamic")	
+		
+		# Creates the order, name, and type fields
+		L1 = tkinter.Label(self.LdP_Build_Row, width=5, height=2, bg="lightgray", textvariable=self.order)
+		L1.grid(row=0, column=0, padx="1", pady="1")
+		L1.bindtags("LdP_effects")
+		L2 = tkinter.Label(self.LdP_Build_Row, width="15", height=2, anchor="c", wraplength=100, bg="lightgray", textvariable=self.name)
+		L2.grid(row=0, column=1, padx="1", pady="1")
+		L2.bindtags("LdP_effects")
+		L3 = tkinter.Label(self.LdP_Build_Row, width="8", height=2, anchor="c", wraplength=70, bg="lightgray", textvariable=self.display_type)
+		L3.grid(row=0, column=2, padx="1", pady="1")
+		L3.bindtags("LdP_effects")
+		
+		# The detail and scaling frames can have more that 2 lines of text. They are setup to perform word wrapping and dynamic height adjustments
+		self.details_frame.grid(row=0, column=3, sticky="nw", padx="1", pady="1")
+		self.details_frame_label = tkinter.Label(self.details_frame.interior(), width=27, justify="left", anchor="nw", wraplength=175, bg="lightgray", textvariable=self.details)
+		self.details_frame_label.bind("<MouseWheel>", self.Scroll_Details_Frame)
+		self.details_frame_label.grid(row=0, column=0)			
+
+		self.scaling_frame.grid(row=0, column=4, sticky="nw")
+		self.scaling_frame_label = tkinter.Label(self.scaling_frame.interior(), width="20", anchor="nw", justify="left", bg="lightgray", textvariable=self.scaling)
+		self.scaling_frame_label.bind("<MouseWheel>", self.Scroll_Scaling_Frame)
+		self.scaling_frame_label.grid(row=0, column=0)
+
+		self.LdP_Edit_Button = tkinter.Button(self.LdP_Build_Row, text="Edit", command="")
+		self.LdP_Edit_Button.grid(row=0, column=7, padx="3")		
+						
+		
+		# If the height of the details or scaling frames are 0, the frame will automatically adjust it's height to the correct number in regard to the text in it.
+		# However, the height has to be atleast 2 in order to match the general size effect row. To fix this issue, count the number of text lines and if it is 
+		# 2 lines or less (only 1 "\n") set the height to 2 manually
+		if(self.details.get().count("\n") > 0):
+			self.details_frame_label.config(height = "0")
+		else:
+			self.details_frame_label.config(height = "2")	
+			
+		if(self.scaling.get().count("\n") > 0):
+			self.scaling_frame_label.config(height = "0")
+		else:	
+			self.scaling_frame_label.config(height = "2")	
+			
+				
+	# Allows the Detail Frame of the LdP_row to be scrollable with the mouse wheel
+	def Scroll_Details_Frame(self, event):
+		self.details_frame.yview("scroll", -1*(event.delta/120), "units")	
+
+		
+	# Allows the Detail Frame of the LdP_row to be scrollable with the mouse wheel
+	def Scroll_Scaling_Frame(self, event):
+		self.scaling_frame.yview("scroll", -1*(event.delta/120), "units")	
+
+
+		
 # The Planner's "Error Box". This dialog box will appear when an error or warning is triggered by the user.
 class Information_Dialog:
 	def __init__(self):
@@ -1769,7 +2093,10 @@ class Information_Dialog:
 		
 
 	
-#Planner globals		
+#Planner globals	
+title = "Hymore GS4 Character Planner"
+version = "v2.5"
+char_name = "New Character"	
 root = tkinter.Tk()
 notebook = ""
 db_file = "GS4_Planner.db"
@@ -1777,9 +2104,6 @@ db_con = ""
 db_cur = ""
 panels = {}
 info_dialog = Information_Dialog()
-title = "Hymore GS4 Character Planner"
-version = "v2.4"
-char_name = "New Character"
 		
 		
 # Statistics Panel globals		
@@ -1821,6 +2145,30 @@ skill_names = []
 combat_maneuver_names = []
 shield_maneuver_names = []
 armor_maneuver_names = []
+
+
+# Loadout Panel globals
+LdP_gear_display_types = { 'Brawling':'Brawling', 'One-Handed Edged':'OHE', 'One-Handed Blunt':'OHB', 'Two-Handed Weapons':'THW', 'Polearm Weapons':'Polearm', 'Ranged Weapons':'Ranged', 'Thrown Weapons':'Thrown', 'UAC Weapons':'UAC', 'Armor':'Armor', 'Shields':'Shield', 'One-Handed Edged/Brawling':'OHE/BRW', 'One-Handed Edged/Two-Handed Weapons':'OHE/THW' }
+
+LdP_effect_display_types = { 'Minor Spiritual (100s)':'MnS Spell', 'Major Spiritual (200s)':'MjS Spell', 'Cleric Base (300s)':'Clrc Spell', 'Minor Elemental (400s)':'MnE Spell',
+					'Major Elemental (500s)':'MjE Spell', 'Ranger Base (600s)':'Rngr Spell', 'Sorcerer Base (700s)':'Sorc Spell', 'Wizard Base (900s)':'Wiz Spell', 'Bard Base (1000s)':'Spellsong', 'Empath Base (1100s)':'Emp Spell', 'Minor Mental (1200s)':'MnM Spell', 'Major Mental (1300s)':'MjM Spell', 'Savant Base (1400s)':'Svnt Spell', 'Paladin Base (1600s)':'Pala Spell', 'Arcane (1700s)':'Arc Spell', 'Maneuvers':'Maneuver', 'Society Powers':'Society', 'Enhancives (Skills)':'Enhansive Skill', 'Enhancives (Resources)':'Enhansive Resource', 'Enhancives (Statistics)':'Enhansive Statistic', 'Status':'Status', 'Flares':'Flare', 'Other':'Other' }
+					
+LdP_effect_display_scaling = { 'Spell Research, Minor Spiritual ranks':'Minor Spiritual', 'Spell Research, Major Spiritual ranks':'Major Spiritual', 'Spell Research, Cleric ranks':					  'Cleric', 'Spell Research, Minor Elemental ranks':'Minor Elemental', 'Spell Research, Major Elemental ranks':'Major Elemental', 
+					  'Spell Research, Ranger ranks':'Ranger', 'Spell Research, Sorcerer ranks':'Sorcerer', 'Spell Research, Wizard ranks':'Wizard', 'Spell Research, Bard ranks':'Bard', 'Spell Research, Empath ranks':'Empath', 'Spell Research, Minor Mental ranks':'Minor Mental', 
+#					  'Spell Research, Major Mental ranks':'Major Mental', 'Spell Research, Savant ranks':'Savant', 
+					  'Spell Research, Paladin ranks':'Paladin', 
+					  'Elemental Lore, Air ranks':'Air', 'Elemental Lore, Earth ranks':'Earth', 'Elemental Lore, Fire ranks':'Fire', 'Elemental Lore, Water ranks':'Water', 
+					  'Mental Lore, Divination ranks':'Divination', 'Mental Lore, Manipulation ranks':'Manipulation', 'Mental Lore, Telepathy ranks':'Telepathy', 'Mental Lore, Transference ranks':'Transference', 'Mental Lore, Transformation ranks':'Transformation',
+					  'Spiritual Lore, Blessings ranks':'Blessings', 'Spiritual Lore, Religion ranks':'Religion', 'Spiritual Lore, Summoning ranks':'Summoning', 
+					  'Sorcerous Lore, Demonology ranks':'Demonology', 'Sorcerous Lore, Necromancy ranks':'Necromancy',					
+					  'Elemental Mana Control ranks':'Elemental MC', 'Mental Mana Control ranks':'Mental MC', 'Spiritual Mana Control ranks':'Spiritual MC',  
+					  'Multi-Opponent Combat ranks':'MOC',
+					  'Maneuver ranks':'Maneuver ranks',
+					  'Council of Light rank':'COL rank', 'Guardians of Sunfist rank':'GoS rank', 'Order of Voln rank':'Voln rank',
+					  'Resource bonus':'Resource bonus', 'Resource recovery':'Resource recovery', 'Resource maximum increase':'Resource maximum', 
+					  'Statistic increase':'Stat increase', 'Statistic bonus':'Stat bonus', 'Skill ranks':'Skill ranks', 'Skill bonus':'Skill bonus', 
+					  'All AS Bonus':'All AS Bonus', 'All DS Bonus':'All DS Bonus', 
+					  'Enscorcell tier':'Enscorcell tier' }
 
 
 # Character global needs to be declared last since it uses the above globals
