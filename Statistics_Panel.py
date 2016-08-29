@@ -56,7 +56,23 @@ class Statistics_Panel:
 		self.MR_Frame.grid(row=1, column=1, sticky="nw")
 		self.LR_Frame.grid(row=2, column=1, sticky="nw")
 		
-		#initialize defaults
+		
+		# Intitialize the race list
+		globals.db_cur.execute("SELECT * FROM Races")
+		globals.db_con.commit()		
+		data = globals.db_cur.fetchall()				
+		for race in data:
+			globals.character.race_list[race[0]] = globals.Race(race)
+
+		# Intitialize the profession list
+		globals.db_cur.execute("SELECT * FROM Professions")
+		globals.db_con.commit()		
+		data = globals.db_cur.fetchall()	
+		for prof in data:
+			globals.character.profession_list[prof[0]] = globals.Profession(prof)
+			
+			
+		#initialize defaults	
 		self.StP_radio_var.set(1)
 		
 		
@@ -274,12 +290,8 @@ class Statistics_Panel:
 			
 	# Changes the Character's race and updates all calculations to reflect the change		
 	def Change_Race(self, race):	
-		globals.db_cur.execute("SELECT * FROM Races WHERE name='%s'" % race)
-		globals.db_con.commit()		
-		data = globals.db_cur.fetchone()				
-		
 		# Change the character's race by creating a new Race object
-		globals.character.race = globals.Race(data)
+		globals.character.race = globals.character.race_list[race]
 		
 		# This happens during the initial set up. Ignore the rest of the function
 		if globals.character.profession == "":
@@ -302,12 +314,8 @@ class Statistics_Panel:
 		
 	# Changes the Character's profession and updates all calculations to reflect the change				
 	def Change_Profession(self, prof):
-		globals.db_cur.execute("SELECT * FROM Professions WHERE name='%s'" % prof)
-		globals.db_con.commit()		
-		data = globals.db_cur.fetchone()				
-
 		# Change the character's profession		
-		globals.character.profession = globals.Profession(data)
+		globals.character.profession = globals.character.profession_list[prof]
 		
 		# Update all the statistics with new bonuses and stat growth		
 		for stat in globals.statistics:			
@@ -328,6 +336,7 @@ class Statistics_Panel:
 			
 		
 		# Update Statistics calulcation, Skill costs, and Maneuver availablity and cost
+		globals.panels['Misc'].Reset_Panel()
 		globals.character.Update_Skills()
 		globals.character.Update_Maneuvers()
 		globals.character.Update_Statistics()						
