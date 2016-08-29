@@ -1260,6 +1260,7 @@ class PostCap_Panel:
 					row.Set_To_Default_Postcap()								
 					
 				# Train in each maneuver in the list
+				i = 0 				
 				for man in build_list:		
 					if man.hide.get() == 'x':
 						continue
@@ -1270,9 +1271,8 @@ class PostCap_Panel:
 					cost = 0
 					goal = int(man.goal.get())
 					ranks_taken = 0
-					current_exp = 7572500	
+#					current_exp = 7572500	
 					sum = 0			
-					i = 0 				
 						
 					if len(char_man.postcap_exp_intervals) > 0:
 						postcap_ranks = char_man.postcap_total_ranks_at_interval[char_man.postcap_exp_intervals[-1]]
@@ -1285,6 +1285,8 @@ class PostCap_Panel:
 					
 					# Start training each rank
 					while ranks_taken < goal:
+						if abort_loops == 1:
+							break
 						cost = char_man.Get_Cost_At_Rank(precap_ranks + postcap_ranks + ranks_taken + 1, prof_type)  
 						
 						# This error will happen if the character tries to train beyond the max ranks of the maneuver. This only happens if the character has multiple build_maneuverss for the same maneuver
@@ -1293,12 +1295,12 @@ class PostCap_Panel:
 							abort_loops = 1
 							break
 							
-						# Get more points to train this skill
-						while precap_points < cost:						
-							if i >= len(char_man.postcap_exp_intervals):
+						# Get more points to train this skill						
+						while precap_points < cost:		
+							if i >= len(char_skill.postcap_exp_intervals):
 								error_text = "ERROR: Not enough training points to train %s ranks in maneuver: %s.\nPlease adjust postcap training." % (char_man.max_ranks, char_man.name)
 								abort_loops = 1
-								break								
+								break						
 							precap_points += char_skill.postcap_ranks_at_interval[char_skill.postcap_exp_intervals[i]]
 							current_exp = char_skill.postcap_exp_intervals[i]
 							i += 1
@@ -1336,8 +1338,8 @@ class PostCap_Panel:
 					
 					for key, val in man_training_intervals.items():	
 						combat_cost = 0
-						parts = val.split("|")
-					
+						parts = val.split("|")				
+						
 						for part in parts:
 							(name, ranks) = part.split(":")
 							name = part.split(":")[0]
@@ -1345,10 +1347,9 @@ class PostCap_Panel:
 							for cost in costs:
 								combat_cost += int(cost)		
 						
-						total_cost += combat_cost					
-						man_total_cost_list[key] = "%s|%s" % (cost, total_cost)								
-					
-			
+						total_cost += combat_cost		
+						man_total_cost_list[key] = "%s|%s" % (combat_cost, total_cost)		
+
 		if error_text != "":	
 			globals.info_dialog.Show_Message(error_text)
 		else:
@@ -1457,7 +1458,6 @@ class PostCap_Panel:
 					vars_total_cost = self.vars_sfooter_armor_total_cost
 					vars_leftover = self.vars_sfooter_armor_leftover	
 					
-			
 				if len(interval_list) > 0:			
 					if exp in interval_list:
 						cost = interval_list[exp].split("|")[0]		
