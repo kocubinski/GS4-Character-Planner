@@ -25,7 +25,7 @@ import Skills_Panel as SkP
 import Maneuvers_Panel as ManP
 import PostCap_Panel as PcP
 import Loadout_Panel as LdP
-#import Progression_Panel as ProgP
+import Progression_Panel as ProgP
 #import Summary_Panel as SumP
 
 
@@ -57,6 +57,8 @@ class Planner:
 		filemenu.add_command(label="Exit", command=self.parent.quit)
 
 
+	# Choosing to make a new charcter is the same thing as resetting every panel back to default.
+	# Have each panel call their Clear methods and change the panel back to Statistics.
 	def Menubar_Option_New_Character(self):
 		globals.char_name = "New Character"
 		for stat, obj in globals.character.statistics_list.items():
@@ -71,10 +73,11 @@ class Planner:
 		globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))		
 		globals.notebook.selectpage("Statistics")
 
+	# Load a character plan from a character file	
 	def Menubar_Option_Load_Character(self):
 		globals.character.Load_Character()
 
-		
+	# Save the current character plan in a character file	
 	def Menubar_Option_Save_Character(self):
 		globals.character.Save_Character()
 		
@@ -85,7 +88,7 @@ class Planner:
                 tabpos = 'n',
          #       createcommand = PrintOne('Create'),
          #       lowercommand = self.Notebook_OnHidePage,
-         #       raisecommand = self.Notebook_OnShowPage,
+                raisecommand = self.Notebook_OnShowPage,
                 hull_width = 300,
                 hull_height = 300,
                 )				
@@ -98,7 +101,7 @@ class Planner:
 		page4 = globals.notebook.add('Maneuvers')				
 		page5 = globals.notebook.add('Post Cap')				
 		page6 = globals.notebook.add('Loadout')				
-#		page7 = globals.notebook.add('Progression')					
+		page7 = globals.notebook.add('Progression')					
 #		page8 = globals.notebook.add('Summary')	
 		self.pages['Statistics'] = tkinter.Frame(page1, background="white")
 		self.pages['Misc'] = tkinter.Frame(page2, background="white")
@@ -106,7 +109,7 @@ class Planner:
 		self.pages['Maneuvers'] = tkinter.Frame(page4, background="white")
 		self.pages['Post Cap'] = tkinter.Frame(page5, background="white")
 		self.pages['Loadout'] = tkinter.Frame(page6, background="white")
-#		self.pages['Progression'] = tkinter.Frame(page7, background="white")
+		self.pages['Progression'] = tkinter.Frame(page7, background="white")
 #		self.pages['Summary'] = tkinter.Frame(page8, background="white")
 		self.pages['Statistics'].grid(row=0, column=0)
 		self.pages['Misc'].grid(row=0, column=2)
@@ -114,7 +117,7 @@ class Planner:
 		self.pages['Maneuvers'].grid(row=0, column=4)
 		self.pages['Post Cap'].grid(row=0, column=5)
 		self.pages['Loadout'].grid(row=0, column=6)
-#		self.pages['Progression'].grid(row=0, column=7)
+		self.pages['Progression'].grid(row=0, column=7)
 #		self.pages['Summary'].grid(row=0, column=8)
 		
 		# Create each Panel. Each is added to the a global list so they can be referenced later
@@ -124,19 +127,30 @@ class Planner:
 		globals.panels['Maneuvers'] = ManP.Maneuvers_Panel(self.pages['Maneuvers'])
 		globals.panels['Post Cap'] = PcP.PostCap_Panel(self.pages['Post Cap'])
 		globals.panels['Loadout'] = LdP.Loadout_Panel(self.pages['Loadout'])
-#		globals.panels['Progression'] = ProgP.Progression_Panel(self.pages['Progression'])
+		globals.panels['Progression'] = ProgP.Progression_Panel(self.pages['Progression'])
 #		globals.panels['Summary'] = SumP.Summary_Panel(self.pages['Summary'])
 	
 		# Set up defaults
 		globals.panels['Statistics'].Change_Race("Human")
-		globals.panels['Statistics'].Change_Profession("Warrior")  		
+		globals.panels['Statistics'].Change_Profession("Warrior")  	
+		self.panels_loaded = 1
 
 	
-	# Temporary. This might be used to quickly load calculations for some Panels
+	# At this time, this function is used to clear the Progression panel if the Loadout panel
+	# had it's data changed.
 	def Notebook_OnShowPage(self, caller):	
 		if self.panels_loaded == 1:
-			print("show")
-			self.pages[caller].grid(row=0, column=0)
+			if caller == "Progression":
+				if globals.LdP_Gear_List_Updated == 1:
+					globals.panels['Progression'].Plot_Graph_Clear()
+					globals.panels['Progression'].Gear_List_Populate_Lists()
+					globals.panels['Progression'].Graph_Option_Category_OnChange("Physical Combat")
+					globals.LdP_Gear_List_Updated = 0
+				if globals.LdP_Effects_List_Updated == 1:
+					globals.panels['Progression'].Plot_Graph_Clear()
+					globals.panels['Progression'].Effects_List_Populate_List()
+					globals.panels['Progression'].Graph_Option_Category_OnChange("Physical Combat")
+					globals.LdP_Effects_List_Updated = 0			
 
 			
 	# Temporary. This might be used to quickly hide or erase data from a Panel when it is hidden	
