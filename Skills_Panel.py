@@ -161,7 +161,7 @@ class Skills_Panel:
 	# The build frame does nothing but store multiple rows of Build List Skill objects. See that class below for more information	
 	def Create_Build_Frame(self, panel):
 		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 547, hull_height = 474)			
-		myframe.configure(hscrollmode = "none")					
+		myframe.configure(hscrollmode = "none", vscrollmode = "static")					
 		myframe.bindtags("SkP_build")
 		
 		return myframe			
@@ -471,8 +471,7 @@ class Skills_Panel:
 
 
 	# When the Clear All button is clicked, the build_skills_list is emptied, all PTP/MTP totals lists are reset, the menu sizes are set to 1 and level counter set back to 0
-	def ClearAll_Button_Onclick(self):	
-		
+	def ClearAll_Button_Onclick(self):			
 		for key, row in globals.character.skills_list.items():
 			row.Set_To_Default()
 			row.SkP_schedule_row.grid_remove()
@@ -483,7 +482,10 @@ class Skills_Panel:
 		# Fun fact, if you try to do delete(1, end)	on an option menue that only has 1 object in it, it throws a python error. So this check is needed.
 		if self.menu_size > 1:
 			self.add_order_menu['menu'].delete(1, "end")
-			self.edit_order_menu['menu'].delete(1, "end")
+			try:
+				self.edit_order_menu['menu'].delete(1, "end")
+			except Exception as err:
+				print("Error happened in Skills: %s" % err)
 			self.menu_size = 1
 		
 		globals.character.build_skills_list = []		
