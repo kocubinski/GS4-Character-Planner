@@ -110,18 +110,13 @@ class Statistics_Panel:
 		rb_title = tkinter.Label(titleframe, width="10", bg="lightgray", text="Race Bonus")
 		gi_title = tkinter.Label(titleframe, bg="lightgray", text="Growth Index")
 		bs_title = tkinter.Label(titleframe, width="6", bg="lightgray", text="Base")
-		
-#		blank = tkinter.Label(myframe_inner, text="")      #This exists because there is no way to allow an empty row or column normally with grid formatting
-		
-		# Add all the frames to the main frame with grid and return the main frame back
-#		prof_name.grid(row=0, column=0, sticky="w")		
+	
+		# Add all the frames to the main frame with grid and return the main frame back	
 		race_options.grid(row=0, column=0, sticky="w", padx="1")
-		prof_options.grid(row=0, column=1, sticky="w", padx="1")		
-#		race_name.grid(row=1, column=0, sticky="w")		
+		prof_options.grid(row=0, column=1, sticky="w", padx="1")	
 		
 		prof_frame.grid(row=0, column=0, sticky="w", columnspan=4)			
 		race_frame.grid(row=1, column=0, sticky="w", columnspan=4)	
-#		blank.grid(row=2, column=0)			
 		
 		titleframe.grid(row=3, column=0, columnspan=2)		
 		stat_title.grid(row=0, column=0, sticky="w", padx="1")	
@@ -169,7 +164,6 @@ class Statistics_Panel:
 		tkinter.Label(myframe_inner, width=5, bg="lightgray", anchor="c", textvar=globals.character.statistic_totals_by_level[0]).grid(row=0, column=1, pady="1")	
 		tkinter.Label(myframe_inner, width=5, bg="lightgray", anchor="c", textvar=globals.character.ptp_base).grid(row=1, column=1, pady="1")
 		tkinter.Label(myframe_inner, width=5, bg="lightgray", anchor="c", textvar=globals.character.mtp_base).grid(row=2, column=1, pady="1")
-#		tkinter.Label(myframe_inner, width=5, text="").grid(row=5, column=1)
 				
 		return myframe
 	
@@ -184,8 +178,6 @@ class Statistics_Panel:
 		contentframe = tkinter.Frame(myframe_inner, width=1, height=1)
 		
 		# Add the spacing rows to the frame
-#		tkinter.Label(myframe_inner, width=1, anchor="w", text="").grid(row=0, column=0, sticky="w", pady="1")
-#		tkinter.Label(myframe_inner, width=1, anchor="w", text="").grid(row=1, column=0, sticky="w", pady="1")	
 		contentframe.grid(row=2, column=0, sticky="w")
 		
 		# Create a label and the radio buttons that switch betweem display styles
@@ -337,6 +329,9 @@ class Statistics_Panel:
 		
 		# Update Statistics calulcation, Skill costs, and Maneuver availablity and cost
 		globals.panels['Misc'].Reset_Panel()
+		globals.panels['Skills'].ClearAll_Button_Onclick()
+		globals.panels['Maneuvers'].Clear_Button_Onclick("All")
+		globals.panels['Post Cap'].Clear_Button_Onclick("All")
 		globals.character.Update_Skills()
 		globals.character.Update_Maneuvers()
 		globals.character.Update_Statistics()						
