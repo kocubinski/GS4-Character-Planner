@@ -221,7 +221,7 @@ class PostCap_Panel:
 	# Only one style of objects (skills, combat, shield, armor) is shown in this panel at a time. The style can be changed with the drop down menu in the Build Header panel.
 	def Create_Build_Frame(self, panel):
 		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 600, hull_height = 474)			
-		myframe.configure(hscrollmode = "none")					
+		myframe.configure(hscrollmode = "none", vscrollmode = "static")					
 		
 		return myframe			
 	
@@ -256,10 +256,10 @@ class PostCap_Panel:
 		tkinter.Frame(self.schedule_skill_header_inner).grid(row=1, column=2, sticky="w", pady="1")	
 		tkinter.Label(self.schedule_skill_header_inner, width="25", bg="lightgray", text="Skill Name").grid(row=0, column=0, padx="1")
 		tkinter.Label(self.schedule_skill_header_inner, width="4", bg="lightgray", text="Ranks").grid(row=0, column=1, padx="1")
-		tkinter.Label(self.schedule_skill_header_inner, width="6", bg="lightgray", text="Cost").grid(row=0, column=2, padx="1")
+		tkinter.Label(self.schedule_skill_header_inner, width="7", bg="lightgray", text="Cost").grid(row=0, column=2, padx="1")
 		tkinter.Label(self.schedule_skill_header_inner, width="8", bg="lightgray", text="Total Ranks").grid(row=0, column=3, padx="1")
 		tkinter.Label(self.schedule_skill_header_inner, width="4", bg="lightgray", text="Bonus").grid(row=0, column=4, padx="1")
-		tkinter.Label(self.schedule_skill_header_inner, width="10", bg="lightgray", text="Sum Cost").grid(row=0, column=5, padx="1")		
+		tkinter.Label(self.schedule_skill_header_inner, width="9", bg="lightgray", text="Sum Cost").grid(row=0, column=5, padx="1")		
 		
 		self.schedule_maneuver_header = Pmw.ScrolledFrame(myframe_inner, usehullsize = 1, hull_width = 450, hull_height = 28 )		
 		self.schedule_maneuver_header.configure(hscrollmode = "none")	
@@ -912,8 +912,7 @@ class PostCap_Panel:
 		
 	# When the Clear All button is clicked, the postcap_build_skills_list and all postcap_build_maneuver_lists are emptied, 
 	# all training point totals lists are reset, the menu sizes are set to 1 and experience counter is set back to 7572500
-	def Clear_Button_Onclick(self, style):		
-	
+	def Clear_Button_Onclick(self, style):			
 		if self.goal_mode.get() == "Skills" or style == "All":
 			for key, row in globals.character.skills_list.items():
 				row.Set_To_Default_Postcap()
@@ -922,7 +921,10 @@ class PostCap_Panel:
 			if self.skills_menu_size > 1:			
 				self.skills_menu_size = 1		
 				self.add_skill_order_menu['menu'].delete(1, "end")
-				self.edit_skill_order_menu['menu'].delete(1, "end")
+				try:
+					self.edit_skill_order_menu['menu'].delete(1, "end")
+				except Exception:
+					print("Error happened in Postcap Skills")
 			globals.character.postcap_build_skills_list = []	
 			globals.character.postcap_skill_training_by_interval.clear()
 			globals.character.postcap_total_skill_cost_by_interval.clear()
@@ -937,7 +939,10 @@ class PostCap_Panel:
 			if self.combat_menu_size > 1:			
 				self.combat_menu_size = 1		
 				self.add_combat_order_menu['menu'].delete(1, "end")
-				self.edit_combat_order_menu['menu'].delete(1, "end")
+				try:
+					self.edit_combat_order_menu['menu'].delete(1, "end")
+				except Exception:
+					print("Error happened in Combat Postcap: %s" % err)
 			globals.character.postcap_build_combat_maneuvers_list = []	
 			globals.character.postcap_combat_training_by_interval.clear()	
 			globals.character.postcap_total_combat_cost_by_interval.clear()
@@ -951,7 +956,10 @@ class PostCap_Panel:
 			if self.shield_menu_size > 1:	
 				self.shield_menu_size = 1		
 				self.add_shield_order_menu['menu'].delete(1, "end")
-				self.edit_shield_order_menu['menu'].delete(1, "end")
+				try:
+					self.edit_shield_order_menu['menu'].delete(1, "end")
+				except Exception:
+					print("Error happened in Shield Postcap: %s" % err)
 			globals.character.postcap_build_shield_maneuvers_list = []	
 			globals.character.postcap_build_shield_maneuvers_list = []	
 			globals.character.postcap_shield_training_by_interval.clear()	
@@ -965,7 +973,10 @@ class PostCap_Panel:
 			if self.armor_menu_size > 1:				
 				self.armor_menu_size = 1	
 				self.add_armor_order_menu['menu'].delete(1, "end")
-				self.edit_armor_order_menu['menu'].delete(1, "end")
+				try:
+					self.edit_armor_order_menu['menu'].delete(1, "end")
+				except Exception:
+					print("Error happened in Armor Postcap: %s" % err)
 			globals.character.postcap_build_armor_maneuvers_list = []
 			globals.character.postcap_build_armor_maneuvers_list = []	
 			globals.character.postcap_armor_training_by_interval.clear()	
@@ -1192,7 +1203,10 @@ class PostCap_Panel:
 					globals.character.skills_list[skill.name.get()].postcap_total_ranks_at_interval.clear()
 					for key, val in globals.character.skills_list[skill.name.get()].postcap_ranks_at_interval.items():
 						sum += int(val)
-						globals.character.skills_list[skill.name.get()].postcap_total_ranks_at_interval[key] = sum
+						gskill = globals.character.skills_list[skill.name.get()]
+						gskill.postcap_total_ranks_at_interval[key] = sum
+						gskill.postcap_bonus_at_interval[key] = gskill.Get_Skill_Bonus(sum)						
+						
 
 			# If no problems occured, loop through the skill training and calculate the total cost for each interval
 			if abort_loops != 1:										
@@ -1271,7 +1285,7 @@ class PostCap_Panel:
 					cost = 0
 					goal = int(man.goal.get())
 					ranks_taken = 0
-#					current_exp = 7572500	
+					current_exp = 7572500	
 					sum = 0			
 						
 					if len(char_man.postcap_exp_intervals) > 0:
@@ -1330,7 +1344,9 @@ class PostCap_Panel:
 						char_man_list[man.name.get()].postcap_total_ranks_at_interval.clear()
 						for key, val in char_man_list[man.name.get()].postcap_ranks_at_interval.items():
 							sum += int(val)
-							char_man_list[man.name.get()].postcap_total_ranks_at_interval[key] = sum	
+							gman = char_man_list[man.name.get()]
+							gman.postcap_total_ranks_at_interval[key] = sum
+#							gman.postcap_bonus_at_interval[key] = gman.Get_Skill_Bonus(sum)		
 
 				# If no problems occured, loop through the maneuver training costs and calculate the total cost for each interval
 				if abort_loops != 1:										
@@ -1517,7 +1533,7 @@ class PostCap_Panel:
 				last_exp = globals.character.Get_Last_Training_Interval(exp-1, "skills", row.name)
 				total_postcap_ranks = int(row.total_ranks_by_level[100].get())
 				
-				# Assumeing the last time isn't 0 (never trained) or greater than this experience interval (first train is in the future) then ...
+				# Assuming the last time isn't 0 (never trained) or greater than this experience interval (first train is in the future) then ...
 				if last_exp != 0 and exp >= last_exp:	
 						if exp != last_exp:
 							total_postcap_ranks += row.postcap_total_ranks_at_interval[last_exp]
@@ -1547,7 +1563,8 @@ class PostCap_Panel:
 					
 				# Set the total ranks and bonus for the schedule row then display it
 				row.postcap_total_ranks.set( total_postcap_ranks )
-				row.postcap_bonus.set(row.Get_Skill_Bonus(total_postcap_ranks))								
+				row.postcap_bonus.set(row.Get_Skill_Bonus(total_postcap_ranks))		
+#				row.postcap_bonus.set(row.postcap_bonus_at_interval[exp])								
 				row.PcP_schedule_row.grid(row=i, column=0)
 				
 			# Display manuevers	
