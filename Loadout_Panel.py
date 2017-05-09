@@ -35,6 +35,7 @@ class Effect_Dialog_Scaling_Row:
 
 import tkinter
 import Pmw
+import collections
 import Globals as globals
   
 # The purpose of the Loadout panel is to allow users to specify what gear (weapons, armor, shields) and effects (spells, enhancives, etc)
@@ -59,6 +60,7 @@ class Loadout_Panel:
 		self.vars_dialog_gear_enchantment = tkinter.StringVar()
 		self.vars_dialog_gear_weight = tkinter.StringVar()
 		self.dialog_gear_display_type = ""
+		self.dialog_gear_skills = ""
 		self.dialog_gear_names_menu = ""
 		self.dialog_gear_types_menu = ""
 		self.dialog_gear_add_order_menu = ""
@@ -66,12 +68,13 @@ class Loadout_Panel:
 		self.dialog_gear_weight_entrybox = ""	
 		
 		# Intitialize the gear lists
-		self.dialog_gear_types = ['Brawling', 'One-Handed Blunt', 'One-Handed Edged', 'Polearm Weapons', 'Ranged Weapons', 'Thrown Weapons', 'Two-Handed Weapons', 'UAC Weapons', 'Armor', 'Shields']
+		self.dialog_gear_types = ['Brawling', 'Blunt Weapons', 'Edged Weapons', 'Polearm Weapons', 'Ranged Weapons', 'Thrown Weapons', 'Two-Handed Weapons', 'UAC Weapons', 'Armor', 'Shields']
 		self.dialog_gear_names = ['temp']	
 		
 		# These variables are used my the effect dialog box
 		self.effects_menu_size = 1
 		self.effects_dialog_scaling_rows = []
+		self.vars_dialog_effect_function = ""
 		self.vars_dialog_effect_type = tkinter.StringVar()
 		self.vars_dialog_effect_name = tkinter.StringVar()
 		self.vars_dialog_effect_add_order = tkinter.StringVar()
@@ -90,7 +93,8 @@ class Loadout_Panel:
 									'Sorcerer Base (700s)', 'Wizard Base (900s)', 'Bard Base (1000s)', 'Empath Base (1100s)', 'Minor Mental (1200s)', 
 # 		 							'Major Mental (1300s)', 'Savant Base (1400s)', 
 									'Paladin Base (1600s)', 'Arcane (1700s)', 				
-									'Maneuvers', 'Society Powers', 'Enhancives (Resources)', 'Enhancives (Skills)', 'Enhancives (Statistics)', 'Status', 'Flares', 'Other']
+#									'Maneuvers', 'Society Powers', 'Enhancives (Resources)', 'Enhancives (Skills)', 'Enhancives (Statistics)', 'Generic Effects', 'Flares', 'Special Abilities', 'Status Effects', 'Items', 'Other']
+									'Maneuvers', 'Society Powers', 'Enhancives (Skills)', 'Enhancives (Statistics)', 'Status Effects', 'Flares', 'Other']
 		self.dialog_effect_names = ['temp']			
 		self.dialog_effect_scaling_frame = ""			
 		
@@ -159,9 +163,9 @@ class Loadout_Panel:
 	def Create_Gear_List_Frame(self, panel):
 		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 476, hull_height = 395)		
 		myframe_inner = myframe.interior()
-		myframe.configure(hscrollmode = "none")						
+		myframe.configure(hscrollmode = "none", vscrollmode = "static")						
 		myframe.bindtags("LdP_gear")					
-		myframe_inner.bindtags("LdP_gear")
+#		myframe_inner.bindtags("LdP_gear")	Breaks the auto scrollbar when an row is added. Go fig.
 	
 		return myframe			
 		
@@ -203,9 +207,9 @@ class Loadout_Panel:
 	def Create_Effects_List_Frame(self, panel):
 		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 624, hull_height = 395)		
 		myframe_inner = myframe.interior()
-		myframe.configure(hscrollmode = "none")						
+		myframe.configure(hscrollmode = "none", vscrollmode = "static")						
 		myframe.bindtags("LdP_effects")					
-		myframe_inner.bindtags("LdP_effects")
+#		myframe_inner.bindtags("LdP_effects")	Breaks the auto scrollbar when an row is added. Go fig.
 	
 		return myframe			
 
@@ -280,10 +284,11 @@ class Loadout_Panel:
 		# It refers to it's location in the build list. 
 		# If location isn't set, show the Add version of the dialog box
 		# otherwise, show the Edit version
-		if( location == "" ):
+		if( location == "" ):				
+			#self.dialog_gear_display_type = ""
+			self.Gear_Dialog_Box_Type_Onchange('Brawling')
+			self.vars_dialog_gear_type.set("Brawling")			
 			self.vars_dialog_order.set(self.gear_menu_size)	
-			self.vars_dialog_gear_type.set("Brawling")
-			self.vars_dialog_gear_name.set("Blackjack")
 			self.vars_dialog_gear_enchantment.set("0")
 			self.vars_dialog_gear_weight.set("0")
 			self.dialog_gear_add_order_menu.grid(row=3, column=1, sticky="w")		
@@ -295,21 +300,22 @@ class Loadout_Panel:
 				self.gear_dialog_box.component("buttonbox").insert("Add Gear", command=lambda v="Add Gear": self.Gear_Dialog_Box_Onclick(v))	
 		else:
 			gear = globals.character.loadout_gear_build_list[location]
-			self.vars_dialog_order.set(location+1)				
-			self.vars_dialog_gear_type.set(gear.type)
+			self.Gear_Dialog_Box_Type_Onchange(gear.dialog_type)		
+			self.vars_dialog_gear_type.set(gear.dialog_type)	
+			self.vars_dialog_order.set(location+1)		
 			self.vars_dialog_gear_name.set(gear.name.get())
 			self.vars_dialog_gear_enchantment.set(gear.enchantment)
 			self.vars_dialog_gear_weight.set(gear.weight)
 			self.vars_dialog_edit_location.set(int(location))
 			self.dialog_gear_edit_order_menu.grid(row=3, column=1, sticky="w")		
+			self.dialog_gear_display_type = gear.display_type.get()
 						
 			# If the last time we used the dialog box was as an add box, change the buttons to the edit version
 			if self.gear_dialog_box.component("buttonbox").button(0)["text"] == "Add Gear":
 				self.gear_dialog_box.component("buttonbox").delete("Add Gear")
 				self.gear_dialog_box.component("buttonbox").insert("Remove Gear", command=lambda v="Remove Gear": self.Gear_Dialog_Box_Onclick(v))	
-				self.gear_dialog_box.component("buttonbox").insert("Update Gear", command=lambda v="Update Gear": self.Gear_Dialog_Box_Onclick(v))				
+				self.gear_dialog_box.component("buttonbox").insert("Update Gear", command=lambda v="Update Gear": self.Gear_Dialog_Box_Onclick(v))		
 		
-		self.dialog_gear_display_type = ""
 		self.gear_dialog_box.show()
 		self.gear_dialog_box.grab_set()		
 		
@@ -319,31 +325,39 @@ class Loadout_Panel:
 		for row in globals.character.loadout_gear_build_list:
 			row.LdP_Row.grid_remove()			
 			
-		# Fun fact, if you try to do delete(1, end)	on an option menue that only has 1 object in it, it throws a python error. So this check is needed.
+		# Fun fact, if you try to do delete(1, end)	on an option menue that only has no objects in it, it throws a python error. So this check is needed.
 		if self.gear_menu_size > 1:
 			self.dialog_gear_add_order_menu['menu'].delete(1, "end")
 			self.dialog_gear_edit_order_menu['menu'].delete(1, "end")
 			self.gear_menu_size = 1
 		
+		# A change is being made to the gear list. Set the global value to 1 so the Progression Panel knows to reset the loadout list
+		globals.LdP_Gear_List_Updated = 1
 		globals.character.loadout_gear_build_list = []			
 		self.Gear_List_Frame.yview("moveto", 0, "units")
 		
 	
 	# This event occurs when the user changes the gear type in the gear dialog box
-	# Contains the sql database and searches a given table for all gear of the new type
+	# Contacts the sql database and searches a given table for all gear of the new type
 	# Clear the name menu and add in the new gear names
 	def Gear_Dialog_Box_Type_Onchange(self, result):
 		where = ""
+		wherenot = ""
 		what = "name, base_weight"
 		
 		# figure out what table to search
-		if( result == "Armor" ):
+		if result == "Armor":
 			table = "Armor"		
-		elif( result == "Shields" ):
+		elif result == "Shields":
 			table = "Shields"	
 		else:
 			table = "Weapons"
-			where = "WHERE weapon_type LIKE '%%%s%%' AND name <> 'Closed Fist'" % result
+			what = "name, base_weight, weapon_type"
+			if result == "Brawling":
+				wherenot = "AND name <> 'Closed Fist'"
+			elif result == "Two-Handed Weapons":
+				wherenot = "AND name <> 'Katana, One-Handed'"
+			where = "WHERE weapon_type LIKE '%%%s%%' %s" % (result, wherenot)
 			
 		# Search the sql table for the name and base weight of all gear of the new type
 		globals.db_cur.execute("SELECT %s FROM %s %s " % (what, table, where))
@@ -357,29 +371,46 @@ class Loadout_Panel:
 			self.dialog_gear_names_menu['menu'].add_command(label=choice, command=lambda v=choice: self.Gear_Dialog_Box_Name_Onchange(v))
 		self.vars_dialog_gear_name.set(new_choices[0])
 		self.vars_dialog_gear_weight.set(data[0][1])
-		
+		if result == "Armor" or result == "Shields":
+			self.dialog_gear_skills = result
+			self.dialog_gear_display_type = globals.LdP_gear_display_types[result]
+		else:
+			self.dialog_gear_skills = data[0][2]
+			self.dialog_gear_display_type = globals.LdP_gear_display_types[data[0][2]]
 		
 	# When a new gear name is picked from the gear dialog menu, this method is called
 	def Gear_Dialog_Box_Name_Onchange(self, result):	
+		what = "base_weight"
+		self.dialog_gear_display_type = ""
+		dialog_gear_type = self.vars_dialog_gear_type.get()
+				
 		self.vars_dialog_gear_name.set(result)		
-			
-		if(self.vars_dialog_gear_type.get() == 'Armor'):
+		
+		if(dialog_gear_type == 'Armor'):
 			table = 'Armor'
-		elif(self.vars_dialog_gear_type.get() == 'Shields'):
+		elif(dialog_gear_type == 'Shields'):
 			table = 'Shields'
 		else:
 			table = 'Weapons'
+			what = "base_weight, weapon_type"					
 		
 		# Search the sql table for the base weight of the new gear
-		globals.db_cur.execute("SELECT base_weight FROM %s WHERE name = '%s' " % (table, result))
+		globals.db_cur.execute("SELECT %s FROM %s WHERE name = '%s' " % (what, table, result))
 		globals.db_con.commit()		
-		self.vars_dialog_gear_weight.set(globals.db_cur.fetchone()[0])	
-		
-		if(self.vars_dialog_gear_type.get() == "Weapons"):
-			globals.db_cur.execute("SELECT weapon_type FROM Weapons WHERE name = '%s' " % (result))
-			globals.db_con.commit()		
-			self.dialog_gear_display_type = globals.db_cur.fetchone()[0]
-			self.vars_dialog_gear_weight.set(0)				
+		data = globals.db_cur.fetchall()
+		self.vars_dialog_gear_weight.set(data[0][0])	
+		if dialog_gear_type == "Armor" or dialog_gear_type == "Shields":
+			self.dialog_gear_skills  = dialog_gear_type
+			self.dialog_gear_display_type = globals.LdP_gear_display_types[dialog_gear_type]
+		else:
+			if result == "Katar":
+				self.vars_dialog_gear_type.set("Brawling")
+			elif result == "Katana, One-Handed":
+				self.vars_dialog_gear_type.set("Edged Weapons")
+			else:
+				self.vars_dialog_gear_type.set(data[0][1])
+			self.dialog_gear_skills = data[0][1]
+			self.dialog_gear_display_type = globals.LdP_gear_display_types[data[0][1]]
 
 
 	# Gear enchantment values must be whole number that can be from -10 (-2x) to +50 (10x)
@@ -425,6 +456,10 @@ class Loadout_Panel:
 			self.gear_dialog_box.grab_release()
 			return
 		
+		# A change is being made to the gear list. Set the global value to 1 so the Progression Panel knows to reset the loadout list
+		globals.LdP_Gear_List_Updated = 1
+		
+		
 		# Make sure that leaving the entry boxes blank counts as 0. This would break the planner otherwise
 		enchantment = self.vars_dialog_gear_enchantment.get()	
 		weight = self.vars_dialog_gear_weight.get()				
@@ -439,14 +474,16 @@ class Loadout_Panel:
 		if result == "Add Gear":		
 			self.gear_menu_size = self.gear_menu_size + 1
 				
-			globals.character.loadout_gear_build_list.insert(int(self.vars_dialog_order.get())-1, globals.Gear(int(self.vars_dialog_order.get())-1, self.vars_dialog_gear_name.get(), enchantment, weight, self.vars_dialog_gear_type.get(), self.dialog_gear_display_type) )
+			globals.character.loadout_gear_build_list.insert(int(self.vars_dialog_order.get())-1, globals.Gear(int(self.vars_dialog_order.get())-1, self.vars_dialog_gear_name.get(), enchantment, weight, self.dialog_gear_skills, self.vars_dialog_gear_type.get()) )
 						
 			# Make the new Gear object's row visible
 			globals.character.loadout_gear_build_list[int(self.vars_dialog_order.get())-1].Create_LdP_row(self.Gear_List_Frame.interior())						
 			globals.character.loadout_gear_build_list[int(self.vars_dialog_order.get())-1].LdP_Edit_Button.config(command=lambda v=int(self.vars_dialog_order.get())-1: self.Gear_Add_Edit_Button_Onclick(v))			
 			
-			# Make sure the display frame has the correct information in it
+			# Make sure the display frame has the correct information in it. 
 			globals.character.loadout_gear_build_list[int(self.vars_dialog_order.get())-1].Update_Display_Details()
+			# Set the traits of the gear
+			globals.character.loadout_gear_build_list[int(self.vars_dialog_order.get())-1].Set_Gear_Traits("")
 			
 			# Update the size menu
 			if self.gear_menu_size-1 > 1:
@@ -456,9 +493,11 @@ class Loadout_Panel:
 			# Update the gear build list order
 			for gear in globals.character.loadout_gear_build_list:
 				gear.order.set(i+1)
+				gear.Update_Progression_Name()
 				gear.LdP_Edit_Button.config(command=lambda v=i: self.Gear_Add_Edit_Button_Onclick(v))
 				gear.LdP_Row.grid(row=i, column=0)			
-				i += 1			
+				i += 1							
+				
 			self.gear_dialog_box.withdraw()	
 			self.gear_dialog_box.grab_release()	
 		
@@ -467,20 +506,26 @@ class Loadout_Panel:
 		elif result == "Update Gear":
 			gear = globals.character.loadout_gear_build_list.pop(self.vars_dialog_edit_location.get())
 			gear.name.set(self.vars_dialog_gear_name.get())
-			gear.type = self.vars_dialog_gear_type.get()
-			gear.display_type.set(globals.LdP_gear_display_types[self.vars_dialog_gear_type.get()])
+			gear.dialog_type = self.vars_dialog_gear_type.get()
+			gear.display_type.set(globals.LdP_gear_display_types[self.dialog_gear_skills])
 			gear.order.set(self.vars_dialog_order.get())
 			gear.enchantment = enchantment
 			gear.weight = weight
+			gear.skills = self.dialog_gear_skills
 			
 			# Insert the Gear object into it's new location on the build list
 			globals.character.loadout_gear_build_list.insert(int(self.vars_dialog_order.get())-1, gear)
-			gear.Update_Display_Details()
+			
+			gear.Update_Display_Details()						
+			gear.Set_Gear_Traits("") # Set the traits of the gear
+			
 			for gear in globals.character.loadout_gear_build_list:
 				gear.order.set(i+1)
+				gear.Update_Progression_Name()
 				gear.LdP_Edit_Button.config(command=lambda v=i: self.Gear_Add_Edit_Button_Onclick(v))
 				gear.LdP_Row.grid(row=i, column=0)			
 				i += 1				
+				
 			self.gear_dialog_box.withdraw()	
 			self.gear_dialog_box.grab_release()			
 		
@@ -492,6 +537,7 @@ class Loadout_Panel:
 			self.gear_menu_size -= 1
 			for gear in globals.character.loadout_gear_build_list:
 				gear.order.set(i+1)
+				gear.Update_Progression_Name()
 				gear.LdP_Edit_Button.config(command=lambda v=i: self.Gear_Add_Edit_Button_Onclick(v))
 				gear.LdP_Row.grid(row=i, column=0)			
 				i += 1	
@@ -548,7 +594,7 @@ class Loadout_Panel:
 		tkinter.Label(myframe_inner, width="16", anchor="w", bg="lightgray", text="Effect Details").grid(row=6, column=0, sticky="w", pady=1)
 		self.dialog_effect_details_frame = Pmw.ScrolledFrame(myframe_inner, usehullsize = 1, hull_width = 365, hull_height = 51)
 		self.dialog_effect_details_frame.component("borderframe").config(borderwidth=0)
-		self.dialog_effect_details_frame.configure(hscrollmode = "none", vscrollmode = "dynamic")		
+		self.dialog_effect_details_frame.configure(hscrollmode = "none", vscrollmode = "static")		
 		self.dialog_effect_details_frame.grid(row=7, column=0, sticky="w")		
 		details_label = tkinter.Label(self.dialog_effect_details_frame.interior(), anchor="w", wraplength=345, justify="left", textvariable=self.vars_dialog_effect_details)
 		details_label.grid(row=0, column=0, sticky="w")		
@@ -560,7 +606,7 @@ class Loadout_Panel:
 		tkinter.Label(myframe_inner, width="16", anchor="w", bg="lightgray", text="Effect Scaling").grid(row=9, column=0, sticky="w", pady=1)		
 		self.dialog_effect_scaling_frame = Pmw.ScrolledFrame(myframe_inner, usehullsize = 1, hull_width = 365, hull_height = 50)
 		self.dialog_effect_scaling_frame.component("borderframe").config(borderwidth=0)
-		self.dialog_effect_scaling_frame.configure(hscrollmode = "none", vscrollmode = "dynamic")			
+		self.dialog_effect_scaling_frame.configure(hscrollmode = "none", vscrollmode = "static")			
 		self.dialog_effect_scaling_frame.bindtags("LdP_effect_dialog_scaling")				
 		self.dialog_effect_scaling_frame.grid(row=10, column=0, sticky="w", pady=1, columnspan=4)		
 				
@@ -602,15 +648,14 @@ class Loadout_Panel:
 			self.dialog_effect_edit_order_menu.grid(row=0, column=1, sticky="w")		
 				
 			i = 0
-			length = len(self.effects_dialog_scaling_rows)
-			for i in range(length):
-				value = effect.scaling_arr[i].split(": ")[1]
+			for _, value in effect.scaling_arr.items():
 				if value == "D":
 					self.effects_dialog_scaling_rows[i].dynamic_scaling.set(1)
 					self.effects_dialog_scaling_rows[i].static_value.set(0)
 				else:
 					self.effects_dialog_scaling_rows[i].static_value.set(value)
-									
+				i += 1					
+					
 			# If the last time we used the dialog box was as an add box, change the buttons to the edit version
 			if self.effect_dialog_box.component("buttonbox").button(0)["text"] == "Add Effect":
 				self.effect_dialog_box.component("buttonbox").delete("Add Effect")
@@ -627,6 +672,8 @@ class Loadout_Panel:
 	def Effects_ClearAll_Button_Onclick(self):
 		for row in globals.character.loadout_effects_build_list:
 			row.LdP_Build_Row.grid_remove()			
+			if row.ProgP_Build_Row != "":
+				row.ProgP_Build_Row.grid_remove()
 			
 		# Fun fact, if you try to do delete(1, end)	on an option menue that only has 1 object in it, it throws a python error. So this check is needed.
 		if self.effects_menu_size > 1:
@@ -634,8 +681,11 @@ class Loadout_Panel:
 			self.dialog_effect_edit_order_menu['menu'].delete(1, "end")
 			self.effects_menu_size = 1
 		
+		# A change is being made to the effects list. Set the global value to 1 so the Progression Panel knows to reset the loadout list
+		globals.LdP_Effects_List_Updated = 1
 		globals.character.loadout_effects_build_list = []			
 		self.Effects_List_Frame.yview("moveto", 0, "units")
+		
 		
 
 	# When a new effect name is picked from the effect dialog menu, this method is called
@@ -659,7 +709,7 @@ class Loadout_Panel:
 		
 	# When a new effect name is picked from the gear dialog menu, this method is called
 	def Effects_Dialog_Box_Name_Onchange(self, result):			
-		globals.db_cur.execute("SELECT type, details, effect_tags, scaling_tags, override_options FROM Effects WHERE name = \"%s\" " % (result))
+		globals.db_cur.execute("SELECT type, details, effect_tags, scaling_tags, function, override_options FROM Effects WHERE name = \"%s\" " % (result))
 		globals.db_con.commit()		
 		data = globals.db_cur.fetchone()
 		
@@ -671,7 +721,8 @@ class Loadout_Panel:
 		self.vars_dialog_effect_display_type.set(data["type"])
 		self.vars_dialog_effect_details.set(data["details"])
 		self.vars_dialog_effect_effect_tags = data["effect_tags"]
-		self.vars_dialog_effect_overrides = data["override_options"]
+		self.vars_dialog_effect_function = data["function"]
+		self.vars_dialog_effect_overrides = data["override_options"]		
 		
 		i = 0
 		# If the effect has scaling, create Effect dialog rows for each one
@@ -696,11 +747,14 @@ class Loadout_Panel:
 			self.effect_dialog_box.withdraw()
 			self.effect_dialog_box.grab_release()
 			return
-			
+		
+		# A change is being made to the effects list. Set the global value to 1 so the Progression Panel knows to reset the loadout list
+		globals.LdP_Effects_List_Updated = 1
+		
 		# Create a new Effect using the parameters from the Effect dialog box 
 		if result == "Add Effect":		
 			order = int(self.vars_dialog_order.get())-1
-			scaling_arr = []
+			scaling_arr = collections.OrderedDict()
 			
 			# Get all the values from scaling rows and create an array to send to the new Effect object
 			for row in self.effects_dialog_scaling_rows:
@@ -712,14 +766,12 @@ class Loadout_Panel:
 					value = row.min_value
 				else:
 					value = row.static_value.get()
-					
-				scaling_arr.append("%s: %s" % (display_name, value))
+								
+				scaling_arr[display_name] = value
 				
-			if len(self.effects_dialog_scaling_rows) == 0:
-				scaling_arr = "NONE"
 				
-			# Create a new effect	
-			globals.character.loadout_effects_build_list.insert(order, globals.Effect(order, self.vars_dialog_effect_name.get(), self.vars_dialog_effect_type.get(), self.vars_dialog_effect_display_type.get(), self.vars_dialog_effect_details.get(), self.vars_dialog_scaling_tags.get(), scaling_arr, self.vars_dialog_effect_overrides, 0 ) )
+			# Create a new effect				
+			globals.character.loadout_effects_build_list.insert(order, globals.Effect(order, self.vars_dialog_effect_name.get(), self.vars_dialog_effect_type.get(), self.vars_dialog_effect_display_type.get(), self.vars_dialog_effect_details.get(), self.vars_dialog_effect_effect_tags, scaling_arr, self.vars_dialog_effect_function, self.vars_dialog_effect_overrides, 0 ) )
 						
 			globals.character.loadout_effects_build_list[order].Create_LdP_row(self.Effects_List_Frame.interior())						
 			globals.character.loadout_effects_build_list[order].LdP_Edit_Button.config(command=lambda v=int(self.vars_dialog_order.get())-1: self.Effects_Add_Edit_Button_Onclick(v))			
@@ -740,7 +792,8 @@ class Loadout_Panel:
 		# Updates an existing Effect. 
 		# The new information for the Effect is take from the Dialog box
 		elif result == "Update Effect":
-			scaling_arr = []
+			effect = globals.character.loadout_effects_build_list.pop(self.vars_dialog_edit_location.get())
+			effect.scaling_arr.clear()
 			
 			# Get all the values from scaling rows and create an array to send to the new Effect object
 			for row in self.effects_dialog_scaling_rows:
@@ -753,30 +806,29 @@ class Loadout_Panel:
 				else:
 					value = row.static_value.get()
 					
-				scaling_arr.append("%s: %s" % (display_name, value))
+				effect.scaling_arr[display_name] = value
 				
-			if len(self.effects_dialog_scaling_rows) == 0:
-				scaling_arr = "NONE"
 				
 			scaling = ""		
-			if scaling_arr == "NONE":
+			if len(effect.scaling_arr) == 0:
 				scaling = "NONE"
 			else:
-				for item in scaling_arr:
-					scaling += "%s\n" % item
+				for key, value in effect.scaling_arr.items():
+					scaling += "%s: %s\n" % (key, value)
 				scaling = scaling[:-1]	
 				
 			# Update the effect	
-			effect = globals.character.loadout_effects_build_list.pop(self.vars_dialog_edit_location.get())
 			effect.name.set(self.vars_dialog_effect_name.get())
 			effect.type.set(self.vars_dialog_effect_type.get())
 			effect.display_type.set(self.vars_dialog_effect_display_type.get())
 			effect.order.set(self.vars_dialog_order.get())
 			effect.scaling.set(self.vars_dialog_scaling_tags.get())
 			effect.details.set(self.vars_dialog_effect_details.get())
-			effect.scaling_tags = self.vars_dialog_scaling_tags.get()
-			effect.scaling_arr = scaling_arr	
+			effect.effect_tags = self.vars_dialog_effect_effect_tags
+			effect.function = self.vars_dialog_effect_function
 			effect.scaling.set(scaling)			
+			
+			effect.Update_Row_Heights()
 			
 			globals.character.loadout_effects_build_list.insert(int(self.vars_dialog_order.get())-1, effect)
 			
@@ -791,7 +843,10 @@ class Loadout_Panel:
 		
 		# Current selected entry in the gear list is removed, the gear list is updated with the correct entry order, and the build frame is updated to reflect the removal.
 		elif result == "Remove Effect":
-			globals.character.loadout_effects_build_list.pop(self.vars_dialog_edit_location.get()).LdP_Build_Row.grid_remove()
+			effect = globals.character.loadout_effects_build_list.pop(self.vars_dialog_edit_location.get())
+			effect.LdP_Build_Row.grid_remove()
+			if effect.ProgP_Build_Row != "":
+				effect.ProgP_Build_Row.grid_remove()
 			self.dialog_effect_add_order_menu['menu'].delete("end", "end")
 			self.dialog_effect_edit_order_menu['menu'].delete("end", "end")
 			self.effects_menu_size -= 1
