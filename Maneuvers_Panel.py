@@ -183,7 +183,7 @@ class Maneuvers_Panel:
 	# Only one type of maneuver is shown in this panel at a time. The style can be changed with the drop down menu in the Build Header panel.
 	def Create_Build_Frame(self, panel):
 		myframe = Pmw.ScrolledFrame(panel, usehullsize = 1, hull_width = 600, hull_height = 474)			
-		myframe.configure(hscrollmode = "none")					
+		myframe.configure(hscrollmode = "none", vscrollmode = "static")					
 		
 		return myframe			
 	
@@ -387,7 +387,7 @@ class Maneuvers_Panel:
 				self.vars_dialog_errormsg.set("ERROR: Start level cannot be greater than target level." )
 				return
 			elif len(goal) == 0 or goal == "0" or not re.search(r"(^\d{1,3}$)", goal):
-				self.vars_dialog_errormsg.set("ERROR: Goal must be number greater than 0 and less than 304.")
+				self.vars_dialog_errormsg.set("ERROR: Goal must be number greater than 0 and less than 6.")
 				return				
 			elif int(goal) > man.max_ranks:
 				self.vars_dialog_errormsg.set("ERROR: Goal is greater than maximum maneuver ranks.")
@@ -652,7 +652,10 @@ class Maneuvers_Panel:
 				man.ManP_Build_Row.grid_remove()
 			if self.combat_menu_size > 1:			
 				self.add_combat_order_menu['menu'].delete(1, "end")
-				self.edit_combat_order_menu['menu'].delete(1, "end")
+				try:
+					self.edit_combat_order_menu['menu'].delete(1, "end")
+				except Exception as err:
+					print("Error happened in Combat Maneuvers: %s" % err)
 				self.combat_menu_size = 1		
 			globals.character.build_combat_maneuvers_list = []	
 			self.total_available_combat_points_by_level = [tkinter.IntVar() for i in range(101)]
@@ -666,7 +669,10 @@ class Maneuvers_Panel:
 				man.ManP_Build_Row.grid_remove()
 			if self.shield_menu_size > 1:	
 				self.add_shield_order_menu['menu'].delete(1, "end")
-				self.edit_shield_order_menu['menu'].delete(1, "end")
+				try:
+					self.edit_shield_order_menu['menu'].delete(1, "end")
+				except Exception as err:
+					print("Error happened in Shield Maneuvers: %s" % err)
 				self.shield_menu_size = 1		
 			globals.character.build_shield_maneuvers_list = []	
 			self.total_available_shield_points_by_level = [tkinter.IntVar() for i in range(101)]
@@ -680,7 +686,10 @@ class Maneuvers_Panel:
 				man.ManP_Build_Row.grid_remove()		
 			if self.armor_menu_size > 1:				
 				self.add_armor_order_menu['menu'].delete(1, "end")
-				self.edit_armor_order_menu['menu'].delete(1, "end")
+				try:
+					self.edit_armor_order_menu['menu'].delete(1, "end")
+				except Exception as err:
+					print("Error happened in Armor Maneuvers: %s" % err)
 				self.armor_menu_size = 1	
 			globals.character.build_armor_maneuvers_list = []
 			self.total_available_armor_points_by_level = [tkinter.IntVar() for i in range(101)]
