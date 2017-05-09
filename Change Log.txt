@@ -1,3 +1,12 @@
+-Version 2.5- (Date: 5/8/2017)
+GENERAL CHANGES
+-Added the Progression Panel. This panel lets users see how their statistics and skills placement effect their AS, DS and more as the level up by creating an interactive line plot graph. Takes Gear and Effects into consideration when calculating the formulas.
+-Massive changes to the database. Many, many new effects added.
+-The scrollbars on the Skills, Maneuvers, Postcap, and Loadout panels are always visible.
+-Fixed a few dialog box bugs
+
+
+
 -Version 2.5- (Date: 8/28/2016)
 GENERAL CHANGES
 -Added the Misc Panel. This panel will keep track of guild skill ranks and permanent character choices that do not belong in other panels.
