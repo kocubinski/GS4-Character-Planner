@@ -9,6 +9,12 @@ effect located in the Create_Database.py file along with a set of effect tags th
 the effect changes.
 '''
 
+# A few select calculations are dependent on information other than skill training. This dictionary will
+# keep track of that special information so the these calculations can be performed. The Progresson Panel 
+# will populate the dictionary as needed.
+calculation_vars = {}
+
+
 # While it is possible to use a formula to calculate the summation bonus for each seed. The process is 
 # complicated and time consuming. So instead, this functions references a table containing all the summation
 # seed values and uses a simple for loop to figure out what bonus to give by comparing the given ranks to 
@@ -99,6 +105,23 @@ def Convert_Bonus_To_New_Ranks(existing_ranks, new_bonus):
 def Calculate_101(effect, tag, level):
 	if tag == "DS_Bolt":				
 		return [10, "Bolt DS"]
+		
+	elif tag == "Spellburst":				
+		if "Minor Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 1:
+				return [0, "Mana"]
+			else:
+				return [0.5, "Mana"]				
+			
+		else:
+			return [1, "Mana"]
+		
 	elif tag == "TD_Elemental" or tag == "TD_Mental" or tag == "TD_Spiritual" or tag == "TD_Sorcerer":		
 		TD = 10
 		type = ""
@@ -124,17 +147,17 @@ def Calculate_101(effect, tag, level):
 def Calculate_102(effect, tag, level):		
 	if tag == "AS_Melee" or tag == "DS_All" or tag == "UAF":	
 		if level > 100:
-			lore_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
-			lore_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+			spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
 		else:
-			lore_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
 			
 			
 		if effect.scaling_arr["Minor Spiritual"] == "D":
 			if level > 100:
 				level = 100
 				
-			scaling = min(level, int(math.floor((int(lore_ranks) - 2)/2)))			
+			scaling = min(level, int(math.floor((int(spell_ranks) - 2)/2)))			
 			if scaling < 0:
 				scaling = 0				
 			
@@ -209,16 +232,16 @@ def Calculate_117(effect, tag, level):
 def Calculate_120(effect, tag, level):		
 	if tag == "DS_All":	
 		if level > 100:
-			lore_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
-			lore_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+			spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
 		else:
-			lore_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())				
+			spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())				
 			
 		if effect.scaling_arr["Minor Spiritual"] == "D":
 			if level > 100:
 				level = 100
 				
-			scaling = min(level, int(math.floor((int(lore_ranks) - 20)/2)))			
+			scaling = min(level, int(math.floor((int(spell_ranks) - 20)/2)))			
 			if scaling < 0:
 				scaling = 0			
 			
@@ -1089,9 +1112,9 @@ def Calculate_650_Wolf(effect, tag, level):
 	
 # Sorcerer Base (700s)
 	
-# Cloak of Shadows (712) - +25 DS, +20 all TD. +1 all DS per Spell Research, Sorcerer Base rank above 12 capped at +88 DS (+113 total), +1 all TD per 10 Spell Research, Sorcerer Base ranks above 12 capped at +8 DS (+28 total)	
+# Cloak of Shadows (712) - +25 DS, +20 Sorcerer TD. +1 all DS per Spell Research, Sorcerer Base rank above 12 capped at +88 DS (+113 total), +1 Sorcerer TD per 10 Spell Research, Sorcerer Base ranks above 12 capped at +8 DS (+28 total)	
 def Calculate_712(effect, tag, level):	
-	if tag == "DS_All" or tag == "TD_All":
+	if tag == "DS_All" or tag == "TD_Elemental" or tag == "TD_Mental" or tag == "TD_Spiritual" or tag == "TD_Sorcerer":
 		if effect.scaling_arr["Sorcerer"] == "D":
 			if level > 100:			
 				spell_ranks = int(globals.character.skills_list["Spell Research, Sorcerer"].total_ranks_by_level[100].get())
@@ -1107,24 +1130,22 @@ def Calculate_712(effect, tag, level):
 			type = "All DS"
 			bonus = math.floor(max(0, spell_ranks - 12))	
 			bonus = min(113, 25 + bonus)		
-		elif tag == "TD_All":
-			type = "All TD"
+		else:
 			bonus = math.floor(max(0, spell_ranks - 12)/10)	
-			bonus = min(28, 20 + bonus)				
+			bonus = min(28, 20 + bonus)		
+			
+			if tag == "TD_Spiritual":
+				bonus = math.ceil(bonus * 0.75)
+				type = "Spiritual TD"			
+			elif tag == "TD_Elemental":
+				bonus = math.ceil(bonus * 0.75)
+				type = "Elemental TD"
+			elif tag == "TD_Mental": 
+				bonus = math.ceil(bonus * 0.5)
+				type = "Mental TD"
+			elif tag == "TD_Sorcerer": 
+				type = "Sorcerer TD"
 		
-		'''
-		if tag == "TD_Spiritual":
-			type = "Spiritual TD"			
-		elif tag == "TD_Elemental":
-			bonus = math.ceil(bonus * 0.5)
-			type = "Elemental TD"
-		elif tag == "TD_Mental": 
-			bonus = math.ceil(bonus * 0.5)
-			type = "Mental TD"
-		elif tag == "TD_Sorcerer": 
-			bonus = math.ceil(bonus * 0.75)
-			type = "Sorcerer TD"
-		'''
 		
 		return [bonus, type]		
 
@@ -1267,9 +1288,9 @@ def Calculate_1003(effect, tag, level):
 	return [0, ""]
 	
 
-# Kai's Triumph Song (1007) - +10 AS. +1 AS per Spell Research, Bard Base rank above 7 capped at +20. +1 all AS per seed 3 summation of Mental Lore, Telepathy ranks. Maximum AS provided is capped at +31
+# Kai's Triumph Song (1007) - +10 AS, +10 UAF. +1 AS/UAF per Spell Research, Bard Base rank above 7 capped at +20. +1 all AS per seed 3 summation of Mental Lore, Telepathy ranks. Maximum AS provided is capped at +31
 def Calculate_1007(effect, tag, level):
-	if tag == "AS_All":	
+	if tag == "AS_All" or tag == "UAF":	
 		if effect.scaling_arr["Bard"] == "D":
 			if level > 100:			
 				spell_ranks = int(globals.character.skills_list["Spell Research, Bard"].total_ranks_by_level[100].get())
@@ -1292,7 +1313,12 @@ def Calculate_1007(effect, tag, level):
 		bonus += min(20, max(0, spell_ranks-7))
 		bonus = min(31, 10 + bonus)
 		
-		return [bonus, "All AS"]
+		if tag == "AS_All":
+			type = "All AS"
+		if tag == "UAF":	
+			type = "UAF"
+			
+		return [bonus, type]
 		
 	return [0, ""]	
 
@@ -1596,7 +1622,7 @@ def Calculate_1601(effect, tag, level):
 	return [0, ""]	
 	
 	
-# Dauntless (1606) - +10 AS
+# Dauntless (1606) - +10 AS, +10 UAF
 def Calculate_1606(effect, tag, level):
 	if tag == "AS_Melee":				
 		return [10, "Melee AS"]
@@ -1605,7 +1631,26 @@ def Calculate_1606(effect, tag, level):
 
 	return [0, ""]
 	
-
+	
+# Beacon of Courage (1608) - +1 enemy ignored in Force on Force. +1 additional enemy ignored per seed 10 summation of Spiritual Lore, Blessings ranks
+def Calculate_1608(effect, tag, level):
+	if tag == "Force_On_Force":
+		if effect.scaling_arr["Blessings"] == "D":
+			if level > 100:			
+				lore_ranks  = int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[100].get())
+				lore_ranks += globals.character.skills_list["Spiritual Lore, Blessings"].Postcap_Get_Total_Ranks_Closest_To_Interval(level)
+			else:
+				lore_ranks = int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[level].get())	
+		else:
+			lore_ranks = int(effect.scaling_arr["Blessings"])	
+		
+		bonus = Get_Summation_Bonus(10, lore_ranks)			
+			
+		return [1 + bonus, "Enemies Ignored"]
+	
+	return [0, ""]
+		
+	
 # Higher Vision (1610) - +10 DS. +1 DS per 2 Spell Research, Paladin Base ranks above 10 to a maximum of +20, +1 DS per seed 5 summation of Spiritual Lore, Religion ranks	
 def Calculate_1610(effect, tag, level):
 	if tag == "DS_All":				
@@ -1739,9 +1784,9 @@ def Calculate_1613_Self(effect, tag, level):
 	return [0, ""]
 	
 	
-# Zealot (1617)	- +30 melee AS, -30 DS. +1 melee AS and -1 all DS per seed 1 summation of Spiritual Lore, Religion ranks
+# Zealot (1617)	- +30 melee AS/UAF, -30 DS. +1 melee AS/UAF and all DS per seed 1 summation of Spiritual Lore, Religion ranks
 def Calculate_1617(effect, tag, level):
-	if tag == "AS_Melee" or tag == "DS_All":	
+	if tag == "AS_Melee" or tag == "UAF" or tag == "DS_All":	
 		if effect.scaling_arr["Religion"] == "D":
 			if level > 100:			
 				lore_ranks = int(globals.character.skills_list["Spiritual Lore, Religion"].total_ranks_by_level[100].get())
@@ -1755,8 +1800,10 @@ def Calculate_1617(effect, tag, level):
 		
 		if tag == "AS_Melee":	
 			return [bonus, "Melee AS"]
+		elif tag == "UAF":	
+			return [bonus, "UAF"]
 		elif tag == "DS_All":
-			return [ -1 * bonus, "All DS"]
+			return [bonus, "All DS"]
 
 	return [0, ""]
 	
@@ -1817,6 +1864,12 @@ def Calculate_1718(effect, tag, level):
 	
 	
 # Combat Maneuvers, Shield Maneuvers, or Armor Specialization		
+	
+# Armor Evasion	-  Reduces Armor Action Penalty by [Rank * (7 - Armor Group)] / 2. 
+def Calculate_Armor_Evasion(effect, tag, level):
+
+	return [0, ""]
+	
 	
 # Berserk - AS bonus equal to (guild/cman ranks - 1 + (level/4) - 20) / 2. Max AS bonus is +29
 def Calculate_Berserk(effect, tag, level):
@@ -2086,23 +2139,27 @@ def Calculate_Surge_of_Strength(effect, tag, level):
 	return [0, ""]
 	
 	
-# War Cries - Seanette's Shout - +15 AS to group but not to self
+# War Cries - Seanette's Shout - +15 AS/UAF to group but not to self
 def Calculate_War_Cries_Shout(effect, tag, level):
 	if tag == "AS_All":				
 		return [15, "All AS"]
+	elif tag == "UAF":				
+		return [15, "UAF"]
 
 	return [0, ""]	
 	
 	
-# War Cries - Horland's Holler - +20 AS to group including self
+# War Cries - Horland's Holler - +20 AS/UAF to group including self
 def Calculate_War_Cries_Holler(effect, tag, level):
 	if tag == "AS_All":				
 		return [20, "All AS"]
+	elif tag == "UAF":				
+		return [20, "UAF"]
 
 	return [0, ""]	
 	
 	
-# Weapon Bonding - +2 AS per rank	
+# Weapon Bonding - +2 AS/UAF per rank	
 def Calculate_Weapon_Bonding(effect, tag, level):
 	if tag == "AS_Melee" or tag == "AS_Ranged" or tag == "UAC":	
 		if effect.scaling_arr["Maneuver ranks"] == "D" and "Weapon Bonding" in globals.character.combat_maneuvers_list:
@@ -2888,10 +2945,12 @@ def Calculate_Lying_Down(effect, tag, level):
 	return [0, ""]
 	
 	
-# Overexerted - -10 AS	
+# Overexerted - -10 AS/UAF	
 def Calculate_Overexerted(effect, tag, level):
 	if tag == "AS_All":				
 		return [-10, "All AS"]
+	elif tag == "UAF":				
+		return [-10, "UAF"]
 
 	return [0, ""]	
 
@@ -2938,6 +2997,8 @@ def Calculate_Acuity_CS_Flare(effect, tag, level):
 def Calculate_Ensorcell_AS_Flare(effect, tag, level):
 	if tag == "AS_All":
 		return [5 * int(effect.scaling_arr["Ensorcell tier"]), "All AS"]	
+	if tag == "UAF":
+		return [5 * int(effect.scaling_arr["Ensorcell tier"]), "UAF"]	
 		
 	return [0, ""]	
 	
