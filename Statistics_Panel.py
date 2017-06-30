@@ -334,4 +334,4 @@ class Statistics_Panel:
 		globals.panels['Post Cap'].Clear_Button_Onclick("All")
 		globals.character.Update_Skills()
 		globals.character.Update_Maneuvers()
-		globals.character.Update_Statistics()						
+		globals.character.Update_Statistics()					
