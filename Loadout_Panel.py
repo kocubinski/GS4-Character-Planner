@@ -89,12 +89,15 @@ class Loadout_Panel:
 		self.dialog_effect_edit_order_menu = ""
 		
 		# Intitialize the effects lists
+		self.dialog_effect_types = globals.LdP_effect_display_types.keys()
+		'''
 		self.dialog_effect_types = ['Minor Spiritual (100s)', 'Major Spiritual (200s)', 'Cleric Base (300s)',  'Minor Elemental (400s)',  'Major Elemental (500s)', 'Ranger Base (600s)',
 									'Sorcerer Base (700s)', 'Wizard Base (900s)', 'Bard Base (1000s)', 'Empath Base (1100s)', 'Minor Mental (1200s)', 
 # 		 							'Major Mental (1300s)', 'Savant Base (1400s)', 
 									'Paladin Base (1600s)', 'Arcane (1700s)', 				
 #									'Maneuvers', 'Society Powers', 'Enhancives (Resources)', 'Enhancives (Skills)', 'Enhancives (Statistics)', 'Generic Effects', 'Flares', 'Special Abilities', 'Status Effects', 'Items', 'Other']
-									'Maneuvers', 'Society Powers', 'Enhancives (Skills)', 'Enhancives (Statistics)', 'Status Effects', 'Flares', 'Other']
+									'Maneuvers', 'Society Powers', 'Enhancives (Skills)', 'Enhancives (Statistics)', 'Status Effects', 'Flares', 'Room']
+		'''
 		self.dialog_effect_names = ['temp']			
 		self.dialog_effect_scaling_frame = ""			
 		
@@ -245,11 +248,11 @@ class Loadout_Panel:
 		
 		# The add order and edit order track the location where the Gear object is the build list
 		# Add order is 1 greater than the edit order.
-		self.dialog_gear_add_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.dialog_gear_add_order_menu.config(width=1, heigh=1)	
+		self.dialog_gear_add_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.dialog_gear_add_order_menu.config(width=1)	
 		self.dialog_gear_add_order_menu.grid(row=3, column=1, sticky="w")		
-		self.dialog_gear_edit_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.dialog_gear_edit_order_menu.config(width=1, heigh=1)	
+		self.dialog_gear_edit_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.dialog_gear_edit_order_menu.config(width=1)	
 		
 		# The gear types are categories for all the equippable gear (edged weapons, blunt weapons, armor, etc)
 		self.dialog_gear_types_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_gear_type, *self.dialog_gear_types, command=self.Gear_Dialog_Box_Type_Onchange)
@@ -328,7 +331,8 @@ class Loadout_Panel:
 		# Fun fact, if you try to do delete(1, end)	on an option menue that only has no objects in it, it throws a python error. So this check is needed.
 		if self.gear_menu_size > 1:
 			self.dialog_gear_add_order_menu['menu'].delete(1, "end")
-			self.dialog_gear_edit_order_menu['menu'].delete(1, "end")
+			menu = [1]
+			self.dialog_gear_edit_order_menu.set_menu(1, *menu)
 			self.gear_menu_size = 1
 		
 		# A change is being made to the gear list. Set the global value to 1 so the Progression Panel knows to reset the loadout list
@@ -583,10 +587,10 @@ class Loadout_Panel:
 		wrapperframe3 = tkinter.Frame(myframe_inner)	
 		wrapperframe3.grid(row=3, column=0, sticky="w")
 		tkinter.Label(wrapperframe3, width="16", anchor="w", bg="lightgray", text="Order Number").grid(row=0, column=0, sticky="w")
-		self.dialog_effect_add_order_menu = tkinter.OptionMenu(wrapperframe3, self.vars_dialog_order, "1", command="")
-		self.dialog_effect_add_order_menu.config(width=1, heigh=1)	
-		self.dialog_effect_edit_order_menu = tkinter.OptionMenu(wrapperframe3, self.vars_dialog_order, "1", command="")
-		self.dialog_effect_edit_order_menu.config(width=1, heigh=1)	
+		self.dialog_effect_add_order_menu = tkinter.ttk.OptionMenu(wrapperframe3, self.vars_dialog_order, "1", command="")
+		self.dialog_effect_add_order_menu.config(width=1)	
+		self.dialog_effect_edit_order_menu = tkinter.ttk.OptionMenu(wrapperframe3, self.vars_dialog_order, "1", command="")
+		self.dialog_effect_edit_order_menu.config(width=1)	
 		self.dialog_effect_add_order_menu.grid(row=0, column=1, sticky="w")		
 		
 		tkinter.Label(myframe_inner, width="16", anchor="w", text="").grid(row=5, column=0, sticky="w")
@@ -678,7 +682,8 @@ class Loadout_Panel:
 		# Fun fact, if you try to do delete(1, end)	on an option menue that only has 1 object in it, it throws a python error. So this check is needed.
 		if self.effects_menu_size > 1:
 			self.dialog_effect_add_order_menu['menu'].delete(1, "end")
-			self.dialog_effect_edit_order_menu['menu'].delete(1, "end")
+			menu = [1]
+			self.dialog_gear_edit_order_menu.set_menu(1, *menu)
 			self.effects_menu_size = 1
 		
 		# A change is being made to the effects list. Set the global value to 1 so the Progression Panel knows to reset the loadout list
@@ -697,8 +702,8 @@ class Loadout_Panel:
 		globals.db_cur.execute("SELECT name FROM Effects WHERE type = '%s' " % (type))
 		globals.db_con.commit()		
 		data = globals.db_cur.fetchall()		
-		new_choices = [item[0] for item in data]			
-		
+		new_choices = [item[0] for item in data]	
+				
 		self.dialog_effect_names_menu['menu'].delete(0, "end")
 		for choice in new_choices:
 			self.dialog_effect_names_menu['menu'].add_command(label=choice, command=lambda v=choice: self.Effects_Dialog_Box_Name_Onchange(v))
