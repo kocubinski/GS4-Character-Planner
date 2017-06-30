@@ -27,8 +27,9 @@ class Progression_Panel
 	def Scroll_Effects_Frame(self, event):
 	def Scroll_Tooltip_Frame(self, event):
 	def Find_Effects_By_Tags(self, effect_tags):	
-	def Combine_Effects(self, level, arr, tag, action_type, convert_var, indenting):	
+	def Combine_Effects(self, level, effect_name, base_value, effects_lists_arr, tag_arr, action_type):
 	def Formula_Attack_Strength(self, twc_mode, gear_name, gear_skills_names, main_enchantment, other_enchantment, calc_style):	
+	def Formula_Unarmed_Attack_Factor(self, gloves, boots, main, other, calc_style):	
 	def Formula_Defense_Strength(self, vs_type, main_gear, other_hand_gear, armor_gear, gloves_gear, calc_style):
 	def Formula_Casting_Strength(self, display_spell_circles, statistic_names, calc_style):
 	def Formula_Target_Defense(self, calc_style):
@@ -92,16 +93,23 @@ class Progression_Panel:
 		self.gear_uac_boots.set(self.base_uac_boots.name.get())		
 		
 #		self.subcategory_list_physical = ["Attack Strength (Main Weapon)", "Attack Strength (Other Hand Weapon)", "Unarmed Attack Factor (UAF)", "Defense Strength (vs Melee)", "Defense Strength (vs Ranged)", "Defense Strength (vs Bolt Spell)", "Roundtime"]	
-		self.subcategory_list_physical = ["Attack Strength (Main Weapon)", "Attack Strength (Other Hand Weapon)", "Defense Strength (vs Melee)", "Defense Strength (vs Ranged)", "Defense Strength (vs Bolt Spell)"]			
+		self.subcategory_list_physical = ["Attack Strength (Main Weapon)", "Attack Strength (Other Hand Weapon)", "Unarmed Attack Factor (UAF)","Defense Strength (vs Melee)", "Defense Strength (vs Ranged)", "Defense Strength (vs Bolt Spell)"]			
 		self.subcategory_list_magical = [
 		"Attack Strength (Spell Aiming)", "Casting Strength (Bard - MnE, Bard)", "Casting Strength (Cleric - MnS, MjS, Cleric)", "Casting Strength (Empath - MnS, MjS, Empath)", 
 		"Casting Strength (Monk - MnS, MnM)", "Casting Strength (Paladin - MnS, Paladin)", "Casting Strength (Ranger - MnS, Ranger)", "Casting Strength (Rogue/Warrior - MnS, MnE)", 
 #		"Casting Strength (Savant - MnM, MjM, Savant)", 
 		"Casting Strength (Sorcerer - MnS, MnE, Sorc)", "Casting Strength (Wizard - MnE, MjE, Wizard)", "Casting Strength (Arcane Circle)", "Target Defense"]		
-		self.subcategory_list_skills = ["Armor Use - AAP, Hindrance, Roundtime", "Multi-Opponent Combat - FoF, Mstrike",
-		"Arcane Symbols - Modifiers per Sphere", "Arcane Symbols - Max Spell, Spell Duration", "Magic Item Use - Modifiers per Sphere",
-		"Magic Item Use - Max Spell, Spell Duration", "First Aid - Herb Roundtime Reduction"]		
-		self.subcategory_list_other = ["Spellsong Renewal Time", "Mana Regeneration", "Stamina Regeneration", "Mana Pulse uses per day", "Mana Spellup uses per day", "Spellburst"]
+#		self.subcategory_list_skills_physical = ["Armor Use - AAP, Hindrance, Roundtime", "Multi Opponent Combat - FoF, Mstrike"]			
+		self.subcategory_list_skills_physical = ["Multi Opponent Combat - FoF, Mstrike"]		
+		self.subcategory_list_skills_magical = ["Arcane Symbols - Modifiers per Sphere", "Arcane Symbols - Max Spell, Spell Duration", "Magic Item Use - Modifiers per Sphere", "Magic Item Use - Max Spell, Spell Duration", 
+		"Elemental Lore, Air - Summations", "Elemental Lore, Earth - Summations", "Elemental Lore, Fire - Summations", "Elemental Lore, Water - Summations", 
+		"Mental Lore, Divination - Summations", "Mental Lore, Manipulation - Summations", "Mental Lore, Telepathy - Summations", 
+		"Mental Lore, Transference - Summations", "Mental Lore, Transformation - Summations", 
+		"Sorcerous Lore, Demonology - Summations", "Sorcerous Lore, Necromancy - Summations", 
+		"Spiritual Lore, Blessings - Summations", "Spiritual Lore, Summoning - Summations", "Spiritual Lore, Religion - Summations", 
+		"Mana Control - Mana Pulse/Spellup"]
+		self.subcategory_list_skills_general = ["First Aid - Herb Roundtime Reduction", "Trading - Skill Boost"]
+		self.subcategory_list_other = ["Encumbrance - Max Carry Weight", "Health, Mana, Stamina Recovery",  "Spellburst", "Spellsong Renewal Time"]
 			
 		
 		# Create each section of the Progression Panel
@@ -233,8 +241,8 @@ class Progression_Panel:
 		tkinter.Label(options_frame, width="13", anchor="w", bg="lightgray", text="Category").grid(row=0, column=0, sticky="w")
 		tkinter.Label(options_frame, width="13", anchor="w", bg="lightgray", text="Subcategory").grid(row=1, column=0, sticky="w")
 		
-#		choices = ["Physical Combat", "Magical Combat", "Skills Calculations", "Other Calculations"]
-		choices = ["Physical Combat", "Magical Combat"]		
+#		choices = ["Physical Combat", "Magical Combat", "Physical Skills", "Magical Skills", "General Skills", "Other"]
+		choices = ["Physical Combat", "Magical Combat", "Physical Skills",]		
 		self.graph_option_category_menu = tkinter.OptionMenu(options_frame, self.graph_option_category, *choices, command=self.Graph_Option_Category_OnChange)
 		self.graph_option_category_menu.config(width=40, heigh=1)				
 		self.graph_option_subcategory_menu = tkinter.OptionMenu(options_frame, self.graph_option_subcategory, "", command=self.Graph_Option_Subcategory_OnChange)
@@ -297,132 +305,163 @@ class Progression_Panel:
 		# Yes, this DOES need to be done everytime data is plotted. Changing the graphed information, removes the button press event
 		self.graph_figure.canvas.mpl_connect('button_press_event', self.Graph_Marker_Onclick)			
 					
+		category = self.graph_option_category.get()
 		choice = self.graph_option_subcategory.get()
-		
-		if choice == "Attack Strength (Main Weapon)":	
-			main_gear = self.Get_Gear_By_Order(self.gear_main_weapon.get())
-			other_gear = self.Get_Gear_By_Order(self.gear_other_hand.get())
-			ammo_enchantment = 0
-			if main_gear.skills == "Ranged Weapons" and other_gear.name.get() == "Arrows/Bolts":
-				ammo_enchantment = int(other_gear.enchantment)
-			
-			self.Formula_Attack_Strength(0, main_gear, ammo_enchantment, self.graph_radio_var.get())
 				
-		elif choice == "Attack Strength (Other Hand Weapon)":		
-			other_gear = self.Get_Gear_By_Order(self.gear_other_hand.get())
-			name = other_gear.name.get() 
-			
-			# Invalid off-hand gear, abort ploting
-			if name == "Empty" or name == "Small Shield" or name == "Medium Shield" or name == "Large Shield" or name == "Tower Shield":
+		if category == "Physical Combat":
+			if choice == "Attack Strength (Main Weapon)":	
+				main_gear = self.Get_Gear_By_Order(self.gear_main_weapon.get())
+				other_gear = self.Get_Gear_By_Order(self.gear_other_hand.get())
+				ammo_enchantment = 0
+				if main_gear.skills == "Ranged Weapons" and other_gear.name.get() == "Arrows/Bolts":
+					ammo_enchantment = int(other_gear.enchantment)
+				
+				self.Formula_Attack_Strength(0, main_gear, ammo_enchantment, self.graph_radio_var.get())
+					
+			elif choice == "Attack Strength (Other Hand Weapon)":		
+				other_gear = self.Get_Gear_By_Order(self.gear_other_hand.get())
+				name = other_gear.name.get() 
+				
+				# Invalid off-hand gear, abort ploting
+				if name == "Empty" or name == "Small Shield" or name == "Medium Shield" or name == "Large Shield" or name == "Tower Shield":
+					self.Plot_Graph_Clear()
+					tkinter.messagebox.showerror("Error", "Other Hand Weapon AS cannot be calculated without a weapon equipped in Other Hand")
+					return
+				
+				self.Formula_Attack_Strength(1, other_gear, 0, self.graph_radio_var.get())		
+					
+			elif choice == "Unarmed Attack Factor (UAF)":
+				gloves = self.Get_Gear_By_Order(self.gear_uac_gloves.get())
+				boots = self.Get_Gear_By_Order(self.gear_uac_boots.get())
+				main = self.Get_Gear_By_Order(self.gear_main_weapon.get())
+				other = self.Get_Gear_By_Order(self.gear_other_hand.get())
+				
+				self.Formula_Unarmed_Attack_Factor(gloves, boots, main, other, self.graph_radio_var.get())		
+					
+					
+			elif choice == "Defense Strength (vs Melee)":	
+				gear = self.Get_Gear_By_Order(self.gear_main_weapon.get())
+				other = self.Get_Gear_By_Order(self.gear_other_hand.get())
+				armor = self.Get_Gear_By_Order(self.gear_armor.get())
+				gloves = self.Get_Gear_By_Order(self.gear_uac_gloves.get())
+				
+				self.Formula_Defense_Strength("Melee", gear, other, armor, gloves, self.graph_radio_var.get())
+					
+			elif choice == "Defense Strength (vs Ranged)":	
+				gear = self.Get_Gear_By_Order(self.gear_main_weapon.get())
+				other = self.Get_Gear_By_Order(self.gear_other_hand.get())
+				armor = self.Get_Gear_By_Order(self.gear_armor.get())
+				gloves = self.Get_Gear_By_Order(self.gear_uac_gloves.get())
+				
+				self.Formula_Defense_Strength("Ranged", gear, other, armor, gloves, self.graph_radio_var.get())
+					
+			elif choice == "Defense Strength (vs Bolt Spell)":	
+				gear = self.Get_Gear_By_Order(self.gear_main_weapon.get())
+				other = self.Get_Gear_By_Order(self.gear_other_hand.get())
+				armor = self.Get_Gear_By_Order(self.gear_armor.get())
+				gloves = self.Get_Gear_By_Order(self.gear_uac_gloves.get())
+				
+				self.Formula_Defense_Strength("Bolt", gear, other, armor, gloves, self.graph_radio_var.get())
+				
+			else:
+				print("ERROR!!! Progression choice is not implemented!")
 				self.Plot_Graph_Clear()
 				return
-			
-			self.Formula_Attack_Strength(1, other_gear, 0, self.graph_radio_var.get())		
+
+		elif category == "Magical Combat":
+			if choice == "Attack Strength (Spell Aiming)":	
+				dummy_gear = globals.Gear(0, "Bolt Spell", 0, 0, "Spell Aiming", "")
+				self.Formula_Attack_Strength(0, dummy_gear, 0, self.graph_radio_var.get())
 				
-		elif choice == "Attack Strength (Spell Aiming)":	
-			dummy_gear = globals.Gear(0, "Bolt Spell", 0, 0, "Spell Aiming", "")
-			self.Formula_Attack_Strength(0, dummy_gear, 0, self.graph_radio_var.get())
 				
-		elif choice == "Defense Strength (vs Melee)":	
-			gear = self.Get_Gear_By_Order(self.gear_main_weapon.get())
-			other = self.Get_Gear_By_Order(self.gear_other_hand.get())
-			armor = self.Get_Gear_By_Order(self.gear_armor.get())
-			gloves = self.Get_Gear_By_Order(self.gear_uac_gloves.get())
-			
-			self.Formula_Defense_Strength("Melee", gear, other, armor, gloves, self.graph_radio_var.get())
-				
-		elif choice == "Defense Strength (vs Ranged)":	
-			gear = self.Get_Gear_By_Order(self.gear_main_weapon.get())
-			other = self.Get_Gear_By_Order(self.gear_other_hand.get())
-			armor = self.Get_Gear_By_Order(self.gear_armor.get())
-			gloves = self.Get_Gear_By_Order(self.gear_uac_gloves.get())
-			
-			self.Formula_Defense_Strength("Ranged", gear, other, armor, gloves, self.graph_radio_var.get())
-				
-		elif choice == "Defense Strength (vs Bolt Spell)":	
-			gear = self.Get_Gear_By_Order(self.gear_main_weapon.get())
-			other = self.Get_Gear_By_Order(self.gear_other_hand.get())
-			armor = self.Get_Gear_By_Order(self.gear_armor.get())
-			gloves = self.Get_Gear_By_Order(self.gear_uac_gloves.get())
-			
-			self.Formula_Defense_Strength("Bolt", gear, other, armor, gloves, self.graph_radio_var.get())
-				
-		elif choice == "Casting Strength (Bard - MnE, Bard)":
-			spell_circles = ["Minor Elemental", "Bard"]
-			statistic_names = ["Aura"]		
-				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
-				
-		elif choice == "Casting Strength (Cleric - MnS, MjS, Cleric)":
-			spell_circles = ["Minor Spiritual", "Major Spiritual", "Cleric"]
-			statistic_names = ["Wisdom"]	
-				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+			elif choice == "Casting Strength (Bard - MnE, Bard)":
+				spell_circles = ["Minor Elemental", "Bard"]
+				statistic_names = ["Aura"]		
 					
-		elif choice == "Casting Strength (Empath - MnS, MjS, Empath)":
-			spell_circles = ["Minor Spiritual", "Major Spiritual", "Empath"]
-			statistic_names = ["Wisdom"]	
-				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
 					
-		elif choice == "Casting Strength (Monk - MnS, MnM)":
-			spell_circles = ["Minor Spiritual", "Minor Mental"]
-			statistic_names = ["Logic", "Wisdom"]	
-				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+			elif choice == "Casting Strength (Cleric - MnS, MjS, Cleric)":
+				spell_circles = ["Minor Spiritual", "Major Spiritual", "Cleric"]
+				statistic_names = ["Wisdom"]	
 					
-		elif choice == "Casting Strength (Paladin - MnS, Paladin)":
-			spell_circles = ["Minor Spiritual", "Paladin"]
-			statistic_names = ["Wisdom"]	
-				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+						
+			elif choice == "Casting Strength (Empath - MnS, MjS, Empath)":
+				spell_circles = ["Minor Spiritual", "Major Spiritual", "Empath"]
+				statistic_names = ["Wisdom"]	
 					
-		elif choice == "Casting Strength (Ranger - MnS, Ranger)":
-			spell_circles = ["Minor Spiritual", "Ranger"]
-			statistic_names = ["Wisdom"]	
-				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+						
+			elif choice == "Casting Strength (Monk - MnS, MnM)":
+				spell_circles = ["Minor Spiritual", "Minor Mental"]
+				statistic_names = ["Logic", "Wisdom"]	
 					
-		elif choice == "Casting Strength (Rogue/Warrior - MnS, MnE)":
-			spell_circles = ["Minor Spiritual", "Minor Elemental"]
-			statistic_names = ["Aura", "Wisdom"]	
-				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+						
+			elif choice == "Casting Strength (Paladin - MnS, Paladin)":
+				spell_circles = ["Minor Spiritual", "Paladin"]
+				statistic_names = ["Wisdom"]	
 					
-		elif choice == "Casting Strength (Savant - MnM, MjM, Savant)":
-			spell_circles = ["Minor Mental", "Major Mental", "Savant"]
-			statistic_names = ["Discipline", "Influence", "Logic"]			
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+						
+			elif choice == "Casting Strength (Ranger - MnS, Ranger)":
+				spell_circles = ["Minor Spiritual", "Ranger"]
+				statistic_names = ["Wisdom"]	
+					
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+						
+			elif choice == "Casting Strength (Rogue/Warrior - MnS, MnE)":
+				spell_circles = ["Minor Spiritual", "Minor Elemental"]
+				statistic_names = ["Aura", "Wisdom"]	
+					
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
+						
+			elif choice == "Casting Strength (Savant - MnM, MjM, Savant)":
+				spell_circles = ["Minor Mental", "Major Mental", "Savant"]
+				statistic_names = ["Discipline", "Influence", "Logic"]			
+					
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
 				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
-			
-		elif choice == "Casting Strength (Sorcerer - MnS, MnE, Sorc)":
-			spell_circles = ["Minor Spiritual", "Minor Elemental", "Sorcerer"]
-			statistic_names = ["Aura", "Wisdom"]			
+			elif choice == "Casting Strength (Sorcerer - MnS, MnE, Sorc)":
+				spell_circles = ["Minor Spiritual", "Minor Elemental", "Sorcerer"]
+				statistic_names = ["Aura", "Wisdom"]			
+					
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
 				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
-			
-		elif choice == "Casting Strength (Wizard - MnE, MjE, Wizard)":
-			spell_circles = ["Minor Elemental", "Major Elemental", "Wizard"]
-			statistic_names = ["Aura"]			
+			elif choice == "Casting Strength (Wizard - MnE, MjE, Wizard)":
+				spell_circles = ["Minor Elemental", "Major Elemental", "Wizard"]
+				statistic_names = ["Aura"]			
+					
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
 				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())
-			
-		elif choice == "Casting Strength (Arcane Circle)":
-			spell_circles = ["Arcane"]
-			statistic_names = ["Aura", "Logic", "Wisdom"]			
+			elif choice == "Casting Strength (Arcane Circle)":
+				spell_circles = ["Arcane"]
+				statistic_names = ["Aura", "Logic", "Wisdom"]			
+					
+				self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())	
 				
-			self.Formula_Casting_Strength(spell_circles, statistic_names, self.graph_radio_var.get())	
-			
+					
+			elif choice == "Target Defense":
+				self.Formula_Target_Defense(self.graph_radio_var.get())						
+					
+			else:
+				print("ERROR!!! Progression choice is not implemented!")
+				self.Plot_Graph_Clear()
+				return
+	
+		elif category == "Physical Skills":			
+			if choice == "Multi Opponent Combat - FoF, Mstrike":				
+				self.Formula_Multi_Opponent_Combat(self.graph_radio_var.get())	
 				
-		elif choice == "Target Defense":
-			self.Formula_Target_Defense(self.graph_radio_var.get())						
-				
+			else:
+				print("ERROR!!! Progression choice is not implemented!")
+				self.Plot_Graph_Clear()
+				return			
+		
 		else:
-			print("ERROR!!! Progression choice is not implemented!")
-			self.Plot_Graph_Clear()
+			print("ERROR!!! Unknown Category selected")
 			return
-
-
+		
 		
 		# Plot the data stored in the graph_information object
 		for i in range(self.graph_information.graph_num_lines):
@@ -476,23 +515,24 @@ class Progression_Panel:
 	def Graph_Option_Category_OnChange(self, choice):
 		self.graph_option_subcategory_menu["menu"].insert_command("end", label="buffer")
 		self.graph_option_subcategory_menu['menu'].delete(0, "end")
+		list = ["Unknown Category"]
 		
 		if choice == "Physical Combat":
-			self.graph_option_subcategory.set(self.subcategory_list_physical[0])
-			for i in self.subcategory_list_physical:				
-				self.graph_option_subcategory_menu["menu"].insert_command("end", label=i, command=lambda v=i: self.Graph_Option_Subcategory_OnChange(v))			
+			list = self.subcategory_list_physical	
 		elif choice == "Magical Combat":
-			self.graph_option_subcategory.set(self.subcategory_list_magical[0])
-			for i in self.subcategory_list_magical:	
-				self.graph_option_subcategory_menu["menu"].insert_command("end", label=i, command=lambda v=i: self.Graph_Option_Subcategory_OnChange(v))
-		elif choice == "Skills Calculations":
-			self.graph_option_subcategory.set(self.subcategory_list_skills[0])
-			for i in self.subcategory_list_skills:	
-				self.graph_option_subcategory_menu["menu"].insert_command("end", label=i, command=lambda v=i: self.Graph_Option_Subcategory_OnChange(v))
-		elif choice == "Other Calculations":
-			self.graph_option_subcategory.set(self.subcategory_list_other[0])
-			for i in self.subcategory_list_other:	
-				self.graph_option_subcategory_menu["menu"].insert_command("end", label=i, command=lambda v=i: self.Graph_Option_Subcategory_OnChange(v))
+			list = self.subcategory_list_magical	
+		elif choice == "Physical Skills":
+			list = self.subcategory_list_skills_physical
+		elif choice == "Magical Skills":
+			list = self.subcategory_list_skills_magical	
+		elif choice == "General Skills":
+			list = self.subcategory_list_skills_general	
+		elif choice == "Other":
+			list = self.subcategory_list_other	
+					
+		self.graph_option_subcategory.set(list[0])
+		for i in list:	
+			self.graph_option_subcategory_menu["menu"].insert_command("end", label=i, command=lambda v=i: self.Graph_Option_Subcategory_OnChange(v))		
 
 	
 	# Sets the drop menu to display the user's choice
@@ -669,45 +709,128 @@ class Progression_Panel:
 	# Combine_Effects will get the total bonus for an effect from all the effects in effects_arr. Calculate_Tag_Bonus
 	# is called on each effect to execute a specfic internal method to calculate the data. This always returns an list
 	# of 2 elements: 1st being the bonus and the 2nd being the type of the bonus
-	def Combine_Effects(self, level, effects_arr, tag, action_type, convert_var, indenting):
+	def Combine_Effects(self, level, effect_name, base_value, effects_lists_arr, tag_arr, action_type):
 		temp_arr = []
 		temp_value = 0
 		sum = 0
 		tooltip = ""
+		temp_tooltip = ""
+		indenting = "            "		
 		
-		if len(effects_arr) > 0:
+		if action_type == "stat_inc_to_bonus":
+			effects_arr = effects_lists_arr[0]
+			tag = tag_arr[0]			
 			for effect in effects_arr:
 				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
-				if temp_arr[0] == 0:           						# skip effects that give no bonus/penalty
+				if temp_arr[0] == 0:           						
+					continue		
+				tooltip += "%s%s  bonus  (%s)\n" % ( indenting,  ("%+d" % temp_arr[0]).rjust(4), temp_arr[1])
+				sum += temp_arr[0]		
+		
+			effects_arr = effects_lists_arr[1]
+			tag = tag_arr[1]		
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
 					continue
+				tooltip += "%s%s bonus  (%+d %s)\n" % ( indenting,  ("%+d" % (temp_arr[0]/2)).rjust(4),   temp_arr[0],   temp_arr[1])
+				sum += temp_arr[0]/2					
+
+			if sum > 0:
+				tooltip = "       %s  enhancive %s bonus (%s vs max +20)\n" % (("%+d" % min(20, sum)).rjust(4), effect_name, "%+d" % (sum)) + tooltip
+
+				
+		elif action_type == "skill_bonus_to_ranks":
+			effects_arr = effects_lists_arr[0]
+			tag = tag_arr[0]		
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
+					continue					
+				temp_value = calculations.Convert_Bonus_To_New_Ranks(base_value, temp_arr[0])
+				tooltip += "%s%s ranks  (%+d %s)\n" % (indenting,  ("%+d" % temp_value).rjust(4), temp_arr[0], temp_arr[1])
+				sum += temp_value	
+
+			effects_arr = effects_lists_arr[1]
+			tag = tag_arr[1]		
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
+					continue
+				tooltip += "%s%s ranks  (%s)\n" % ( indenting,  ("%+d" % temp_arr[0]).rjust(4), temp_arr[1])
+				sum += temp_arr[0]							
+
+			if sum > 0:
+				tooltip = "       %s  enhancive %s ranks (%s vs max +50)\n" % (("%+d" % min(50, sum)).rjust(4), effect_name, "%+d" % (sum)) + tooltip
+				
+			if len(effects_lists_arr) > 2:
+				effects_arr = effects_lists_arr[2]
+				tag = tag_arr[2]		
+				temp_value = 0
+				temp_tooltip = ""
+				for effect in effects_arr:
+					temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+					if temp_arr[0] == 0:           						
+						continue
+					temp_tooltip += "%s%s %s  (%s)\n" % (indenting,  ("%+d" % temp_arr[0]).rjust(4),  temp_arr[1],  effect.name.get())
+					temp_value += temp_arr[0]		
+				sum += temp_value				
+				
+				if temp_value > 0:
+					tooltip += "       %s  %s phantom ranks\n" % (("%+d" % temp_value).rjust(4), effect_name) + temp_tooltip					
 					
-				if action_type == "stat_inc_to_bonus":
-					tooltip += "%s%s bonus  (%+d %s)\n" % ( indenting,  ("%+d" % (temp_arr[0]/2)).rjust(4),   temp_arr[0],   temp_arr[1])
-					sum += temp_arr[0]/2
-				elif action_type == "effect_display":	
+
+		elif action_type == "skill_ranks_to_bonus":
+			effects_arr = effects_lists_arr[0]
+			tag = tag_arr[0]		
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
+					continue					
+				tooltip += "%s%s bonus  (%s)\n" % ( indenting,  ("%+d" % temp_arr[0]).rjust(4), temp_arr[1])
+				sum += temp_arr[0]	
+
+			effects_arr = effects_lists_arr[1]
+			tag = tag_arr[1]		
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
+					continue
+				temp_value = calculations.Convert_Ranks_To_New_Bonus(base_value, temp_arr[0])
+				tooltip += "%s%s bonus  (%d %s)\n" % (indenting,  ("%+d" % temp_value).rjust(4), temp_arr[0], temp_arr[1])
+				sum += temp_value	
+
+			if sum > 0:
+				tooltip = "       %s  enhancive %s bonus (%s vs max +50)\n" % (("%+d" % min(50, sum)).rjust(4), effect_name, "%+d" % sum) + tooltip
+			
+			
+		elif action_type == "effect_display":
+			arr_length = len(effects_lists_arr)
+			
+			for i in range(arr_length):
+				effects_arr = effects_lists_arr[i]
+				tag = tag_arr[i]
+				for effect in effects_arr:					
+					temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+					if temp_arr[0] == 0:           						
+						continue
 					tooltip += "%s%s %s  (%s)\n" % (indenting,  ("%+d" % temp_arr[0]).rjust(4),  temp_arr[1],  effect.name.get())
 					sum += temp_arr[0]	
-				elif action_type == "skill_bonus_to_ranks":	
-					temp_value = calculations.Convert_Bonus_To_New_Ranks(convert_var, temp_arr[0])
-					tooltip += "%s%s ranks  (%+d %s)\n" % (indenting,  ("%+d" % temp_value).rjust(4), temp_arr[0], temp_arr[1])
-					sum += temp_value	
-				elif action_type == "skill_ranks_to_bonus":	
-					temp_value = calculations.Convert_Ranks_To_New_Bonus(convert_var, temp_arr[0])
-					tooltip += "%s%s bonus  (%d %s)\n" % (indenting,  ("%+d" % temp_value).rjust(4), temp_arr[0], temp_arr[1])
-					sum += temp_value				
-				elif action_type == "ranks_display":
-					tooltip += "%s%s ranks  (%s)\n" % ( indenting,  ("%+d" % temp_arr[0]).rjust(4), temp_arr[1])
-					sum += temp_arr[0]					
-				elif action_type == "float_format":
-					tooltip += "%s%s bonus  (%s)\n" % ( indenting,  ("%+.2f" % temp_arr[0]).rjust(4), temp_arr[1])
-					sum += temp_arr[0]				
-				else:
-					tooltip += "%s%s  bonus  (%s)\n" % ( indenting,  ("%+d" % temp_arr[0]).rjust(4), temp_arr[1])
-					sum += temp_arr[0]		
-				
+					
+		elif action_type == "float_format":
+			effects_arr = effects_lists_arr[0]
+			tag = tag_arr[0]		
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
+					continue					
+				tooltip += "%s%s bonus  (%s)\n" % ( "    ",  ("%+.2f" % temp_arr[0]).rjust(4), effect.name.get())
+				sum += temp_arr[0]	
+					
+							
 		return (sum, tooltip)
 
-	
+		
 	# This massive method is used to calculate the Attack Strength (AS) of a character from level 0-100 or across
 	# postcap training. It can calculate the AS for any weapon type including weapons that use multiple skills
 	# like the Katar. It can also calculate Bolt AS and TWC AS as well. All statistics, skills, and effects that
@@ -795,8 +918,6 @@ class Progression_Panel:
 					
 		# Begin the big loop to calculate all the data		
 		for i in loop_range:
-			skill_phantom = 0
-			skill_inc_ranks = 0
 			skill_inc_bonus = 0		
 			skill_rank_count = 0
 			effects_total = 0
@@ -807,7 +928,6 @@ class Progression_Panel:
 			stat_enhancive_totals = []
 			
 			stat_tooltip_text = ""
-			skill_phantom_tooltip = ""
 			skill_tooltip = ""
 			weapon_tooltip_text = ""
 			effects_tooltip_text = ""
@@ -839,55 +959,35 @@ class Progression_Panel:
 			# Calculate Statistic bonus	
 			# TWC has a different way of calculating than the rest of the weapons
 			if twc_mode == 1:		
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_Bonus_Dexterity"], "Statistic_Bonus_Dexterity", "", 0, "            ")
-				stat_enh_bonus = ce_total
-				stat_tooltip_text = ce_tooltip + stat_tooltip_text
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, "Strength", 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_Strength"], lists_of_effects_by_tag["Statistic_Strength"]], 
+												["Statistic_Bonus_Strength", "Statistic_Strength"], 
+												"stat_inc_to_bonus")													
 				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_Dexterity"], "Statistic_Dexterity", "stat_inc_to_bonus", 0, "            ")
-				stat_enh_bonus += ce_total
-				stat_tooltip_text = ce_tooltip + stat_tooltip_text						
+				combined_strength_bonus = base_stat_arr["Strength"] + min(50, stat_enh_bonus)	
+				stat_tooltip_text += "       %s  Strength base bonus\n" % (("%+d" % base_stat_arr["Strength"]).rjust(4)) + temp_tooltip	
 				
-				if stat_enh_bonus > 0:
-					stat_tooltip_text = "       %s  enhancive Dexterity bonus (%s vs max +20)\n" % (("%+d" % min(20, stat_enh_bonus)).rjust(4), "%+d" % (stat_enh_bonus)) + stat_tooltip_text
-				stat_tooltip_text = "       %s  Dexterity base bonus\n" % (("%+d" % base_stat_arr["Dexterity"]).rjust(4)) + stat_tooltip_text		
+			
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, "Dexterity", 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_Dexterity"], lists_of_effects_by_tag["Statistic_Dexterity"]], 
+												["Statistic_Bonus_Dexterity", "Statistic_Dexterity"], 
+												"stat_inc_to_bonus")
 				
 				combined_dexterity_bonus = base_stat_arr["Dexterity"] + min(50, stat_enh_bonus)		
-				
-
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_Bonus_Strength"], "Statistic_Bonus_Strength", "", 0, "            ")
-				stat_enh_bonus = ce_total
-				stat_tooltip_text = ce_tooltip + stat_tooltip_text
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_Strength"], "Statistic_Strength", "stat_inc_to_bonus", 0, "            ")
-				stat_enh_bonus += ce_total
-				stat_tooltip_text = ce_tooltip + stat_tooltip_text						
-				
-				if stat_enh_bonus > 0:
-					stat_tooltip_text = "       %s  enhancive Strength bonus (%s vs max +20)\n" % (("%+d" % min(20, stat_enh_bonus)).rjust(4), "%+d" % (stat_enh_bonus)) + stat_tooltip_text
-				stat_tooltip_text = "       %s  Strength base bonus\n" % (("%+d" % base_stat_arr["Strength"]).rjust(4)) + stat_tooltip_text		
-				
-				combined_strength_bonus = base_stat_arr["Strength"] + min(50, stat_enh_bonus)				
-
+				stat_tooltip_text += "       %s  Dexterity base bonus\n" % (("%+d" % base_stat_arr["Dexterity"]).rjust(4)) + temp_tooltip	
 				
 				stat_tooltip_text = "  %s  Statistic bonus: min(Strength %+d vs Dexterity %+d)\n" % (("%+d" % min(combined_strength_bonus, combined_dexterity_bonus)).rjust(4), combined_strength_bonus, combined_dexterity_bonus) + stat_tooltip_text	
 			# Statistic calculations for every other weapon style	
 			else:
 				for stat in statistic_names:
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], "Statistic_Bonus_%s" % stat, "", 0, "            ")
-					stat_enh_bonus = ce_total
-					stat_tooltip_text = ce_tooltip + stat_tooltip_text
-					
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_%s" % stat], "Statistic_%s" % stat, "stat_inc_to_bonus", 0, "            ")
-					stat_enh_bonus += ce_total
-					stat_tooltip_text = ce_tooltip + stat_tooltip_text				
-					
-					stat_enhancive_totals.append(base_stat_arr[stat] + min(50, stat_enh_bonus) )				
-					
-					if stat_enh_bonus > 0:
-						stat_tooltip_text = "       %s  enhancive %s bonus (%s vs max +20)\n" % (("%+d" % min(20, stat_enh_bonus)).rjust(4), stat, "%+d" % (stat_enh_bonus)) + stat_tooltip_text
-					stat_tooltip_text = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + stat_tooltip_text		
-					
+					stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, stat, 0, 
+													[lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], lists_of_effects_by_tag["Statistic_%s" % stat]], 
+													["Statistic_Bonus_%s" % stat, "Statistic_%s" % stat], 
+													"stat_inc_to_bonus")													
+
+					stat_enhancive_totals.append(base_stat_arr[stat] + min(50, stat_enh_bonus))	
 					combined_statistic_bonus += base_stat_arr[stat] + min(50, stat_enh_bonus)
+					stat_tooltip_text += "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip	
 								
 				combined_statistic_bonus /= len(statistic_names)							
 
@@ -900,169 +1000,98 @@ class Progression_Panel:
 				else:						
 					stat_tooltip_text = "  %s  %s bonus\n" % (("%+d" % combined_statistic_bonus).rjust(4), statistic_names[0]) + stat_tooltip_text
 			
+			
 			if weapon_types[0] == "Spell Aiming":
-				pass       # Yes, do nothing. Need to do this because the "else" below to calculate every other style aside from Ranged Weapons and Thrown Weapons
+				pass       # Yes, do nothing. Need to do this because the "else" below will calculate every other style aside from Ranged Weapons and Thrown Weapons
 				
 			elif weapon_types[0] == "Ranged Weapons":
-				# Calculate Perception ranks
-				skill_rank_count = base_ranks_arr["Perception"]			
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Perception"], "Skill_Bonus_Perception", "skill_bonus_to_ranks", skill_rank_count, "            ")
-				skill_inc_bonus += ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip
-				skill_rank_count += ce_total			
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Perception"], "Skill_Ranks_Perception", "ranks_display", skill_rank_count, "            ")
-				skill_inc_ranks = ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip
-						
-				
-				if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-					skill_tooltip = "       %s  enhancive Perception ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip
-					
-				perception_total = base_ranks_arr["Perception"] + min(50, skill_inc_bonus+skill_inc_ranks)		
-				skill_tooltip = "       %s  Perception base ranks\n" % (("%+d" % base_ranks_arr["Perception"]).rjust(4)) + skill_tooltip										
-
-				skill_tooltip = "  %s  Perception ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((perception_total - 40) / 4) )) ).rjust(4), perception_total) + skill_tooltip									
-								
-								
 				# Calculate Ambush ranks
-				skill_rank_count = base_ranks_arr["Ambush"]		
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Ambush"], "Skill_Bonus_Ambush", "skill_bonus_to_ranks", skill_rank_count, "            ")
-				skill_inc_bonus += ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip		
-				skill_rank_count += ce_total			
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Ambush", base_ranks_arr["Ambush"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Ambush"], lists_of_effects_by_tag["Skill_Ranks_Ambush"]], 
+												["Skill_Bonus_Ambush", "Skill_Ranks_Ambush"], 
+												"skill_bonus_to_ranks")
+
+				ambush_total = base_ranks_arr["Ambush"] + min(50, skill_rank_count)		
+				skill_tooltip += "  %s  Ambush ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((ambush_total - 40) / 4) )) ).rjust(4), ambush_total) 		
+				skill_tooltip += "       %s  Ambush base ranks\n" % (("%+d" % base_ranks_arr["Ambush"]).rjust(4)) 
+				skill_tooltip += temp_tooltip							
 				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Ambush"], "Skill_Ranks_Ambush", "ranks_display", skill_rank_count, "            ")
-				skill_inc_ranks = ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip				
-						
 				
-				if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-					skill_tooltip = "       %s  enhancive Ambush ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip
-					
-				ambush_total = base_ranks_arr["Ambush"] + min(50, skill_inc_bonus+skill_inc_ranks)			
-				skill_tooltip = "       %s  Ambush base ranks\n" % (("%+d" % base_ranks_arr["Ambush"]).rjust(4)) + skill_tooltip			
-				
-				skill_tooltip = "  %s  Ambush ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((ambush_total - 40) / 4) )) ).rjust(4), ambush_total) + skill_tooltip	
+				# Calculate Perception ranks
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Perception", base_ranks_arr["Perception"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Perception"], lists_of_effects_by_tag["Skill_Ranks_Perception"]], 
+												["Skill_Bonus_Perception", "Skill_Ranks_Perception"], 
+												"skill_bonus_to_ranks")
+
+				perception_total = base_ranks_arr["Perception"] + min(50, skill_rank_count)		
+				skill_tooltip += "  %s  Perception ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((perception_total - 40) / 4) )) ).rjust(4), perception_total)			
+				skill_tooltip += "       %s  Perception base ranks\n" % (("%+d" % base_ranks_arr["Perception"]).rjust(4)) 
+				skill_tooltip += temp_tooltip											
+
 				
 			elif weapon_types[0] == "Thrown Weapons":
-				# Calculate Perception ranks
-				skill_rank_count = base_ranks_arr["Perception"]			
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Perception"], "Skill_Bonus_Perception", "skill_bonus_to_ranks", skill_rank_count, "            ")
-				skill_inc_bonus = ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip
-				skill_rank_count += ce_total			
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Perception"], "Skill_Ranks_Perception", "ranks_display", skill_rank_count, "            ")
-				skill_inc_ranks = ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip						
-				
-				if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-					skill_tooltip = "       %s  enhancive Perception ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip
-					
-				perception_total = base_ranks_arr["Perception"] + min(50, skill_inc_bonus+skill_inc_ranks)		
-				skill_tooltip = "       %s  Perception base ranks\n" % (("%+d" % base_ranks_arr["Perception"]).rjust(4)) + skill_tooltip		
-								
-								
 				# Calculate Combat Maneuver ranks
-				skill_rank_count = base_ranks_arr["Combat Maneuvers"]		
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Combat_Maneuvers"], "Skill_Bonus_Combat_Maneuvers", "skill_bonus_to_ranks", skill_rank_count, "            ")
-				skill_inc_bonus = ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip		
-				skill_rank_count += ce_total			
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Combat Maneuvers", base_ranks_arr["Combat Maneuvers"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Combat_Maneuvers"], lists_of_effects_by_tag["Skill_Ranks_Combat_Maneuvers"], lists_of_effects_by_tag["Skill_Phantom_Ranks_Combat_Maneuvers"]], 
+												["Skill_Bonus_Combat_Maneuvers", "Skill_Ranks_Combat_Maneuvers", "Skill_Phantom_Ranks_Combat_Maneuvers"], 
+												"skill_bonus_to_ranks")
+
+				cman_total = base_ranks_arr["Combat Maneuvers"] + skill_rank_count
+				skill_tooltip += "       %s  Combat Maneuvers base ranks\n" % (("%+d" % base_ranks_arr["Combat Maneuvers"]).rjust(4)) 				
+				skill_tooltip += temp_tooltip		
+
 				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Combat_Maneuvers"], "Skill_Ranks_Combat_Maneuvers", "ranks_display", skill_rank_count, "            ")
-				skill_inc_ranks = ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip		
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Phantom_Ranks_Combat_Maneuvers"], "Skill_Phantom_Ranks_Combat_Maneuvers", "effect_display", 0, "            ")
-				skill_phantom += ce_total
-				skill_phantom_tooltip = ce_tooltip	
-						
-				
-				if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-					skill_tooltip = "       %s  enhancive Combat Maneuvers ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip
-					
-				cman_total = base_ranks_arr["Combat Maneuvers"] + skill_phantom + min(50, skill_inc_bonus+skill_inc_ranks)				
-				
-				if skill_phantom_tooltip != "":
-					skill_tooltip = "       %s  Combat Maneuver phantom ranks\n" % (("%+d" % skill_phantom).rjust(4)) + skill_phantom_tooltip + skill_tooltip
-				skill_tooltip = "       %s  Combat Maneuver base ranks\n" % (("%+d" % base_ranks_arr["Combat Maneuvers"]).rjust(4)) + skill_tooltip
-				
-				skill_tooltip = "  %s  Combat Maneuvers + Perception ranks  ((%s + %s) / 4)\n" % (("%+d" % ( math.floor((cman_total + perception_total) / 4) )).rjust(4), cman_total, perception_total) + skill_tooltip	
+				# Calculate Perception ranks
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Perception", base_ranks_arr["Perception"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Perception"], lists_of_effects_by_tag["Skill_Ranks_Perception"]], 
+												["Skill_Bonus_Perception", "Skill_Ranks_Perception"], 
+												"skill_bonus_to_ranks")
+
+				perception_total = base_ranks_arr["Perception"] + min(50, skill_rank_count)			
+				skill_tooltip += "       %s  Perception base ranks\n" % (("%+d" % base_ranks_arr["Perception"]).rjust(4)) 			
+				skill_tooltip += temp_tooltip		
+
+
+				skill_tooltip = "  %s  CM ranks + Perception ranks  ((%s + %s) / 4)\n" % (("%+d" % ( math.floor((cman_total + perception_total) / 4) )).rjust(4), cman_total, perception_total) + skill_tooltip	
 				
 			else:
-				# Calculate Combat Maneuvers ranks
-				skill_rank_count = base_ranks_arr["Combat Maneuvers"]	
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Combat_Maneuvers"], "Skill_Bonus_Combat_Maneuvers", "skill_bonus_to_ranks", skill_rank_count, "            ")
-				skill_inc_bonus = ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip			
-				skill_rank_count += ce_total			
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Combat_Maneuvers"], "Skill_Ranks_Combat_Maneuvers", "ranks_display", skill_rank_count, "            ")
-				skill_inc_ranks = ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip	
-				skill_rank_count += ce_total				
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Phantom_Ranks_Combat_Maneuvers"], "Skill_Phantom_Ranks_Combat_Maneuvers", "effect_display", 0, "            ")
-				skill_phantom += ce_total
-				skill_phantom_tooltip = ce_tooltip	
-				
-				if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-					skill_tooltip = "       %s  enhancive ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip
-					
-				cman_total = base_ranks_arr["Combat Maneuvers"] + skill_phantom + min(50, skill_inc_bonus+skill_inc_ranks)				
-				
-				if skill_phantom_tooltip != "":
-					skill_tooltip = "       %s  phantom ranks\n" % (("%+d" % skill_phantom).rjust(4)) + skill_phantom_tooltip + skill_tooltip
-				skill_tooltip = "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Combat Maneuvers"]).rjust(4)) + skill_tooltip
-				skill_tooltip = "  %s  Combat Maneuver ranks  (%s / 2)\n" % (("%+d" % (cman_total/2)).rjust(4), cman_total) + skill_tooltip
+				# Calculate Combat Maneuver ranks
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Combat Maneuvers", base_ranks_arr["Combat Maneuvers"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Combat_Maneuvers"], lists_of_effects_by_tag["Skill_Ranks_Combat_Maneuvers"], lists_of_effects_by_tag["Skill_Phantom_Ranks_Combat_Maneuvers"]], 
+												["Skill_Bonus_Combat_Maneuvers", "Skill_Ranks_Combat_Maneuvers", "Skill_Phantom_Ranks_Combat_Maneuvers"], 
+												"skill_bonus_to_ranks")
+
+				cman_total = base_ranks_arr["Combat Maneuvers"] + skill_rank_count		
+				skill_tooltip = "  %s  Combat Maneuver ranks  (%s / 2)\n" % (("%+d" % (cman_total/2)).rjust(4), cman_total) 		
+				skill_tooltip += "       %s  %s base ranks\n" % (("%+d" % base_ranks_arr["Combat Maneuvers"]).rjust(4), "Combat Maneuvers") 				
+				skill_tooltip += temp_tooltip				
 				
 					
 			# Calculate Weapon Skill bonus. Takes several weapons skills into account in the case of Katana, Katar, or similar
-			for skill in weapon_types:				
-				weapon_enhancive_bonus = 0
-				weapon_inc_bonus = 0															
-				
-				tag_name_sub = skill.replace(" ", "_").replace("-", "_").replace(",", "")																	
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_%s" % tag_name_sub], "Skill_Bonus_%s" % tag_name_sub,  "", 0, "            ")
-				weapon_inc_bonus = ce_total			
-				weapon_tooltip_text = ce_tooltip + weapon_tooltip_text
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_%s" % tag_name_sub], "Skill_Ranks_%s" % tag_name_sub,  "skill_ranks_to_bonus", base_bonus_arr[skill], "            ")
-				weapon_inc_bonus += ce_total			
-				weapon_tooltip_text = ce_tooltip + weapon_tooltip_text							
-						
-				weapon_enhancive_totals.append(base_bonus_arr[skill] + min(50, weapon_inc_bonus) )
+			for skill in weapon_types:		
+				tag_name_sub = skill.replace(" ", "_").replace("-", "_").replace(",", "")		
 
-				if weapon_inc_bonus > 0:
-					weapon_tooltip_text = "       %s  enhancive %s bonus (%s vs max +50)\n" % (("%+d" % min(50, weapon_inc_bonus)).rjust(4), skill, "%+d" % weapon_inc_bonus) + weapon_tooltip_text
-				weapon_tooltip_text = "       %s bonus from %s %s base ranks\n" % (("%+d" % base_bonus_arr[skill]).rjust(4), base_ranks_arr[skill], skill) + weapon_tooltip_text
-				combined_weapons_bonus += base_bonus_arr[skill] + min(50, weapon_inc_bonus) 
+				weapon_inc_bonus, temp_tooltip = self.Combine_Effects(i, skill, base_bonus_arr[skill], 
+												[lists_of_effects_by_tag["Skill_Bonus_%s" % tag_name_sub], lists_of_effects_by_tag["Skill_Ranks_%s" % tag_name_sub]], 
+												["Skill_Bonus_%s" % tag_name_sub, "Skill_Ranks_%s" % tag_name_sub], 
+												"skill_ranks_to_bonus")
+
+				weapon_enhancive_totals.append(base_bonus_arr[skill] + min(50, weapon_inc_bonus) )				
+				combined_weapons_bonus += base_bonus_arr[skill] + min(50, weapon_inc_bonus) 	
+				weapon_tooltip_text += "       %s bonus from %s %s base ranks\n" % (("%+d" % base_bonus_arr[skill]).rjust(4), base_ranks_arr[skill], skill) 
+				weapon_tooltip_text += temp_tooltip
 				
 			combined_weapons_bonus /= len(weapon_types)							
 
 			# In TWC mode, we need to calculate the TWC bonus
-			if twc_mode == 1:		
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Two_Weapon_Combat"], "Skill_Bonus_Two_Weapon_Combat",  "", 0, "            ")
-				weapon_inc_bonus = ce_total			
-				weapon_tooltip_text = ce_tooltip + weapon_tooltip_text
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Two_Weapon_Combat"], "Skill_Ranks_Two_Weapon_Combat",  "skill_ranks_to_bonus", weapon_inc_bonus, "            ")
-				twc_inc_bonus = ce_total			
-				weapon_tooltip_text = ce_tooltip + weapon_tooltip_text									
+			if twc_mode == 1:	
+				twc_inc_bonus, temp_tooltip = self.Combine_Effects(i, "Two Weapon Combat", base_ranks_arr["Two Weapon Combat"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Two_Weapon_Combat"], lists_of_effects_by_tag["Skill_Ranks_Two_Weapon_Combat"]], 
+												["Skill_Bonus_Two_Weapon_Combat", "Skill_Ranks_Two_Weapon_Combat"], 
+												"skill_ranks_to_bonus")
 
-				if twc_inc_bonus > 0:
-					weapon_tooltip_text = "       %s  enhancive Two Weapon Combat bonus (%s vs max +50)\n" % (("%+d" % min(50, twc_inc_bonus)).rjust(4), "%+d" % twc_inc_bonus) + weapon_tooltip_text
-				weapon_tooltip_text = "       %s bonus from %s Two Weapon Combat base ranks\n" % (("%+d" % base_bonus_arr["Two Weapon Combat"]).rjust(4), base_ranks_arr["Two Weapon Combat"]) + weapon_tooltip_text
-				combined_twc_bonus = base_bonus_arr["Two Weapon Combat"] + min(50, twc_inc_bonus) 		
-				
+				combined_twc_bonus = base_bonus_arr["Two Weapon Combat"] + min(50, twc_inc_bonus) 	
+				weapon_tooltip_text = "       %s bonus from %s Two Weapon Combat base ranks\n" % (("%+d" % base_bonus_arr["Two Weapon Combat"]).rjust(4), base_ranks_arr["Two Weapon Combat"]) + temp_tooltip + weapon_tooltip_text	
 				
 			
 			# Create the tooltip for the weapons part
@@ -1086,16 +1115,12 @@ class Progression_Panel:
 			weapon_tooltip_arr.append(weapon_tooltip_text)	
 
 			
-			# Calculate total of AS_All
-			ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["AS_All"], "AS_All",  "effect_display", 0, "       ")
-			effects_total = ce_total
-			effects_tooltip_text += ce_tooltip		
-			
-			# Calculate total AS_Bolt effects								
-			ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag[effect_type], effect_type,  "effect_display", 0, "       ")
-			effects_total += ce_total
-			effects_tooltip_text += ce_tooltip						
-			
+			# Calculate total of AS_All	and either AS_Melee, AS_Ranged, or AS_Bolt	
+			effects_total, effects_tooltip_text = self.Combine_Effects(i, "", 0, 
+											[lists_of_effects_by_tag["AS_All"], lists_of_effects_by_tag[effect_type]], 
+											["AS_All", effect_type], 
+											"effect_display")			
+
 			if effects_tooltip_text != "":
 					effects_tooltip_text = "  %s  bonus from Attack Strength effects\n" % (("%+d" % effects_total).rjust(4)) + effects_tooltip_text								
 						
@@ -1202,6 +1227,224 @@ class Progression_Panel:
 		self.graph_information.graph_ylabel = "Attack Strength"					
 	
 	
+	# Calculate the Unarmed Attack Factor (UAF) of the character from level 0-100 or across postcap training.
+	# Certain brawling weapons add their enhancement to UAF but this formula is pretty straight forwards otherwise.
+	def Formula_Unarmed_Attack_Factor(self, gloves, boots, main, other, calc_style):
+		effects_list = ["Statistic_Strength", "Statistic_Bonus_Strength", "Statistic_Agility", "Statistic_Bonus_Agility", 
+						"Skill_Bonus_Brawling", "Skill_Ranks_Brawling", "Skill_Bonus_Combat_Maneuvers", "Skill_Ranks_Combat_Maneuvers", "Skill_Phantom_Ranks_Combat_Maneuvers",
+						"UAF"]
+		statistic_names = ["Strength", "Agility"]
+		skill_names = ["Brawling", "Combat Maneuvers"]
+		gloves_enchantment = int(gloves.enchantment)
+		boots_enchantment = int(boots.enchantment)		
+		main_enchantment = 0
+		other_enchantment = 0
+		main_name = main.name.get()
+		other_name = other.name.get()
+		held_enchantment = 0
+		held_weapons = 0
+		
+		index = 0
+		loop_range = [i for i in range(101)]
+		base_stat_arr = {}
+		base_ranks_arr = {}
+		base_bonus_arr = {}
+		postcap_intervals = []
+		lists_of_effects_by_tag = {}		
+		gloves_totals = []
+		boots_totals = []
+			
+		# Setup the effects lists and td lists	
+		for stat in statistic_names:
+			effects_list.append("Statistic_Bonus_%s" % stat)
+			effects_list.append("Statistic_%s" % stat)
+
+			
+		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)				
+
+		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
+		if calc_style == 2:
+			last_interval = 7575000
+
+			for interval, training in globals.character.postcap_skill_training_by_interval.items():
+				last_interval = interval
+				
+			postcap_intervals.append(7572500)	
+			postcap_intervals.append(last_interval)				
+							
+			loop_range = postcap_intervals
+
+
+		# Begin the big loop to calculate all the data	
+		for i in loop_range:	
+			held_weapons = 0
+			stat_enh_bonus = 0
+			effects_total = 0
+			stat_enhancive_totals = {}
+			held_weapons_tooltip = ""
+			stat_tooltip_arr = {}
+			skill_tooltip_arr = {}
+			effects_tooltip_text = ""
+		
+			# Only a minor change depending on calc_style
+			# Get the base ranks and bonus for each relevant statistic and skill for this level/interval
+			if calc_style == 1:
+				tooltip = "Level %s: Unarmed Attack Factor\n" % (i)
+				for stat in statistic_names:				
+					base_stat_arr[stat] = globals.character.statistics_list[stat].bonuses_by_level[i].get()	
+				
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[i].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[i].get()		
+					
+			elif calc_style == 2:	
+				tooltip = "Postcap Experience Interval %s: Unarmed Attack Factor\n" % ("{:,}".format(i))
+				for stat in statistic_names:				
+					base_stat_arr[stat] = globals.character.statistics_list[stat].bonuses_by_level[100].get()	
+				
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[100].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[100].get()
+					
+					base_ranks_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Total_Ranks_Closest_To_Interval(i)
+					base_bonus_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Bonus_Closest_To_Interval(i)					
+		
+
+			# Calculate Statistic bonus	
+			for stat in statistic_names:
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, stat, 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], lists_of_effects_by_tag["Statistic_%s" % stat]], 
+												["Statistic_Bonus_%s" % stat, "Statistic_%s" % stat], 
+												"stat_inc_to_bonus")													
+
+				stat_enhancive_totals[stat] = int(base_stat_arr[stat] + min(50, stat_enh_bonus))
+				stat_tooltip_arr[stat] = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip		
+				stat_tooltip_arr[stat] = "  %s  %s bonus (%+d / 2)\n" % (("%+d" % (stat_enhancive_totals[stat]/2)).rjust(4), stat, stat_enhancive_totals[stat]) + stat_tooltip_arr[stat]			
+			
+			
+				
+			# Calculate Weapon Skill bonus. 
+			weapon_inc_bonus, temp_tooltip = self.Combine_Effects(i, "Brawling", base_bonus_arr["Brawling"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Brawling"], lists_of_effects_by_tag["Skill_Ranks_Brawling"]], 
+											["Skill_Bonus_Brawling", "Skill_Ranks_Brawling"], 
+											"skill_bonus_to_ranks")
+
+			brawling_total = base_ranks_arr["Brawling"] + min(50, weapon_inc_bonus)	
+			skill_tooltip_arr["Brawling"] = "  %s  Brawling ranks  (%s * 2)\n" % (("%+d" % (brawling_total*2)).rjust(4), brawling_total) 	
+			skill_tooltip_arr["Brawling"] += "       %s  Brawling base ranks\n" % (("%+d" % base_ranks_arr["Brawling"]).rjust(4)) 	
+			skill_tooltip_arr["Brawling"] += temp_tooltip
+			
+			
+			# Calculate Combat Maneuver ranks
+			skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Combat Maneuvers", base_ranks_arr["Combat Maneuvers"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Combat_Maneuvers"], lists_of_effects_by_tag["Skill_Ranks_Combat_Maneuvers"], lists_of_effects_by_tag["Skill_Phantom_Ranks_Combat_Maneuvers"]], 
+											["Skill_Bonus_Combat_Maneuvers", "Skill_Ranks_Combat_Maneuvers", "Skill_Phantom_Ranks_Combat_Maneuvers"], 
+											"skill_bonus_to_ranks")
+
+			cman_total = base_ranks_arr["Combat Maneuvers"] + skill_rank_count		
+			skill_tooltip_arr["Combat Maneuvers"] = "  %s  Combat Maneuver ranks  (%s / 2)\n" % (("%+d" % (cman_total/2)).rjust(4), cman_total) 		
+			skill_tooltip_arr["Combat Maneuvers"] += "       %s  Combat Maneuvers base ranks\n" % (("%+d" % base_ranks_arr["Combat Maneuvers"]).rjust(4)) 				
+			skill_tooltip_arr["Combat Maneuvers"] += temp_tooltip				
+			
+				
+	
+			# Calculate total of UAF effects
+			effects_total, effects_tooltip_text = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["UAF"]], ["UAF"], "effect_display")			
+
+			if effects_tooltip_text != "":
+					effects_tooltip_text = "  %s  bonus from UAF effects\n" % (("%+d" % effects_total).rjust(4)) + effects_tooltip_text				
+			
+			# Only certain weapons can be used with UAC. If held, allow their enchantments to be added into the formula.
+			if main_name == "Cestus" or main_name == "Knuckle-blade" or main_name == "Knuckle-duster" or main_name == "Paingrip" or main_name == "Razorpaw" or main_name == "Tiger-claw" or main_name == "Yierka-spur":
+				main_enchantment = int(main.enchantment)
+				held_weapons_tooltip += "       %+d  Enchantment bonus from %s\n" % (main_enchantment, main_name)
+				held_weapons += 1
+			if other_name == "Cestus" or other_name == "Knuckle-blade" or other_name == "Knuckle-duster" or other_name == "Paingrip" or other_name == "Razorpaw" or other_name == "Tiger-claw" or other_name == "Yierka-spur":
+				other_enchantment = int(other.enchantment)
+				held_weapons_tooltip += "       %+d  Enchantment bonus from %s\n" % (other_enchantment, other_name) 
+				held_weapons += 1			
+			
+			# If one or more of UAC weapon is being used, allow their enchantments to be included in the calculations.
+			if held_weapons != 0:
+				held_enchantment = math.floor(((main_enchantment + other_enchantment) / held_weapons) / 2)
+				held_weapons_tooltip = "  %s  Avg held UAC weapons bonus ((%d + %d) / %s) / 2)\n" % (("%+d" % held_enchantment).rjust(4), main_enchantment, other_enchantment, held_weapons) + held_weapons_tooltip
+			
+			
+			# Calculate the base value for UAC
+			base_value = int((stat_enhancive_totals["Strength"] / 2) + (stat_enhancive_totals["Agility"] / 2) + (brawling_total * 2) + math.floor(cman_total / 2) + held_enchantment + effects_total)
+			
+			# The glove and boot enchantments are calculated seperately. Boots work with Kick and gloves work with Jab/Punch/Grapple.
+			gloves_value = base_value + gloves_enchantment
+			boots_value = base_value + boots_enchantment
+			
+			gloves_totals.append(gloves_value)
+			boots_totals.append(boots_value)
+			
+		
+			# Create Tooltip info
+			tooltip += "%s = %s + %s (Jab/Punch/Grapple)\n" % (("%+d" % gloves_value).rjust(4), base_value, gloves_enchantment)
+			tooltip += "%s = %s + %s (Kick)\n" % (("%+d" % boots_value).rjust(4), base_value, boots_enchantment)
+			tooltip += "%s from enchantment bonus of %s\n" % (("%+d" % gloves_enchantment).rjust(4), gloves.name.get())
+			tooltip += "%s from enchantment bonus of %s\n" % (("%+d" % boots_enchantment).rjust(4), boots.name.get())
+			tooltip += "%+d calculated with:\n" % base_value
+			for stat in statistic_names:
+				tooltip += stat_tooltip_arr[stat]
+			for skill in skill_names:
+				tooltip += skill_tooltip_arr[skill]		
+			tooltip += held_weapons_tooltip
+			tooltip += effects_tooltip_text
+			
+			self.graph_information.tooltip_array.append(tooltip[:-1])	
+
+			index += 1
+					
+		
+		# Loop is done, set up the graph_infomation object		
+		self.graph_information.graph_ylabel = "Unarmed Attack Factor"	
+		if calc_style == 1:
+			self.graph_information.graph_xlabel = "Unarmed Attack Factor (UAF) per Level"
+			self.graph_information.graph_xaxis_rotation = 0
+			self.graph_information.graph_xlabel_size = 12
+			self.graph_information.graph_xaxis_size = 12
+			self.graph_information.graph_xaxis_tick_range = loop_range
+			self.graph_information.graph_xaxis_tick_labels = [0,10,20,30,40,50,60,70,80,90,100]		
+		elif calc_style == 2:
+			self.graph_information.graph_xlabel = "UAF per Postcap Experience Interval"
+			self.graph_information.graph_xaxis_rotation = 30
+			self.graph_information.graph_xlabel_size = 10
+			self.graph_information.graph_xaxis_size = 9			
+			self.graph_information.graph_xaxis_tick_range = [i for i in range(index)]
+			
+			if len(postcap_intervals) <= 10:
+				self.graph_information.graph_xaxis_tick_labels = [i for i in postcap_intervals]	
+			else:
+				temp = math.floor(len(postcap_intervals)/10)
+				i = 0
+								
+				for interval in postcap_intervals:
+					if i % temp == 0:
+						self.graph_information.graph_xaxis_tick_labels.append(interval)
+					i += 1			
+
+		# Append the completed lists to graph_infomation object
+		self.graph_information.graph_data_lists.append(gloves_totals)
+		self.graph_information.graph_data_lists.append(boots_totals)
+		
+		# Set the minimum height for the graph
+		ymin = min(gloves_totals[0], boots_totals[0])
+		ymax = max(gloves_totals[-1], boots_totals[-1])
+		self.graph_information.graph_yaxis_min = ymin - 5
+		self.graph_information.graph_yaxis_max = ymax + 5		
+
+		# Setup the Legend
+		self.graph_information.graph_num_lines = 2
+		self.graph_information.graph_legend_columns = 2
+		self.graph_information.graph_legend_labels.append("Jab/Punch/Grapple")
+		self.graph_information.graph_legend_styles.append("r^-")		
+		self.graph_information.graph_legend_labels.append("Kick")
+		self.graph_information.graph_legend_styles.append("bs-")
+	
+	
 	# This huge method is used to Defense Strength (DS) of a character from level 0-100 or across postcap training. 
 	# The user picks between melee and ranged defense and the DS is calculated depending on their gear's combat style.
 	# All three parts of the DS formula, Parry, Block, and Evade are calculated seperately and added up to show the
@@ -1233,6 +1476,10 @@ class Progression_Panel:
 		neu_stance = []
 		gua_stance = []
 		def_stance = []			
+		
+		stance_arr = ["Offensive", "Advanced", "Forward", "Neutral", "Guarded", "Defensive"]
+		block_stance_mod = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]	
+		evade_stance_mod = [0.75, 0.80, 0.85, 0.9, 0.95, 1.0]		
 		
 		# Setup the lists for what skills and stats are relavent for calculate DS by fighting style
 		if main_gear.name.get() == "Runestaff":
@@ -1286,9 +1533,12 @@ class Progression_Panel:
 
 			
 		# Evade DS setup
-		dodge_armor_hindrance = armor_gear.gear_traits["dodging_hindrance_factor"]	
-		effects_list.extend( ("Skill_Bonus_Dodging", "Skill_Ranks_Dodging", "Skill_Phantom_Ranks_Dodging") )
-		skill_names.append("Dodging")
+		dodge_armor_action_penalty = armor_gear.gear_traits["action_penalty"]	
+		armor_overtrain_ranks = int(armor_gear.gear_traits["roundtime_train_off_ranks"])
+		armor_AG = int(armor_gear.gear_traits["AG"])
+		
+		effects_list.extend( ("Skill_Bonus_Dodging", "Skill_Ranks_Dodging", "Skill_Phantom_Ranks_Dodging", "Skill_Bonus_Armor_Use", "Skill_Ranks_Armor_Use", "Action_Penalty") )
+		skill_names.extend( ("Dodging", "Armor Use") )
 		
 		
 		if vs_type == "Melee":
@@ -1332,8 +1582,6 @@ class Progression_Panel:
 
 		# Begin the big loop to calculate all the data	
 		for i in loop_range:	
-			skill_phantom = 0
-			skill_inc_ranks = 0
 			skill_inc_bonus = 0		
 			skill_rank_count = 0
 			effects_total = 0
@@ -1343,7 +1591,6 @@ class Progression_Panel:
 			stat_enhancive_totals = {}
 			stat_tooltip_arr = {}
 			skill_tooltip_arr = {}			
-			skill_phantom_tooltip = ""
 			skill_tooltip = ""
 			weapon_tooltip_text = ""
 			effects_tooltip_text = ""
@@ -1381,21 +1628,14 @@ class Progression_Panel:
 
 			# Calculate Statistic bonus	
 			for stat in statistic_names:
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], "Statistic_Bonus_%s" % stat, "", 0, "            ")
-				stat_enh_bonus = ce_total
-				stat_tooltip_text = ce_tooltip
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_%s" % stat], "Statistic_%s" % stat, "stat_inc_to_bonus", 0, "            ")
-				stat_enh_bonus += ce_total
-				stat_tooltip_text = ce_tooltip + stat_tooltip_text				
-				
-				stat_enhancive_totals[stat] = base_stat_arr[stat] + min(50, stat_enh_bonus)				
-				
-				if stat_enh_bonus > 0:
-					stat_tooltip_text = "       %s  enhancive %s bonus (%s vs max +20)\n" % (("%+d" % min(20, stat_enh_bonus)).rjust(4), stat, "%+d" % (stat_enh_bonus)) + stat_tooltip_text
-				stat_tooltip_text = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + stat_tooltip_text						
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, stat, 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], lists_of_effects_by_tag["Statistic_%s" % stat]], 
+												["Statistic_Bonus_%s" % stat, "Statistic_%s" % stat], 
+												"stat_inc_to_bonus")													
+
+				stat_enhancive_totals[stat] = base_stat_arr[stat] + min(50, stat_enh_bonus)		
+				stat_tooltip_text = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip	
 				stat_tooltip_arr[stat] = stat_tooltip_text
-								
 						
 
 			# Calculate Parry DS	
@@ -1404,23 +1644,17 @@ class Progression_Panel:
 				for skill in skill_names:		
 					if skill == "Dodging" or skill == "Two Weapon Combat":
 						continue
-												
-					tag_name_sub = skill.replace(" ", "_").replace("-", "_").replace(",", "")																	
-					
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_%s" % tag_name_sub], "Skill_Bonus_%s" % tag_name_sub,  "skill_bonus_to_ranks", base_ranks_arr[skill], "            ")
-					skill_inc_bonus = ce_total			
-					weapon_tooltip_text = ce_tooltip 
-					
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_%s" % tag_name_sub], "Skill_Ranks_%s" % tag_name_sub,  "", base_ranks_arr[skill]+ce_total, "            ")
-					skill_inc_bonus += ce_total			
-					weapon_tooltip_text = ce_tooltip + weapon_tooltip_text							
-							
-					weapon_enhancive_totals.append(base_ranks_arr[skill] + min(50, skill_inc_bonus) )
 
-					if skill_inc_bonus > 0:
-						weapon_tooltip_text = "       %s  enhancive %s bonus (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus)).rjust(4), skill, "%+d" % skill_inc_bonus) + weapon_tooltip_text
-					weapon_tooltip_text = "       %s %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), skill) + weapon_tooltip_text
-					combined_weapons_ranks += base_ranks_arr[skill] + min(50, skill_inc_bonus) 
+					tag_name_sub = skill.replace(" ", "_").replace("-", "_").replace(",", "")		
+					weapon_inc_bonus, temp_tooltip = self.Combine_Effects(i, skill, base_ranks_arr[skill], 
+													[lists_of_effects_by_tag["Skill_Bonus_%s" % tag_name_sub], lists_of_effects_by_tag["Skill_Ranks_%s" % tag_name_sub]], 
+													["Skill_Bonus_%s" % tag_name_sub, "Skill_Ranks_%s" % tag_name_sub], 
+													"skill_bonus_to_ranks")
+
+					weapon_enhancive_totals.append(base_ranks_arr[skill] + min(50, weapon_inc_bonus))		
+					combined_weapons_ranks += base_ranks_arr[skill] + min(50, weapon_inc_bonus) 
+					weapon_tooltip_text = "       %s bonus from %s %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), base_ranks_arr[skill], skill) 
+					weapon_tooltip_text += temp_tooltip				
 					skill_tooltip_arr[skill] = weapon_tooltip_text	
 
 				
@@ -1436,8 +1670,7 @@ class Progression_Panel:
 						parry_ranks = int(math.floor( runestaff_rank_conversions[conversion_rate] * i ))
 					else:
 						conversion_rate = min(16, combined_weapons_ranks)
-						parry_ranks = int(math.floor( runestaff_rank_conversions[conversion_rate] ))
-						
+						parry_ranks = int(math.floor( runestaff_rank_conversions[conversion_rate] ))						
 
 
 					parry_tooltip_text = "--Parry DS by Stance--\n"			
@@ -1445,7 +1678,6 @@ class Progression_Panel:
 
 					stance_mod = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]			 	
 					stance_bonus = [0, 10, 20, 30, 40, 50]
-					stance_arr = ["Offensive", "Advanced", "Forward", "Neutral", "Guarded", "Defensive"]
 					for j in range(6):
 						value = math.floor(parry_base_value * stance_mod[j])
 						value = math.floor(value * 1.5)
@@ -1475,9 +1707,9 @@ class Progression_Panel:
 						if skill == "Dodging" or skill == "Two Weapon Combat":
 							continue
 						parry_tooltip_text += skill_tooltip_arr[skill]
-					parry_tooltip_text += "  %s    Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
+					parry_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
 					parry_tooltip_text += stat_tooltip_arr["Strength"]		
-					parry_tooltip_text += "  %s    Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
+					parry_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
 					parry_tooltip_text += stat_tooltip_arr["Dexterity"]		
 					if vs_type == "Melee":
 						parry_tooltip_text += "  %s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(3), main_gear.name.get())	
@@ -1485,68 +1717,45 @@ class Progression_Panel:
 						parry_tooltip_text += "  %s  Enchantment bonus of %s  (%d / 2)\n" % (("%+d" % int(math.floor(main_enchantment/2))).rjust(3), main_gear.name.get(), main_enchantment)		
 						
 			# Ranged Parry DS	
-			elif weapon_types[0] == "Ranged Weapons":				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Ranged_Weapons"], "Skill_Bonus_Ranged_Weapons",  "", 0, "            ")
-				skill_inc_bonus = ce_total			
-				weapon_tooltip_text = ce_tooltip + weapon_tooltip_text
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Ranged_Weapons"], "Skill_Ranks_Ranged_Weapons",  "skill_ranks_to_bonus", base_bonus_arr["Ranged Weapons"], "            ")
-				skill_inc_bonus += ce_total			
-				weapon_tooltip_text = ce_tooltip + weapon_tooltip_text							
-						
+			elif weapon_types[0] == "Ranged Weapons":	
+				skill_inc_bonus, weapon_tooltip_text = self.Combine_Effects(i, "Ranged Weapons", base_ranks_arr["Ranged Weapons"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Ranged_Weapons"], lists_of_effects_by_tag["Skill_Ranks_Ranged_Weapons"]], 
+												["Skill_Bonus_Ranged_Weapons", "Skill_Ranks_Ranged_Weapons"], 
+												"skill_ranks_to_bonus")
+
+				weapons_bonus = base_bonus_arr["Ranged Weapons"] + min(50, skill_inc_bonus) 
 				weapon_enhancive_totals.append(base_bonus_arr["Ranged Weapons"] + min(50, skill_inc_bonus) )
-
-				if skill_inc_bonus > 0:
-					weapon_tooltip_text = "       %s  enhancive Ranged Weapons bonus (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus)).rjust(4), "%+d" % skill_inc_bonus) + weapon_tooltip_text
-				weapon_tooltip_text = "       %s bonus from %s Ranged Weapons base ranks\n" % (("%+d" % base_bonus_arr["Ranged Weapons"]).rjust(4), base_ranks_arr["Ranged Weapons"]) + weapon_tooltip_text
-				weapons_bonus = base_bonus_arr["Ranged Weapons"] + min(50, skill_inc_bonus) 				
+				
+				weapon_tooltip_text = "       %s bonus from %s Ranged Weapons base ranks\n" % (("%+d" % base_bonus_arr["Ranged Weapons"]).rjust(4), base_ranks_arr["Ranged Weapons"]) 
+				weapon_tooltip_text += "       %s  Ranged Weapons base ranks\n" % (("%+d" % base_ranks_arr["Ranged Weapons"]).rjust(4)) 
+				weapon_tooltip_text += temp_tooltip		
 				weapon_tooltip_text = "  %s  %s skill bonus\n" % (("%+d" % weapons_bonus).rjust(4), weapon_types[0]) + weapon_tooltip_text
-				
 
-				# Calculate Perception ranks
-				skill_rank_count = base_ranks_arr["Perception"]			
 				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Perception"], "Skill_Bonus_Perception", "skill_bonus_to_ranks", skill_rank_count, "            ")
-				skill_inc_bonus = ce_total
-				skill_tooltip = ce_tooltip
-				skill_rank_count += ce_total			
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Perception"], "Skill_Ranks_Perception", "ranks_display", skill_rank_count, "            ")
-				skill_inc_ranks += ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip
-						
-				
-				if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-					skill_tooltip = "       %s  enhancive Perception ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip
-					
-				perception_total = base_ranks_arr["Perception"] + min(50, skill_inc_bonus+skill_inc_ranks)		
-				skill_tooltip = "       %s  Perception base ranks\n" % (("%+d" % base_ranks_arr["Perception"]).rjust(4)) + skill_tooltip										
-
-				skill_tooltip = "  %s  Perception ranks  (%s / 2)\n" % (("%+d" % ( math.floor(perception_total / 2 ) ) ).rjust(4), perception_total) + skill_tooltip
-				skill_tooltip_arr["Perception"] = skill_tooltip				
-	
-	
 				# Calculate Ambush ranks
-				skill_rank_count = base_ranks_arr["Ambush"]		
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Ambush"], "Skill_Bonus_Ambush", "skill_bonus_to_ranks", skill_rank_count, "            ")
-				skill_inc_bonus = ce_total
-				skill_tooltip = ce_tooltip	
-				skill_rank_count += ce_total			
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Ambush", base_ranks_arr["Ambush"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Ambush"], lists_of_effects_by_tag["Skill_Ranks_Ambush"]], 
+												["Skill_Bonus_Ambush", "Skill_Ranks_Ambush"], 
+												"skill_bonus_to_ranks")
+
+				ambush_total = base_ranks_arr["Ambush"] + min(50, skill_rank_count)		
+				skill_tooltip = "  %s  Ambush ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((ambush_total - 40) / 4) )) ).rjust(4), ambush_total) 		
+				skill_tooltip += "       %s  Ambush base ranks\n" % (("%+d" % base_ranks_arr["Ambush"]).rjust(4)) 
+				skill_tooltip += temp_tooltip		
+				skill_tooltip_arr["Ambush"] = skill_tooltip					
 				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Ambush"], "Skill_Ranks_Ambush", "ranks_display", skill_rank_count, "            ")
-				skill_inc_ranks += ce_total
-				skill_tooltip = ce_tooltip + skill_tooltip						
-						
 				
-				if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-					skill_tooltip = "       %s  enhancive Ambush ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip
-					
-				ambush_total = base_ranks_arr["Ambush"] + min(50, skill_inc_bonus+skill_inc_ranks)			
-				skill_tooltip = "       %s  Ambush base ranks\n" % (("%+d" % base_ranks_arr["Ambush"]).rjust(4)) + skill_tooltip			
-				
-				skill_tooltip = "  %s  Ambush ranks  (%s / 2)\n" % (("%+d" % ( math.floor((ambush_total / 2) )) ).rjust(4), ambush_total) + skill_tooltip	
-				skill_tooltip_arr["Ambush"] = skill_tooltip		
+				# Calculate Perception ranks
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Perception", base_ranks_arr["Perception"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Perception"], lists_of_effects_by_tag["Skill_Ranks_Perception"]], 
+												["Skill_Bonus_Perception", "Skill_Ranks_Perception"], 
+												"skill_bonus_to_ranks")
+
+				perception_total = base_ranks_arr["Perception"] + min(50, skill_rank_count)		
+				skill_tooltip = "  %s  Perception ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((perception_total - 40) / 4) )) ).rjust(4), perception_total)			
+				skill_tooltip += "       %s  Perception base ranks\n" % (("%+d" % base_ranks_arr["Perception"]).rjust(4)) 
+				skill_tooltip += temp_tooltip	
+				skill_tooltip_arr["Perception"] = skill_tooltip	
 
 
 
@@ -1565,7 +1774,6 @@ class Progression_Panel:
 					else:
 						stance_mod = [0.15, 0.21, 0.27, 0.33, 0.39, 0.45]	
 					stance_bonus = [0, 10, 20, 30, 40, 50]
-					stance_arr = ["Offensive", "Advanced", "Forward", "Neutral", "Guarded", "Defensive"]
 					for j in range(6):
 						if vs_type == "Melee":
 							value = math.floor(parry_base_value * stance_mod[j]) + stance_bonus[j]
@@ -1590,23 +1798,20 @@ class Progression_Panel:
 			
 			# THW Parry DS
 			elif weapon_types[0] == "Two-Handed Weapons" or (weapon_types[0] == "Polearm Weapons" and (main_gear.name.get() != "Pilum" and main_gear.name.get() != "Spear, One-Handed")):
-				tag_name_sub = weapon_types[0].replace(" ", "_").replace("-", "_").replace(",", "")
+				tag_name_sub = weapon_types[0].replace(" ", "_").replace("-", "_").replace(",", "")		
 				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_%s" % tag_name_sub], "Skill_Bonus_%s" % tag_name_sub,  "", 0, "            ")
-				skill_inc_bonus = ce_total			
-				weapon_tooltip_text = ce_tooltip + weapon_tooltip_text
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_%s" % tag_name_sub], "Skill_Ranks_%s" % tag_name_sub,  "skill_ranks_to_bonus", base_bonus_arr[weapon_types[0]], "            ")
-				skill_inc_bonus += ce_total			
-				weapon_tooltip_text = ce_tooltip + weapon_tooltip_text							
-						
-				weapon_enhancive_totals.append(base_bonus_arr[weapon_types[0]] + min(50, skill_inc_bonus) )
+				weapon_inc_bonus, temp_tooltip = self.Combine_Effects(i, weapon_types[0], base_bonus_arr[weapon_types[0]], 
+												[lists_of_effects_by_tag["Skill_Bonus_%s" % tag_name_sub], lists_of_effects_by_tag["Skill_Ranks_%s" % tag_name_sub]], 
+												["Skill_Bonus_%s" % tag_name_sub, "Skill_Ranks_%s" % tag_name_sub], 
+												"skill_ranks_to_bonus")
 
-				if skill_inc_bonus > 0:
-					weapon_tooltip_text = "       %s  enhancive %s bonus (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus)).rjust(4), weapon_types[0], "%+d" % skill_inc_bonus) + weapon_tooltip_text
-				weapon_tooltip_text = "       %s bonus from %s %s base ranks\n" % (("%+d" % base_bonus_arr[weapon_types[0]]).rjust(4), base_ranks_arr[weapon_types[0]], weapon_types[0]) + weapon_tooltip_text
+				weapon_enhancive_totals.append(base_bonus_arr[weapon_types[0]] + min(50, weapon_inc_bonus))		
+				combined_weapons_ranks += base_bonus_arr[weapon_types[0]] + min(50, skill_inc_bonus) 
+				weapon_tooltip_text = "       %s bonus from %s %s base ranks\n" % (("%+d" % base_bonus_arr[weapon_types[0]]).rjust(4), base_ranks_arr[weapon_types[0]], weapon_types[0]) 
+				weapon_tooltip_text += temp_tooltip			
 				weapons_bonus = base_bonus_arr[weapon_types[0]] + min(50, skill_inc_bonus) 				
 				weapon_tooltip_text = "  %s  %s skill bonus\n" % (("%+d" % weapons_bonus).rjust(4), weapon_types[0]) + weapon_tooltip_text				
+					
 			
 				# No skill, no parry DS
 				if weapons_bonus == 0:
@@ -1624,7 +1829,6 @@ class Progression_Panel:
 					else:
 						stance_mod = [0.27, 0.41, 0.54, 0.68, 0.81, 0.94]			 	
 						stance_bonus = [15, 28, 41, 54, 67, 80]
-					stance_arr = ["Offensive", "Advanced", "Forward", "Neutral", "Guarded", "Defensive"]
 					for j in range(6):
 						if vs_type == "Melee":
 							value = math.floor(parry_base_value * stance_mod[j]) + stance_bonus[j]
@@ -1641,36 +1845,29 @@ class Progression_Panel:
 
 					parry_tooltip_text += "%+d (Parry Base Value) calculated with:\n" % parry_base_value		
 					parry_tooltip_text += weapon_tooltip_text	
-					parry_tooltip_text += "  %s    Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
+					parry_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
 					parry_tooltip_text += stat_tooltip_arr["Strength"]		
-					parry_tooltip_text += "  %s    Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
+					parry_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
 					parry_tooltip_text += stat_tooltip_arr["Dexterity"]		
 					parry_tooltip_text += "  %s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(3), main_gear.name.get())		
 			
 			# Every other weapon for Parry DS (one handed and possible off-hand)
 			else:			
 				for skill in weapon_types:			
-					weapon_inc_bonus = 0															
-					
-					tag_name_sub = skill.replace(" ", "_").replace("-", "_").replace(",", "")																	
-					
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_%s" % tag_name_sub], "Skill_Bonus_%s" % tag_name_sub,  "skill_bonus_to_ranks", 0, "            ")
-					weapon_inc_bonus = ce_total			
-					weapon_tooltip_text = ce_tooltip + weapon_tooltip_text
-					
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_%s" % tag_name_sub], "Skill_Ranks_%s" % tag_name_sub,  "", base_ranks_arr[skill]+weapon_inc_bonus, "            ")
-					weapon_inc_bonus += ce_total			
-					weapon_tooltip_text = ce_tooltip + weapon_tooltip_text							
-							
-					weapon_enhancive_totals.append(base_ranks_arr[skill] + min(50, weapon_inc_bonus) )
 
-					if weapon_inc_bonus > 0:
-						weapon_tooltip_text = "       %s  enhancive %s bonus (%s vs max +50)\n" % (("%+d" % min(50, weapon_inc_bonus)).rjust(4), skill, "%+d" % weapon_inc_bonus) + weapon_tooltip_text
+					tag_name_sub = skill.replace(" ", "_").replace("-", "_").replace(",", "")		
+
+					weapon_inc_bonus, temp_tooltip = self.Combine_Effects(i, skill, base_bonus_arr[skill], 
+													[lists_of_effects_by_tag["Skill_Bonus_%s" % tag_name_sub], lists_of_effects_by_tag["Skill_Ranks_%s" % tag_name_sub]], 
+													["Skill_Bonus_%s" % tag_name_sub, "Skill_Ranks_%s" % tag_name_sub], 
+													"skill_bonus_to_ranks")
+
+					weapon_enhancive_totals.append(base_ranks_arr[skill] + min(50, weapon_inc_bonus) )				
+					combined_weapons_bonus += base_ranks_arr[skill] + min(50, weapon_inc_bonus) 	
 					weapon_tooltip_text = "       %s %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), skill) + weapon_tooltip_text
-					combined_weapons_bonus += base_ranks_arr[skill] + min(50, weapon_inc_bonus) 
-						
-				combined_weapons_bonus /= len(weapon_types)					
-
+					weapon_tooltip_text += temp_tooltip
+					
+				combined_weapons_bonus /= len(weapon_types)		
 
 				if len(weapon_types) > 1:	
 					mutli_tooltip = ""
@@ -1695,12 +1892,10 @@ class Progression_Panel:
 						
 					# Main Hand Parry DS calculations				
 					parry_tooltip_text = "--Parry DS by Stance--\n"			
-					parry_base_value = int(combined_weapons_bonus + math.floor(stat_enhancive_totals["Strength"]/4) + math.floor(stat_enhancive_totals["Dexterity"]/4))+ int(math.floor(enchantment/2))
-					
+					parry_base_value = int(combined_weapons_bonus + math.floor(stat_enhancive_totals["Strength"]/4) + math.floor(stat_enhancive_totals["Dexterity"]/4))+ int(math.floor(enchantment/2))					
 					
 					stance_mod = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]			 	
 					stance_bonus = [0, 10, 20, 30, 40, 50]
-					stance_arr = ["Offensive", "Advanced", "Forward", "Neutral", "Guarded", "Defensive"]
 					for j in range(6):
 						value = math.floor(parry_base_value * stance_mod[j]) + stance_bonus[j]
 						
@@ -1717,31 +1912,26 @@ class Progression_Panel:
 
 					parry_tooltip_text += "%+d (Parry Base Value) calculated with:\n" % parry_base_value		
 					parry_tooltip_text += weapon_tooltip_text	
-					parry_tooltip_text += "  %s    Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
+					parry_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
 					parry_tooltip_text += stat_tooltip_arr["Strength"]		
-					parry_tooltip_text += "  %s    Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
+					parry_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
 					parry_tooltip_text += stat_tooltip_arr["Dexterity"]		
 					parry_tooltip_text += "  %s  Enchantment bonus of %s  (%+d / 2)\n" % (("%+d" % int(math.floor(enchantment/2))).rjust(3), parry_weapon.name.get(), enchantment)	
 			
 			
 				# Checked for off-hand Parry. If not using a shield		
 				if shield_factor == 1:	
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Two_Weapon_Combat"], "Skill_Bonus_Two_Weapon_Combat",  "skill_bonus_to_ranks", 0, "            ")
-					weapon_inc_bonus = ce_total			
-					off_hand_tooltip_text = ce_tooltip + off_hand_tooltip_text
-					
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Two_Weapon_Combat"], "Skill_Ranks_Two_Weapon_Combat",  "", base_ranks_arr["Two Weapon Combat"]+weapon_inc_bonus, "            ")
-					weapon_inc_bonus += ce_total			
-					off_hand_tooltip_text = ce_tooltip + off_hand_tooltip_text							
-							
-					weapon_enhancive_totals.append(base_ranks_arr["Two Weapon Combat"] + min(50, weapon_inc_bonus) )
-
-					if weapon_inc_bonus > 0:
-						off_hand_tooltip_text = "       %s  enhancive Two Weapon Combat bonus (%s vs max +50)\n" % (("%+d" % min(50, weapon_inc_bonus)).rjust(4), "%+d" % weapon_inc_bonus) + off_hand_tooltip_text
+					weapon_inc_bonus, off_hand_tooltip_text = self.Combine_Effects(i, "Two Weapon Combat", base_ranks_arr["Two Weapon Combat"], 
+													[lists_of_effects_by_tag["Skill_Bonus_Two_Weapon_Combat"], lists_of_effects_by_tag["Skill_Ranks_Two_Weapon_Combat"]], 
+													["Skill_Bonus_Two_Weapon_Combat", "Skill_Ranks_Two_Weapon_Combat"], 
+													"skill_bonus_to_ranks")
+													
+					weapons_bonus = base_ranks_arr["Two Weapon Combat"] + min(50, weapon_inc_bonus) 
+					weapon_enhancive_totals.append(weapons_bonus)	
 					off_hand_tooltip_text = "       %s Two Weapon Combat base ranks\n" % (("%+d" % base_ranks_arr["Two Weapon Combat"]).rjust(4)) + off_hand_tooltip_text
-					weapons_bonus = base_ranks_arr["Two Weapon Combat"] + min(50, weapon_inc_bonus) 	
 					off_hand_tooltip_text = "  %s  Two Weapon Combat ranks\n" % (("%+d" % weapons_bonus).rjust(4)) + off_hand_tooltip_text
 					skill_tooltip_arr["Two Weapon Combat"] = off_hand_tooltip_text	
+					
 
 					# No skill bonus, no off-hand parry DS
 					if weapons_bonus == 0:
@@ -1757,7 +1947,6 @@ class Progression_Panel:
 							bonus = 15
 						else:
 							bonus = 5
-						stance_arr = ["Offensive", "Advanced", "Forward", "Neutral", "Guarded", "Defensive"]
 						for j in range(6):
 							value = math.floor(parry_base_value * stance_mod[j]) + bonus
 							
@@ -1774,9 +1963,9 @@ class Progression_Panel:
 
 						off_hand_tooltip_text += "%+d (Off-Hand Parry Base Value) calculated with:\n" % parry_base_value		
 						off_hand_tooltip_text += skill_tooltip_arr["Two Weapon Combat"]
-						off_hand_tooltip_text += "  %s    Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
+						off_hand_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
 						off_hand_tooltip_text += stat_tooltip_arr["Strength"]		
-						off_hand_tooltip_text += "  %s    Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
+						off_hand_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
 						off_hand_tooltip_text += stat_tooltip_arr["Dexterity"]		
 						off_hand_tooltip_text += "  %s  Enchantment bonus of %s  (%+d / 2)\n" % (("%+d" % int(math.floor(other_enchantment/2))).rjust(3), other_hand_gear.name.get(), other_enchantment)				
 					
@@ -1787,37 +1976,27 @@ class Progression_Panel:
 				shield_tooltip_text = "--Block DS by Stance--\n+0 Block DS.  Character is not using a shield.\n"
 				shield_totals_arr = [0 for i in range(6)]	
 			else:
-				skill_rank_count = base_ranks_arr["Shield Use"]	
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Shield_Use"], "Skill_Bonus_Shield_Use", "skill_bonus_to_ranks", skill_rank_count, "            ")
-				skill_inc_bonus += ce_total
-				skill_tooltip_arr["Shield Use"] = ce_tooltip		
-				skill_rank_count += ce_total			
-						
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Shield_Use"], "Skill_Ranks_Shield_Use", "ranks_display", skill_rank_count, "            ")
-				skill_inc_ranks += ce_total
-				skill_tooltip_arr["Shield Use"] = ce_tooltip + skill_tooltip_arr["Shield Use"]	
-										
-				if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-					skill_tooltip_arr["Shield Use"] = "       %s  enhancive ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip_arr["Shield Use"]
-					
-				shield_total = base_ranks_arr["Shield Use"] + min(50, skill_inc_bonus+skill_inc_ranks)				
-				
-				skill_tooltip_arr["Shield Use"] = "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Shield Use"]).rjust(4)) + skill_tooltip_arr["Shield Use"]
-				skill_tooltip_arr["Shield Use"] = "  %s  Shield Use ranks  \n" % (("%+d" % shield_total).rjust(4)) + skill_tooltip_arr["Shield Use"]			
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Shield Use", base_ranks_arr["Shield Use"], 
+												[lists_of_effects_by_tag["Skill_Bonus_Shield_Use"], lists_of_effects_by_tag["Skill_Ranks_Shield_Use"]], 
+												["Skill_Bonus_Shield_Use", "Skill_Ranks_Shield_Use"], 
+												"skill_bonus_to_ranks")
+												
+				shield_total = base_ranks_arr["Shield Use"] + min(50, skill_rank_count)	
+
+				skill_tooltip_arr["Shield Use"] = "  %s  Shield Use ranks  \n" % (("%+d" % shield_total).rjust(4)) 
+				skill_tooltip_arr["Shield Use"] += "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Shield Use"]).rjust(4))
+				skill_tooltip_arr["Shield Use"] += temp_tooltip			
 				
 				
 				# Block DS calculations				
 				shield_tooltip_text = "--Block DS by Stance--\n"			
 				shield_base_value = int(shield_total + math.floor(stat_enhancive_totals["Strength"]/4) + math.floor(stat_enhancive_totals["Dexterity"]/4))	
-				
-				stance_mod = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]					
-				stance_arr = ["Offensive", "Advanced", "Forward", "Neutral", "Guarded", "Defensive"]
+								
 				for j in range(6):
 					if vs_type == "Melee":
-						value = math.floor(shield_base_value * shield_melee_size_modifer * stance_mod[j])
+						value = math.floor(shield_base_value * shield_melee_size_modifer * block_stance_mod[j])
 					else:
-						value = math.floor((math.floor(shield_base_value * shield_ranged_size_modifer) + shield_ranged_size_bonus) * stance_mod[j])
+						value = math.floor((math.floor(shield_base_value * shield_ranged_size_modifer) + shield_ranged_size_bonus) * block_stance_mod[j])
 
 					value = int(math.floor(value / 1.5))
 					value += 20 + other_enchantment
@@ -1825,15 +2004,15 @@ class Progression_Panel:
 					shield_totals_arr.append(value)		
 					
 					if vs_type == "Melee":		
-						shield_tooltip_text += "%+d = %s  x  %.2f  x  %s  /  1.5  +  20  + %s  (%s)\n" % (value, shield_base_value, shield_melee_size_modifer, stance_mod[j], other_enchantment, stance_arr[j]) 
+						shield_tooltip_text += "%+d = %s  x  %.2f  x  %s  /  1.5  +  20  + %s  (%s)\n" % (value, shield_base_value, shield_melee_size_modifer, block_stance_mod[j], other_enchantment, stance_arr[j]) 
 					else:
-						shield_tooltip_text += "%+d = (%s  x  %.2f  +  %s)  x  %s  /  1.5  +  20  + %s  (%s)\n" % (value, shield_base_value, shield_ranged_size_modifer, shield_ranged_size_bonus, stance_mod[j], other_enchantment, stance_arr[j]) 
+						shield_tooltip_text += "%+d = (%s  x  %.2f  +  %s)  x  %s  /  1.5  +  20  + %s  (%s)\n" % (value, shield_base_value, shield_ranged_size_modifer, shield_ranged_size_bonus, block_stance_mod[j], other_enchantment, stance_arr[j]) 
 				
 				shield_tooltip_text += "%+d (Shield Base Value) calculated with:\n" % shield_base_value			
 				shield_tooltip_text += skill_tooltip_arr["Shield Use"]		
-				shield_tooltip_text += "  %s    Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])
+				shield_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])
 				shield_tooltip_text += stat_tooltip_arr["Strength"]		
-				shield_tooltip_text += "  %s    Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])	
+				shield_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])	
 				shield_tooltip_text += stat_tooltip_arr["Dexterity"]	
 				if vs_type == "Melee":		
 					shield_tooltip_text += "%+.2f (Melee Shield Size Modifier) calculated with:\n" % shield_melee_size_modifer		
@@ -1851,66 +2030,76 @@ class Progression_Panel:
 			# Calculate Evade DS
 			
 			# Calculate Dodging ranks
-			skill_rank_count = base_ranks_arr["Dodging"]	
-					
-			ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Bonus_Dodging"], "Skill_Bonus_Dodging", "skill_bonus_to_ranks", skill_rank_count, "            ")
-			skill_inc_bonus = ce_total
-			skill_tooltip_arr["Dodging"] = ce_tooltip		
-			skill_rank_count += ce_total			
-					
-			ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Ranks_Dodging"], "Skill_Ranks_Dodging", "ranks_display", skill_rank_count, "            ")
-			skill_inc_ranks = ce_total
-			skill_tooltip_arr["Dodging"] = ce_tooltip + skill_tooltip_arr["Dodging"]	
-			skill_rank_count += ce_total				
-					
-			ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Skill_Phantom_Ranks_Dodging"], "Skill_Phantom_Ranks_Dodging", "effect_display", 0, "            ")
-			skill_phantom = ce_total
-			phantom_tooltip_text = ce_tooltip	
-			
-			if skill_inc_ranks > 0 or skill_inc_bonus > 0:
-				skill_tooltip_arr["Dodging"] = "       %s  enhancive ranks (%s vs max +50)\n" % (("%+d" % min(50, skill_inc_bonus+skill_inc_ranks)).rjust(4), "%+d" % (skill_inc_bonus+skill_inc_ranks)) + skill_tooltip_arr["Dodging"]
-				
-			dodge_total = base_ranks_arr["Dodging"] + skill_phantom + min(50, skill_inc_bonus+skill_inc_ranks)				
-			
-			if phantom_tooltip_text != "":
-				skill_tooltip_arr["Dodging"] = "       %s  phantom ranks\n" % (("%+d" % skill_phantom).rjust(4)) + phantom_tooltip_text + skill_tooltip_arr["Dodging"]
-			skill_tooltip_arr["Dodging"] = "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Dodging"]).rjust(4)) + skill_tooltip_arr["Dodging"]
-			skill_tooltip_arr["Dodging"] = "  %s  Dodging ranks\n" % (("%+d" % dodge_total).rjust(4)) + skill_tooltip_arr["Dodging"]
+			skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Dodging", base_ranks_arr["Dodging"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Dodging"], lists_of_effects_by_tag["Skill_Ranks_Dodging"], lists_of_effects_by_tag["Skill_Phantom_Ranks_Dodging"]], 
+											["Skill_Bonus_Dodging", "Skill_Ranks_Dodging", "Skill_Phantom_Ranks_Dodging"], 
+											"skill_bonus_to_ranks")
 
+			dodge_total = base_ranks_arr["Dodging"] + skill_rank_count
+			skill_tooltip_arr["Dodging"] = "  %s  Dodging ranks\n" % (("%+d" % dodge_total).rjust(4))		
+			skill_tooltip_arr["Dodging"] += "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Dodging"]).rjust(4))
+			skill_tooltip_arr["Dodging"] += temp_tooltip	
+
+			
+			# Calculate Armor Use ranks 
+			skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Armor Use", base_ranks_arr["Armor Use"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Armor_Use"], lists_of_effects_by_tag["Skill_Ranks_Armor_Use"]], 
+											["Skill_Bonus_Armor_Use", "Skill_Ranks_Armor_Use"], 
+											"skill_bonus_to_ranks")
+			armor_total = base_ranks_arr["Armor Use"] + skill_rank_count
+			skill_tooltip_arr["Armor Use"] = "  %s  Armor Use ranks\n" % (("%+d" % armor_total).rjust(4))		
+			skill_tooltip_arr["Armor Use"] += "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Armor Use"]).rjust(4))
+			skill_tooltip_arr["Armor Use"] += temp_tooltip				
 			
 
 			# Calculate Evade DS				
 			evade_tooltip_text = "--Evade DS by Stance--\n"			
 			dodge_base_value = int(dodge_total + stat_enhancive_totals["Agility"] + math.floor(stat_enhancive_totals["Intuition"]/4))					
+			s_factor = 0
+			s_factor_tooltip = ""
+			armor_hindrance = 0
+			armor_hindrance_tooltip = ""
+			overtrain_hindrance_tooltip = ""
 			
+			# Calculate Shield Factor
 			if shield_size == "small" or shield_size == "medium":
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Shield_Factor"], "Shield_Factor", "float_format", 0, "    ")	
-				
-			else:
-				ce_tooltip = ""
-				ce_total = 0
+				s_factor, s_factor_tooltip = self.Combine_Effects(i, "Shield_Factor", 0, [lists_of_effects_by_tag["Shield_Factor"]], ["Shield_Factor",], "float_format")				
+			s_factor += shield_factor 
 			
-			s_factor = shield_factor + ce_total
-			stance_mod = [0.75, 0.80, 0.85, 0.9, 0.95, 1.0]				
-			stance_arr = ["Offensive", "Advanced", "Forward", "Neutral", "Guarded", "Defensive"]
+			# Calculate Armor Action Penalty
+			armor_hindrance, armor_hindrance_tooltip = self.Combine_Effects(i, "Action_Penalty", 0, [lists_of_effects_by_tag["Action_Penalty"]], ["Action_Penalty",], "float_format")	
+			base_armor_hindrance = int(dodge_armor_action_penalty)
+			min_armor_hindrance = -1 * math.ceil(base_armor_hindrance / 2)
+			reduction = (armor_AG - 1)  * math.floor((armor_total - armor_overtrain_ranks) / 50)
+			
+			if reduction < 0:
+				reduction = 0
+			elif reduction > min_armor_hindrance:			
+				reduction = min_armor_hindrance
+			
+			if reduction != 0:
+				overtrain_hindrance_tooltip = "  %+.2f  from %s Armor Use ranks\n" % ((reduction/200), armor_total)
+			
+			dodge_armor_hindrance = 1.00 + (math.floor((dodge_armor_action_penalty + reduction) / 2) / 100)	
+			dodge_armor_hindrance = min(1.00, dodge_armor_hindrance)			
 			for j in range(6):
 				if vs_type == "Melee":
 					value = math.floor(dodge_base_value * dodge_armor_hindrance) 
 					value = math.floor(value * s_factor) - shield_size_penalty 
-					value = int(math.floor(value * stance_mod[j]))
+					value = int(math.floor(value * evade_stance_mod[j]))
 					
 				else:
 					value = math.floor(dodge_base_value * dodge_armor_hindrance) 
 					value = math.floor(value * s_factor)
-					value = math.floor(value * stance_mod[j])
+					value = math.floor(value * evade_stance_mod[j])
 					value = int(math.floor(value * 1.5))					
 					
 				evade_totals_arr.append(value)		
 				
 				if vs_type == "Melee":		
-					evade_tooltip_text += "%+d = ((%s  x  %s  x  %.2f)  -  %s)  x  %.2f  (%s)\n" % (value, dodge_base_value, dodge_armor_hindrance, s_factor, shield_size_penalty, stance_mod[j], stance_arr[j]) 
+					evade_tooltip_text += "%+d = ((%s  x  %.2f  x  %.2f)  -  %s)  x  %.2f  (%s)\n" % (value, dodge_base_value, dodge_armor_hindrance, s_factor, shield_size_penalty, evade_stance_mod[j], stance_arr[j]) 
 				else:
-					evade_tooltip_text += "%+d = %s  x  %s  x  %.2f   x  %.2f  x  1.5  (%s)\n" % (value, dodge_base_value, dodge_armor_hindrance, s_factor, stance_mod[j], stance_arr[j]) 
+					evade_tooltip_text += "%+d = %s  x  %.2f  x  %.2f   x  %.2f  x  1.5  (%s)\n" % (value, dodge_base_value, dodge_armor_hindrance, s_factor, evade_stance_mod[j], stance_arr[j]) 
 			
 			evade_tooltip_text += "%+d (Dodge Base Value) calculated with:\n" % dodge_base_value			
 			evade_tooltip_text += skill_tooltip_arr["Dodging"]		
@@ -1919,38 +2108,24 @@ class Progression_Panel:
 			evade_tooltip_text += "    %s  Intuition bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Intuition"]/4)).rjust(4), stat_enhancive_totals["Intuition"])		
 			evade_tooltip_text += stat_tooltip_arr["Intuition"]				
 			evade_tooltip_text += "%.2f (Armor Hindrance) calculated with:\n" % dodge_armor_hindrance		
-			evade_tooltip_text += "    %+.2f  base modifier of %s\n" % (dodge_armor_hindrance, armor_gear.name.get())
+			evade_tooltip_text += "    %.2f  base modifier of %s\n" % (1.00 + base_armor_hindrance/200, armor_gear.name.get())
+			evade_tooltip_text += overtrain_hindrance_tooltip			
+			evade_tooltip_text += armor_hindrance_tooltip			
 			evade_tooltip_text += "%.2f (Shield Factor) calculated with:\n" % s_factor		
-			evade_tooltip_text += "    %+.2f  base modifier of %s\n" % (shield_factor, other_hand_gear.name.get())
-			evade_tooltip_text += ce_tooltip
+			evade_tooltip_text += "    %.2f  base modifier of %s\n" % (shield_factor, other_hand_gear.name.get())
+			evade_tooltip_text += s_factor_tooltip
 			if vs_type == "Melee":		
 				evade_tooltip_text += "%d (Shield Size Penalty) calculated with:\n" % shield_size_penalty		
 				evade_tooltip_text += "  -%d base modifier of %s\n" % (shield_size_penalty, other_hand_gear.name.get())			
 			
 			
 			
-			
-			# Calculate Effects values			
-		
-			# Calculate total of DS_All
-			ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["DS_All"], "DS_All",  "effect_display", 0, "       ")
-			effects_total = ce_total
-			effects_tooltip_text += ce_tooltip		
-			
-			# Calculate total of attack type effects								
-			if vs_type == "Melee":	
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["DS_Melee"], "DS_Melee",  "effect_display", 0, "       ")
-				effects_total += ce_total
-				effects_tooltip_text += ce_tooltip						
-			elif vs_type == "Ranged":	
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["DS_Ranged"], "DS_Ranged",  "effect_display", 0, "       ")
-				effects_total += ce_total
-				effects_tooltip_text += ce_tooltip		
-			elif vs_type == "Bolt":	
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["DS_Bolt"], "DS_Bolt",  "effect_display", 0, "       ")
-				effects_total += ce_total
-				effects_tooltip_text += ce_tooltip					
-			
+			# Calculate Effects values from total of DS_All effects and either DS_Melee, DS_Ranged, or DS_Bolt effects
+			effects_total, effects_tooltip_text = self.Combine_Effects(i, "", 0, 
+											[lists_of_effects_by_tag["DS_All"], lists_of_effects_by_tag["DS_%s" % vs_type]], 
+											["DS_All", "DS_%s" % vs_type], 
+											"effect_display")		
+
 			if effects_tooltip_text != "":
 					effects_tooltip_text = "  %s  bonus from Defense Strength effects\n" % (("%+d" % effects_total).rjust(4)) + effects_tooltip_text		
 					
@@ -2132,20 +2307,13 @@ class Progression_Panel:
 
 			# Calculate Statistic bonus	
 			for stat in statistic_names:
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], "Statistic_Bonus_%s" % stat, "", 0, "            ")
-				stat_enh_bonus = ce_total
-				stat_tooltip_text = ce_tooltip
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_%s" % stat], "Statistic_%s" % stat, "stat_inc_to_bonus", 0, "            ")
-				stat_enh_bonus += ce_total
-				stat_tooltip_text = ce_tooltip + stat_tooltip_text				
-				
-				stat_enhancive_totals[stat] = base_stat_arr[stat] + min(50, stat_enh_bonus)				
-				
-				if stat_enh_bonus > 0:
-					stat_tooltip_text = "       %s  enhancive %s bonus (%s vs max +20)\n" % (("%+d" % min(20, stat_enh_bonus)).rjust(4), stat, "%+d" % (stat_enh_bonus)) + stat_tooltip_text
-				stat_tooltip_text = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + stat_tooltip_text						
-				stat_tooltip_arr[stat] = stat_tooltip_text		
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, stat, 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], lists_of_effects_by_tag["Statistic_%s" % stat]], 
+												["Statistic_Bonus_%s" % stat, "Statistic_%s" % stat], 
+												"stat_inc_to_bonus")													
+
+				stat_enhancive_totals[stat] = base_stat_arr[stat] + min(50, stat_enh_bonus)
+				stat_tooltip_arr[stat] = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip		
 		
 			# Calculate CS. Cycle through the spell circles we are showing and compare to each character user spell circles. 
 			# Treat as primary if the match or secondary if not
@@ -2199,22 +2367,21 @@ class Progression_Panel:
 					total_cs += current_cs
 
 					
-				# Calculate CS Effects values			
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["CS_All"], "CS_All",  "effect_display", 0, "       ")
-				effects_total = ce_total
-				effects_tooltip_text = ce_tooltip		
+				# Calculate CS Effects values		
+				effects_total, effects_tooltip_text = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["CS_All"]], ["CS_All"], "effect_display")				
 				
 				if display_circle == "Bard" or display_circle == "Minor Elemental" or display_circle == "Major Elemental" or display_circle == "Wizard":
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["CS_Elemental"], "CS_Elemental",  "effect_display", 0, "       ")
+					ce_total, ce_tooltip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["CS_Elemental"]], ["CS_Elemental"], "effect_display")	
 				elif display_circle == "Monk" or display_circle == "Minor Mental" or display_circle == "Major Mental" or display_circle == "Savant":
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["CS_Mental"], "CS_Mental",  "effect_display", 0, "       ")
+					ce_total, ce_tooltip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["CS_Mental"]], ["CS_Mental"], "effect_display")	
 				elif display_circle == "Sorcerer" or display_circle == "Arcane":
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["CS_Sorcerer"], "CS_Sorcerer",  "effect_display", 0, "       ")
+					ce_total, ce_tooltip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["CS_Sorcerer"]], ["CS_Sorcerer"], "effect_display")	
 				else:
-					ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["CS_Spiritual"], "CS_Spiritual",  "effect_display", 0, "       ")
+					ce_total, ce_tooltip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["CS_Spiritual"]], ["CS_Spiritual"], "effect_display")
 						
 				effects_total += ce_total
-				effects_tooltip_text += ce_tooltip		
+				effects_tooltip_text += ce_tooltip	
+				
 				if effects_tooltip_text != "":
 						effects_tooltip_text = "%s  Bonus from Casting Strength effects\n" % (("%+d" % effects_total).rjust(4)) + effects_tooltip_text		
 						
@@ -2376,7 +2543,6 @@ class Progression_Panel:
 		for i in loop_range:	
 			ce_tooltip = ""					
 			ce_total = 0
-			stat_enh_stat = 0
 			stat_enh_bonus = 0
 			effects_total = 0
 			stat_enhancive_totals = {}
@@ -2399,20 +2565,14 @@ class Progression_Panel:
 
 			# Calculate Statistic bonus	
 			for stat in statistic_names:
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], "Statistic_Bonus_%s" % stat, "", 0, "            ")
-				stat_enh_bonus = ce_total
-				stat_tooltip_text = ce_tooltip
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["Statistic_%s" % stat], "Statistic_%s" % stat, "stat_inc_to_bonus", 0, "            ")
-				stat_enh_bonus += ce_total
-				stat_tooltip_text = ce_tooltip + stat_tooltip_text				
-				
-				stat_enhancive_totals[stat] = base_stat_arr[stat] + min(50, stat_enh_bonus)				
-				
-				if stat_enh_bonus > 0:
-					stat_tooltip_text = "       %s  enhancive %s bonus (%s vs max +20)\n" % (("%+d" % min(20, stat_enh_bonus)).rjust(4), stat, "%+d" % (stat_enh_bonus)) + stat_tooltip_text
-				stat_tooltip_text = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + stat_tooltip_text						
-				stat_tooltip_arr[stat] = stat_tooltip_text				
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, stat, 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], lists_of_effects_by_tag["Statistic_%s" % stat]], 
+												["Statistic_Bonus_%s" % stat, "Statistic_%s" % stat], 
+												"stat_inc_to_bonus")													
+
+				stat_enhancive_totals[stat] = base_stat_arr[stat] + min(50, stat_enh_bonus)
+				stat_tooltip_arr[stat] = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip					
+			
 			
 			# Calculate each type of TD
 			td_base = min(300, i*3)
@@ -2442,17 +2602,14 @@ class Progression_Panel:
 					td_tooltips_per_type[type] += stat_tooltip_arr["Wisdom"]
 			
 			
-				# Calculate TD Effects values			
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["TD_All"], "TD_All",  "effect_display", 0, "       ")
-				effects_total = ce_total
-				effects_tooltip_text = ce_tooltip						
-				
-				ce_total, ce_tooltip = self.Combine_Effects(i, lists_of_effects_by_tag["TD_%s" % type], "TD_%s" % type,  "effect_display", 0, "       ")
-						
-				effects_total += ce_total
-				effects_tooltip_text += ce_tooltip		
+				# Calculate TD Effects values		
+				effects_total, effects_tooltip_text = self.Combine_Effects(i, "", 0, 
+												[lists_of_effects_by_tag["TD_All"], lists_of_effects_by_tag["TD_%s" % type]], 
+												["TD_All", "TD_%s" % type], 
+												"effect_display")			
+
 				if effects_tooltip_text != "":
-						effects_tooltip_text = "%s  Bonus from Target Defense effects\n" % (("%+d" % effects_total).rjust(4)) + effects_tooltip_text		
+						effects_tooltip_text = "  %s  bonus from Target Defense effects\n" % (("%+d" % effects_total).rjust(4)) + effects_tooltip_text	
 						
 				td_effects_per_type[type] = effects_total	
 				td_totals_by_type[type].append(td_base + td_stat_per_type[type] + effects_total)
@@ -2523,6 +2680,379 @@ class Progression_Panel:
 		self.graph_information.graph_legend_styles.append("mD-")
 		self.graph_information.graph_legend_labels.append("Sorcerer TD")
 		self.graph_information.graph_legend_styles.append("cH-")			
+	
+
+	def Formula_Multi_Opponent_Combat(self, calc_style):
+		effects_list = ["Skill_Bonus_Multi_Opponent_Combat", "Skill_Ranks_Multi_Opponent_Combat", "Force_On_Force"]
+		skill_names = ["Multi Opponent Combat"]
+		fof_totals = []
+		open_mstrike_totals = []
+		focused_mstrike_totals = []
+		fof_tiers = [10, 25, 45, 70]
+		open_mstrike_tiers = [5, 15, 35, 60, 100, 155]
+		focused_mstrike_tiers = [30, 55, 90, 135, 190]
+		
+		index = 0
+		loop_range = [i for i in range(101)]
+		base_ranks_arr = {}
+		postcap_intervals = []
+		lists_of_effects_by_tag = {}			
+					
+					
+		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)		
+		
+		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
+		if calc_style == 2:
+			last_interval = 7575000
+
+			for interval, training in globals.character.postcap_skill_training_by_interval.items():
+				last_interval = interval
+				
+			postcap_intervals.append(7572500)	
+			postcap_intervals.append(last_interval)				
+							
+			loop_range = postcap_intervals
+
+
+		# Begin the big loop to calculate all the data	
+		for i in loop_range:
+			stat_enh_bonus = 0
+			effects_total = 0
+			fof_total = 0
+			fof_moc = 0
+			open_mstrike_total = 0
+			focused_mstrike_total = 0
+			skill_tooltip_arr = {}
+			fof_tooltip = ""
+			fof_effects_tooltip_text = ""
+			open_mstrike_tooltip = ""
+			focused_mstrike_tooltip = ""
+		
+			# Only a minor change depending on calc_style
+			if calc_style == 1:
+				tooltip = "Level %s: Multi Opponent Combat\n" % (i)
+					
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[i].get()
+					
+			elif calc_style == 2:	
+				tooltip = "Postcap Experience Interval %s: Multi Opponent Combat\n" % ("{:,}".format(i))		
+		
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[100].get()
+					
+					base_ranks_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Total_Ranks_Closest_To_Interval(i)
+					
+
+			# Calculate Combat Maneuver ranks
+			skill_rank_count, skill_tooltip = self.Combine_Effects(i, "Multi Opponent Combat", base_ranks_arr["Multi Opponent Combat"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Multi_Opponent_Combat"], lists_of_effects_by_tag["Skill_Ranks_Multi_Opponent_Combat"]], 
+											["Skill_Bonus_Multi_Opponent_Combat", "Skill_Ranks_Multi_Opponent_Combat"], 
+											"skill_bonus_to_ranks")
+
+			moc_total = base_ranks_arr["Multi Opponent Combat"] + skill_rank_count		
+
+			
+			# Force of Force calculations
+			
+			# Calculate FoF effects
+			fof_count, fof_tooltip = self.Combine_Effects(i, "", 0, 
+											[lists_of_effects_by_tag["Force_On_Force"]], 
+											["Force_On_Force"], 
+											"effect_display")		
+			
+			if fof_tooltip != "":
+				fof_tooltip = "".join( ["  %s  bonus from Force on Force effects\n" % (("%+d" % fof_count).rjust(4)), fof_tooltip] )
+											
+			# Main FoF calculation								
+			if moc_total >= fof_tiers[-1]:
+				fof_moc = 4 + math.floor((moc_total - 70) / 25) 
+			else:
+				for tier in fof_tiers:
+					if moc_total >= tier:
+						fof_moc += 1		
+			
+			fof_total = fof_moc + fof_count
+			
+			fof_tooltip = "".join(	["--Force on Force--\n%s  Foes ignored (beyond the first) calculated with:\n" % fof_total,
+							"  %s  from Multi Opponent Combat ranks (%s)\n" % (("%+d" % fof_total).rjust(4), fof_moc),
+							"       %s  Multi Opponent Combat base ranks\n" % (("%+d" % base_ranks_arr["Multi Opponent Combat"]).rjust(4)),
+							skill_tooltip,
+							fof_tooltip]	)				
+			
+			
+			# Open Mstrike calculations
+			for tier in open_mstrike_tiers:
+				if moc_total >= tier:
+					open_mstrike_total += 1
+								
+			if open_mstrike_total > 0:
+				open_mstrike_total += 1
+					
+			open_mstrike_tooltip = "".join(	["--Open Mstrike--\n  %s  max targets calculated with:\n" % open_mstrike_total,
+							"  %s  from Multi Opponent Combat ranks (%s)\n" % (("%+d" % open_mstrike_total).rjust(4), moc_total),
+							"       %s  Multi Opponent Combat base ranks\n" % (("%+d" % base_ranks_arr["Multi Opponent Combat"]).rjust(4)),
+							skill_tooltip]	)				
+			
+			
+			# Focused Mstrike calculations
+			for tier in focused_mstrike_tiers:
+				if moc_total >= tier:
+					focused_mstrike_total += 1
+			
+			if focused_mstrike_total > 0:
+				focused_mstrike_total += 1
+				
+			focused_mstrike_tooltip = "".join(	["--Focused Mstrike--\n  %s  max swings calculated with:\n" % focused_mstrike_total,
+							"  %s  from Multi Opponent Combat ranks (%s)\n" % (("%+d" % focused_mstrike_total).rjust(4), moc_total),
+							"       %s  Multi Opponent Combat base ranks\n" % (("%+d" % base_ranks_arr["Multi Opponent Combat"]).rjust(4)),
+							skill_tooltip]	)		
+			
+			
+			
+			fof_totals.append(fof_total)
+			open_mstrike_totals.append(open_mstrike_total)
+			focused_mstrike_totals.append(focused_mstrike_total)
+			
+			
+			# Create Tooltip info
+			tooltip += "%s  Foes ignored beyond first  (Force on Force)\n" % ("%s" % fof_total).rjust(4)
+			tooltip += "%s  Max targets  (Open Mstrike)\n" % ("%s" % open_mstrike_total).rjust(4)
+			tooltip += "%s  Max swings  (Focused Mstrike)\n" % ("%s" % focused_mstrike_total).rjust(4)
+			tooltip += fof_tooltip
+			tooltip += open_mstrike_tooltip
+			tooltip += focused_mstrike_tooltip
+			
+			
+			self.graph_information.tooltip_array.append(tooltip[:-1])	
+
+			index += 1
+					
+		
+		# Loop is done, set up the graph_infomation object		
+		self.graph_information.graph_ylabel = "MOC"	
+		if calc_style == 1:
+			self.graph_information.graph_xlabel = "Foes Ignored, Targets, and Swings per Level"
+			self.graph_information.graph_xaxis_rotation = 0
+			self.graph_information.graph_xlabel_size = 12
+			self.graph_information.graph_xaxis_size = 12
+			self.graph_information.graph_xaxis_tick_range = loop_range
+			self.graph_information.graph_xaxis_tick_labels = [0,10,20,30,40,50,60,70,80,90,100]		
+		elif calc_style == 2:
+			self.graph_information.graph_xlabel = "Foes Ignored, Targets, and Swings per Postcap Experience Interval"
+			self.graph_information.graph_xaxis_rotation = 30
+			self.graph_information.graph_xlabel_size = 10
+			self.graph_information.graph_xaxis_size = 9			
+			self.graph_information.graph_xaxis_tick_range = [i for i in range(index)]
+			
+			if len(postcap_intervals) <= 10:
+				self.graph_information.graph_xaxis_tick_labels = [i for i in postcap_intervals]	
+			else:
+				temp = math.floor(len(postcap_intervals)/10)
+				i = 0
+								
+				for interval in postcap_intervals:
+					if i % temp == 0:
+						self.graph_information.graph_xaxis_tick_labels.append(interval)
+					i += 1			
+
+
+		# Append the completed lists to graph_infomation object
+		self.graph_information.graph_data_lists.append(fof_totals)
+		self.graph_information.graph_data_lists.append(open_mstrike_totals)		
+		self.graph_information.graph_data_lists.append(focused_mstrike_totals)					
+					
+
+		# Set the minimum height for the graph
+#		ymin = min(fof_totals[0], open_mstrike_totals[0], focused_mstrike_totals[0])
+		ymax = max(fof_totals[-1], open_mstrike_totals[-1], focused_mstrike_totals[-1])		
+		self.graph_information.graph_yaxis_min = -1
+		self.graph_information.graph_yaxis_max = ymax + 1			
+
+		# Setup the Legend
+		self.graph_information.graph_num_lines = 3
+		self.graph_information.graph_legend_columns = 3
+		self.graph_information.graph_legend_labels.append("Force on Force")
+		self.graph_information.graph_legend_styles.append("bs-")	
+		self.graph_information.graph_legend_labels.append("Open Mstrike")
+		self.graph_information.graph_legend_styles.append("mD-")	
+		self.graph_information.graph_legend_labels.append("Focused Mstrike")
+		self.graph_information.graph_legend_styles.append("r^-")	
+
+
+
+	
+		
+	'''		
+	# Formula Template
+	def Formula_TEMPLATE(self, ...):
+		effects_list = ["TD_All", "TD_Elemental", "TD_Mental", "TD_Spiritual", "TD_Sorcerer"]
+		statistic_names = ["Strength", "Agility"]
+		skill_names = ["Brawling", "Combat Maneuvers"]
+
+		index = 0
+		loop_range = [i for i in range(101)]
+		base_stat_arr = {}
+		base_ranks_arr = {}
+		base_bonus_arr = {}
+		postcap_intervals = []
+		lists_of_effects_by_tag = {}				
+			
+		# Setup the effects lists and td lists	
+		for stat in statistic_names:
+			effects_list.append("Statistic_Bonus_%s" % stat)
+			effects_list.append("Statistic_%s" % stat)
+
+			
+		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)				
+
+		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
+		if calc_style == 2:
+			last_interval = 7575000
+
+			for interval, training in globals.character.postcap_skill_training_by_interval.items():
+				last_interval = interval
+				
+			postcap_intervals.append(7572500)	
+			postcap_intervals.append(last_interval)				
+							
+			loop_range = postcap_intervals
+
+
+		# Begin the big loop to calculate all the data	
+		for i in loop_range:	
+			ce_tooltip = ""					
+			ce_total = 0
+			stat_enh_bonus = 0
+			effects_total = 0
+			stat_enhancive_totals = {}
+			stat_tooltip_text = ""
+			stat_tooltip_arr = {}
+			skill_tooltip_arr = {}
+			effects_tooltip_text = ""
+		
+			# Only a minor change depending on calc_style
+			if calc_style == 1:
+				tooltip = "Level %s: Target Defense\n" % (i)
+				for stat in statistic_names:				
+					base_stat_arr[stat] = globals.character.statistics_list[stat].bonuses_by_level[i].get()	
+					
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[i].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[i].get()		
+					
+			elif calc_style == 2:	
+				tooltip = "Postcap Experience Interval %s: Target Defense\n" % ("{:,}".format(i))
+				for stat in statistic_names:				
+					base_stat_arr[stat] = globals.character.statistics_list[stat].bonuses_by_level[100].get()					
+		
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[100].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[100].get()
+					
+					base_ranks_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Total_Ranks_Closest_To_Interval(i)
+					base_bonus_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Bonus_Closest_To_Interval(i)	
+					
+
+			# Calculate Statistic bonus	
+			for stat in statistic_names:
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, stat, 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], lists_of_effects_by_tag["Statistic_%s" % stat]], 
+												["Statistic_Bonus_%s" % stat, "Statistic_%s" % stat], 
+												"stat_inc_to_bonus")													
+
+				stat_enhancive_totals[stat] = int(base_stat_arr[stat] + min(50, stat_enh_bonus))
+				stat_tooltip_arr[stat] = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip		
+				stat_tooltip_arr[stat] = "  %s  %s bonus (%+d / 2)\n" % (("%+d" % (stat_enhancive_totals[stat]/2)).rjust(4), stat, stat_enhancive_totals[stat]) + stat_tooltip_arr[stat]						
+			
+				
+			# Calculate Weapon Skill bonus. 
+			weapon_inc_bonus, temp_tooltip = self.Combine_Effects(i, "Brawling", base_bonus_arr["Brawling"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Brawling"], lists_of_effects_by_tag["Skill_Ranks_Brawling"]], 
+											["Skill_Bonus_Brawling", "Skill_Ranks_Brawling"], 
+											"skill_bonus_to_ranks")
+
+			brawling_total = base_ranks_arr["Brawling"] + min(50, weapon_inc_bonus)	
+			skill_tooltip_arr["Brawling"] = "  %s  Brawling ranks  (%s * 2)\n" % (("%+d" % (brawling_total*2)).rjust(4), brawling_total) 	
+			skill_tooltip_arr["Brawling"] += "       %s  Brawling base ranks\n" % (("%+d" % base_ranks_arr["Brawling"]).rjust(4)) 	
+			skill_tooltip_arr["Brawling"] += temp_tooltip
+			
+			
+			# Calculate Combat Maneuver ranks
+			skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Combat Maneuvers", base_ranks_arr["Combat Maneuvers"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Combat_Maneuvers"], lists_of_effects_by_tag["Skill_Ranks_Combat_Maneuvers"], lists_of_effects_by_tag["Skill_Phantom_Ranks_Combat_Maneuvers"]], 
+											["Skill_Bonus_Combat_Maneuvers", "Skill_Ranks_Combat_Maneuvers", "Skill_Phantom_Ranks_Combat_Maneuvers"], 
+											"skill_bonus_to_ranks")
+
+			cman_total = base_ranks_arr["Combat Maneuvers"] + skill_rank_count		
+			skill_tooltip_arr["Combat Maneuvers"] = "  %s  Combat Maneuver ranks  (%s / 2)\n" % (("%+d" % (cman_total/2)).rjust(4), cman_total) 		
+			skill_tooltip_arr["Combat Maneuvers"] += "       %s  Combat Maneuvers base ranks\n" % (("%+d" % base_ranks_arr["Combat Maneuvers"]).rjust(4)) 				
+			skill_tooltip_arr["Combat Maneuvers"] += temp_tooltip				
+						
+			
+			
+			# Main Calculation section
+
+			
+			
+			gloves_totals.append(gloves_value)
+			boots_totals.append(boots_value)
+			
+			# Create Tooltip info
+			tooltip += ""	
+			
+			self.graph_information.tooltip_array.append(tooltip[:-1])	
+
+			index += 1
+					
+		
+		# Loop is done, set up the graph_infomation object		
+		self.graph_information.graph_ylabel = "Target Defense"	
+		if calc_style == 1:
+			self.graph_information.graph_xlabel = "TD by type per Level"
+			self.graph_information.graph_xaxis_rotation = 0
+			self.graph_information.graph_xlabel_size = 12
+			self.graph_information.graph_xaxis_size = 12
+			self.graph_information.graph_xaxis_tick_range = loop_range
+			self.graph_information.graph_xaxis_tick_labels = [0,10,20,30,40,50,60,70,80,90,100]		
+		elif calc_style == 2:
+			self.graph_information.graph_xlabel = "TD by type per Postcap Experience Interval"
+			self.graph_information.graph_xaxis_rotation = 30
+			self.graph_information.graph_xlabel_size = 10
+			self.graph_information.graph_xaxis_size = 9			
+			self.graph_information.graph_xaxis_tick_range = [i for i in range(index)]
+			
+			if len(postcap_intervals) <= 10:
+				self.graph_information.graph_xaxis_tick_labels = [i for i in postcap_intervals]	
+			else:
+				temp = math.floor(len(postcap_intervals)/10)
+				i = 0
+								
+				for interval in postcap_intervals:
+					if i % temp == 0:
+						self.graph_information.graph_xaxis_tick_labels.append(interval)
+					i += 1			
+
+
+		# Append the completed lists to graph_infomation object
+		self.graph_information.graph_data_lists.append(gloves_totals)
+		self.graph_information.graph_data_lists.append(boots_totals)					
+					
+
+		# Set the minimum height for the graph
+		ymin = min(gloves_totals[0], boots_totals[0])
+		ymax = max(gloves_totals[100], boots_totals[100])
+		self.graph_information.graph_yaxis_min = ymin - 5
+		self.graph_information.graph_yaxis_max = ymax + 5		
+		
+
+		# Setup the Legend
+		self.graph_information.graph_num_lines = 1
+		self.graph_information.graph_legend_columns = 1
+		self.graph_information.graph_legend_labels.append("Elemental TD")
+		self.graph_information.graph_legend_styles.append("r^-")		
+		
+	'''	
 		
 		
 
@@ -2570,5 +3100,3 @@ class Graph_Data_Line_Container:
 		self.graph_data_lists = []	
 		self.tooltip_array = []	
 	
-		
-		
