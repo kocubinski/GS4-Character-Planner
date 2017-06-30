@@ -27,6 +27,7 @@ import PostCap_Panel as PcP
 import Loadout_Panel as LdP
 import Progression_Panel as ProgP
 #import Summary_Panel as SumP
+from tkinter import messagebox
 
 
 # Planner is the primary window in the program that holds everything else.
@@ -54,12 +55,15 @@ class Planner:
 		filemenu.add_command(label="Load Character", command=self.Menubar_Option_Load_Character)             # Open and load a character save file into the planner
 		filemenu.add_command(label="Save Character as...", command=self.Menubar_Option_Save_Character)       # Save an existing build to file
 		filemenu.add_separator()
-		filemenu.add_command(label="Exit", command=self.parent.quit)
+		filemenu.add_command(label="Exit", command=self.Planner_Onclose)
 
 
 	# Choosing to make a new charcter is the same thing as resetting every panel back to default.
 	# Have each panel call their Clear methods and change the panel back to Statistics.
 	def Menubar_Option_New_Character(self):
+		if not tkinter.messagebox.askyesno("New Character", "Are you sure you want to start a new character?\nAll unsaved data will be lost."):
+			return
+			
 		globals.char_name = "New Character"
 		for stat, obj in globals.character.statistics_list.items():
 			obj.Set_To_Default()
@@ -75,6 +79,8 @@ class Planner:
 
 	# Load a character plan from a character file	
 	def Menubar_Option_Load_Character(self):
+#		if not tkinter.messagebox.askyesno("Load Character", "Are you sure you want to load a character? All unsaved data will be lost."):
+#			return
 		globals.character.Load_Character()
 
 	# Save the current character plan in a character file	
@@ -144,11 +150,13 @@ class Planner:
 				if globals.LdP_Gear_List_Updated == 1:
 					globals.panels['Progression'].Plot_Graph_Clear()
 					globals.panels['Progression'].Gear_List_Populate_Lists()
+					globals.panels['Progression'].graph_option_category.set("Physical Combat")
 					globals.panels['Progression'].Graph_Option_Category_OnChange("Physical Combat")
 					globals.LdP_Gear_List_Updated = 0
 				if globals.LdP_Effects_List_Updated == 1:
 					globals.panels['Progression'].Plot_Graph_Clear()
 					globals.panels['Progression'].Effects_List_Populate_List()
+					globals.panels['Progression'].graph_option_category.set("Physical Combat")
 					globals.panels['Progression'].Graph_Option_Category_OnChange("Physical Combat")
 					globals.LdP_Effects_List_Updated = 0			
 
@@ -159,18 +167,22 @@ class Planner:
 			print("hide")
 			self.pages[caller].grid_remove()
 			
+			
+	def Planner_Onclose(self):
+		if tkinter.messagebox.askokcancel("Quit", "Are you sure you want to quit? All unsaved data will be lost."):
+			globals.root.destroy()		
 
 # Start of the program. Unless the SQLite database exist it will exit. Otherwise, setup the database and create the Planner.			
-if __name__ == "__main__":
+if __name__ == "__main__":	
 	if not os.path.isfile(globals.db_file):	
-		print("ERROR: GS4_Planner.db file not found.")
-		sys.exit(1)
-	
-	globals.db_con = sqlite3.connect(globals.db_file)
-	globals.db_con.row_factory = sqlite3.Row
-	globals.db_cur = globals.db_con.cursor()
-	globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))
-	globals.root.geometry("1140x600")
-	globals.root.resizable(0,0)
-	planner = Planner(globals.root)	
+		globals.root.title("Well, it seems you have died my friend...")
+		tkinter.messagebox.showerror("Error","GS4_Planner.db file not found.\nPlease make sure GS4_Planner.db is in the same directory as Planner.exe")		
+	else:
+		globals.db_con = sqlite3.connect(globals.db_file)
+		globals.db_con.row_factory = sqlite3.Row
+		globals.db_cur = globals.db_con.cursor()
+		globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))
+		planner = Planner(globals.root)			
+		globals.root.protocol("WM_DELETE_WINDOW", planner.Planner_Onclose)	
+		
 	globals.root.mainloop();		
