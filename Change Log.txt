@@ -1,3 +1,36 @@
+-Version 2.6.1- (Date: 6/29/2017)
+GENREAL CHANGES
+-Attempting to run Planner.exe without GS4_Planner.db in the same directory will now display an error message box.
+-Trying to close the Planner will now display a quiting comfirmation message box.
+-Selecting "New Character" from the Planner's File menu will now display a comfirmation message box.
+
+STATISTICS PANEL
+-Fixed an error in the Health resource calculation.
+
+SKILLS PANEL
+-Fixed a long standing bug that would cause skills to cost slightly more than normal when double or triple training.
+-Fixed a bug caused by loading multiple character files in a row.
+-The Sum Cost field of the Skills panel will now display the correct total skill point cost.
+-Fixed a error in the Regain TP calculation that was causing all Spell Research skills to always refund 0 MTP.
+-Changed the "training push back" error message to be more readable.
+
+PROGRESSION PANEL
+-An error box will appear if you select "Attack Strength (Other Hand Weapon)" with an invalid off-hand item.
+-All Defense Strength calculations now take overtraining in Armor Use into account when calculating Armor Hindrance Factor.
+-Added "Unarmed Attack Factor (UAC)" to the Physical Combat category.
+-Added "Multi Opponent Combat - FoF, Mstrike" to the new Physical Skills category.
+-Added a new effect: Beacon of Courage (1608)
+
+CALCULATIONS
+-Zealot (1617) - The lore effect now reduces the DS penalty instead of increasing it.
+-Cloak of Shadows (712) - Fixed a bug in the TD calculation
+
+DATABASE CHANGES
+-Ranger's Combat Maneuver skill cost is now 6/4 instead of 5/4
+-Ranger's Perception skill cost is now 0/2 instead of 0/3
+
+
+
 -Version 2.6- (Date: 5/8/2017)
 GENERAL CHANGES
 -Added the Progression Panel. This panel lets users see how their statistics and skills placement affects their AS, DS and more as the level up by creating an interactive line graph. Takes Gear and Effects into consideration when calculating the formulas.
