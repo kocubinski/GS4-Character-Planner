@@ -425,33 +425,43 @@ class PostCap_Panel:
 		tkinter.Label(myframe_inner, width="13", anchor="w", bg="lightgray", text="Goal").grid(row=8, column=0, sticky="w", pady=1)		
 									
 	
-		self.add_skill_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.add_skill_order_menu.config(width=1, heigh=1)	
 		self.dialog_skill_names_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_skill, "1", command="")
-		self.dialog_skill_names_menu.config(width=27, heigh=1)	
-		self.edit_skill_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.edit_skill_order_menu.config(width=1, heigh=1)	
+		self.dialog_skill_names_menu.config(width=27)	
+		self.add_skill_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_skill_order_menu.config(width=2)	
+		self.edit_skill_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_skill_order_menu.config(width=2)	
 		
-		self.add_combat_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.add_combat_order_menu.config(width=1, heigh=1)	
 		self.dialog_combat_names_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_combat_maneuver, "", command="")
-		self.dialog_combat_names_menu.config(width=27, heigh=1)	
-		self.edit_combat_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.edit_combat_order_menu.config(width=1, heigh=1)	
+		self.dialog_combat_names_menu.config(width=27)	
+		self.add_combat_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_combat_order_menu.config(width=2)	
+		self.edit_combat_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_combat_order_menu.config(width=2)	
 		
-		self.add_shield_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.add_shield_order_menu.config(width=1, heigh=1)	
 		self.dialog_shield_names_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_shield_maneuver, "", command="")
-		self.dialog_shield_names_menu.config(width=27, heigh=1)	
-		self.edit_shield_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.edit_shield_order_menu.config(width=1, heigh=1)	
+		self.dialog_shield_names_menu.config(width=27)	
+		self.add_shield_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_shield_order_menu.config(width=2)	
+		self.edit_shield_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_shield_order_menu.config(width=2)	
 		
-		self.add_armor_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.add_armor_order_menu.config(width=1, heigh=1)	
 		self.dialog_armor_names_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_armor_maneuver, "", command="")
-		self.dialog_armor_names_menu.config(width=27, heigh=1)	
-		self.edit_armor_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.edit_armor_order_menu.config(width=1, heigh=1)	
+		self.dialog_armor_names_menu.config(width=27)	
+		self.add_armor_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_armor_order_menu.config(width=2)	
+		self.edit_armor_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_armor_order_menu.config(width=2)
+		
+		
+		self.add_skill_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.edit_skill_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.add_combat_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.edit_combat_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.add_shield_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.edit_shield_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.add_armor_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.edit_armor_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))	
 			
 
 		self.add_skill_order_menu.grid(row=5, column=1, sticky="w")
@@ -921,10 +931,8 @@ class PostCap_Panel:
 			if self.skills_menu_size > 1:			
 				self.skills_menu_size = 1		
 				self.add_skill_order_menu['menu'].delete(1, "end")
-				try:
-					self.edit_skill_order_menu['menu'].delete(1, "end")
-				except Exception:
-					print("Error happened in Postcap Skills")
+				menu = [1]
+				self.edit_skill_order_menu.set_menu(1, *menu)
 			globals.character.postcap_build_skills_list = []	
 			globals.character.postcap_skill_training_by_interval.clear()
 			globals.character.postcap_total_skill_cost_by_interval.clear()
@@ -939,10 +947,8 @@ class PostCap_Panel:
 			if self.combat_menu_size > 1:			
 				self.combat_menu_size = 1		
 				self.add_combat_order_menu['menu'].delete(1, "end")
-				try:
-					self.edit_combat_order_menu['menu'].delete(1, "end")
-				except Exception:
-					print("Error happened in Combat Postcap: %s" % err)
+				menu = [1]
+				self.edit_combat_order_menu.set_menu(1, *menu)
 			globals.character.postcap_build_combat_maneuvers_list = []	
 			globals.character.postcap_combat_training_by_interval.clear()	
 			globals.character.postcap_total_combat_cost_by_interval.clear()
@@ -956,10 +962,8 @@ class PostCap_Panel:
 			if self.shield_menu_size > 1:	
 				self.shield_menu_size = 1		
 				self.add_shield_order_menu['menu'].delete(1, "end")
-				try:
-					self.edit_shield_order_menu['menu'].delete(1, "end")
-				except Exception:
-					print("Error happened in Shield Postcap: %s" % err)
+				menu = [1]
+				self.edit_shield_order_menu.set_menu(1, *menu)
 			globals.character.postcap_build_shield_maneuvers_list = []	
 			globals.character.postcap_build_shield_maneuvers_list = []	
 			globals.character.postcap_shield_training_by_interval.clear()	
@@ -973,10 +977,8 @@ class PostCap_Panel:
 			if self.armor_menu_size > 1:				
 				self.armor_menu_size = 1	
 				self.add_armor_order_menu['menu'].delete(1, "end")
-				try:
-					self.edit_armor_order_menu['menu'].delete(1, "end")
-				except Exception:
-					print("Error happened in Armor Postcap: %s" % err)
+				menu = [1]
+				self.edit_armor_order_menu.set_menu(1, *menu)
 			globals.character.postcap_build_armor_maneuvers_list = []
 			globals.character.postcap_build_armor_maneuvers_list = []	
 			globals.character.postcap_armor_training_by_interval.clear()	
