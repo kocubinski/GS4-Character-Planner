@@ -1,4 +1,4 @@
-# INDEX OF CLASSES AND METHODS 
+# INDEX OF CLASSES AND METHODS
 '''
 class Misc_Panel
 	def __init__(self, panel)
