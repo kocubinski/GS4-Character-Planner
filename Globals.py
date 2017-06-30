@@ -42,7 +42,7 @@ class Skill:
 	def Train_New_Ranks(self, level, subskill_ranks, ranks):
 	def Get_Skill_Bonus(self, ranks):
 	def Calculate_TP_Regain(self, start, end):
-	def Get_Total_Skill_Cost(self, subskill_ranks, current_level, tranks_level):
+	def Get_Total_Skill_Cost(self, subskill_ranks, ranks, current_level):
 	def Get_Next_Ranks_Cost(self, level, subskill_ranks, new_ranks):
 	def Postcap_Get_Total_Ranks_Closest_To_Interval(self, interval):
 	def Postcap_Get_Total_Bonus_Closest_To_Interval(self, interval):
@@ -88,6 +88,7 @@ class Information_Dialog:
 
 import tkinter
 import tkinter.filedialog
+import tkinter.font
 import math
 import Pmw
 import re
@@ -744,15 +745,12 @@ class Character:
 		
 		# Health calculation. Combines stats, Physical Training ranks, Combat Toughness maneuver ranks
 		PF_ranks = 0 if not "Physical Fitness" in self.skills_list else	self.skills_list["Physical Fitness"].total_ranks_by_level[i].get() 
-		Combat_Toughness = (10 * int(self.combat_maneuvers_list["Combat Toughness"].total_ranks_by_level[i].get()) + 5)
-		if Combat_Toughness == 5:
-			Combat_Toughness = 0
 		H_str = float(0) if self.statistics_list["Strength"].values_by_level[0].get() == "" else float(self.statistics_list["Strength"].values_by_level[0].get())
 		H_con = float(0) if self.statistics_list["Constitution"].values_by_level[0].get() == "" else float(self.statistics_list["Constitution"].values_by_level[0].get())
 		base_con = math.floor((H_str + H_con) / 10)
 		con_bonus = float(0) if self.statistics_list["Constitution"].values_by_level[i].get() == "" else float(self.statistics_list["Constitution"].values_by_level[i].get())
 		con_bonus = int(math.floor((con_bonus - 50) / 2 + self.racial_stat_bonus["Constitution"].get()))
-		self.health_by_level[i].set(max(0, min(base_con + con_bonus + PF_ranks*5, self.race.max_health + con_bonus)) + Combat_Toughness)
+		self.health_by_level[i].set(max(0, min(base_con + PF_ranks*5, self.race.max_health + con_bonus)))
 	
 		# Mana calculation. Just factor in the Harness power ranks at this level
 		M_bonus1 = self.statistics_list[self.profession.mana_statistics[0]].values_by_level[0].get()
@@ -845,7 +843,7 @@ class Character:
 		
 	# Because Skills with the same subgroup need to be taken into account when calculating cost and max ranks, this method will determine how much TP to refund for each subgroup.
 	def Calculate_Subskill_Regained_TP(self, level, subskill_group):
-		global skill_names
+		global skill_names		
 		
 		# Abort if there is no subgroup or the level is not 1-100
 		if subskill_group == "NONE" or level < 1 or level > 100:
@@ -857,7 +855,7 @@ class Character:
 		# Get the total ranks taken this level and the previous level for all the skills 
 		for s in skill_names:
 			skill = self.skills_list[s]
-			if skill.subskill_group == subskill_group:
+			if skill.subskill_group == subskill_group and skill.active_skill == 1:			
 				skill_ptp = skill.ptp_cost
 				skill_mtp = skill.mtp_cost
 				prev_tranks += skill.total_ranks_by_level[level-1].get()
@@ -866,7 +864,7 @@ class Character:
 		# No ranks were taken? Abort method.
 		if tranks == 0:
 			return (0,0)
-		
+				
 		# Otherwise calculate the cost for both levels and return the different or 0 if it is a negative amount
 		triple_train = max(0, tranks - 2 * (level + 1))
 		double_train = max(0, tranks - triple_train - (level + 1))
@@ -880,7 +878,6 @@ class Character:
 		prev_pcost = skill_ptp * prev_single_train  +  2 * skill_ptp * prev_double_train  +  4 * skill_ptp * prev_triple_train
 		prev_mcost = skill_mtp * prev_single_train  +  2 * skill_mtp * prev_double_train  +  4 * skill_mtp * prev_triple_train	
 		
-
 		return ( max(0, prev_pcost - pcost), max(0, prev_mcost - mcost) )
 			
 	
@@ -889,7 +886,7 @@ class Character:
 		global skill_names
 		total = 0
 		
-		if subskill_group == "NONE":
+		if subskill_group == "NONE" or level < 0:
 			return 0
 		
 		for s in skill_names:
@@ -898,6 +895,7 @@ class Character:
 				continue
 				
 			total += skill.total_ranks_by_level[level].get()
+			
 		return total
 
 
@@ -1545,10 +1543,10 @@ class Skill:
 		
 		# Calculate the PTP and MTP cost for training in the skill. Takes triple trains and double trains into consideration as well
 		for x in range(1, ranks_this_level+1):
-			if x + max + subskill_ranks > 2 * (level + 1):
+			if x + max + subskill_ranks > 2 * (level + 2):
 				pcost += self.ptp_cost * 4
 				mcost += self.mtp_cost * 4
-			elif x + max + subskill_ranks > (level + 1):
+			elif x + max + subskill_ranks > (level + 2):
 				pcost += self.ptp_cost * 2
 				mcost += self.mtp_cost * 2
 			else:
@@ -1571,7 +1569,7 @@ class Skill:
 			
 			# This will calculate the cost a skill using all existing ranks relative to a specific level.
 			if i == level or (self.total_ranks_by_level[i].get() > prev_total_ranks):				
-				(tpcost, tmcost) = self.Get_Total_Skill_Cost(subskill_ranks, i, i)		
+				(tpcost, tmcost) = self.Get_Total_Skill_Cost(subskill_ranks, self.total_ranks_by_level[i].get(), i)					
 				
 			self.total_ptp_cost_at_level[i].set(tpcost)
 			self.total_mtp_cost_at_level[i].set(tmcost)
@@ -1579,7 +1577,9 @@ class Skill:
 				
 	# A short method that takes the number of ranks and converts it's bonus counterpart
 	def Get_Skill_Bonus(self, ranks):
-		if ranks >= 40:
+		if ranks >= 50:
+			return 100 + ranks	
+		elif ranks >= 40:
 			return (ranks - 40) + 140
 		elif ranks >= 30:
 			return 2 * (ranks - 30) + 120
@@ -1596,23 +1596,25 @@ class Skill:
 	def Calculate_TP_Regain(self, start, end):
 		if start < 1 or end > 100:
 			return			
-			
+				
 		for i in range(start, end+1):
-			(pregain, mregain) = self.Get_Total_Skill_Cost(0, i, i-1)				
+			(pregain, mregain) = self.Get_Total_Skill_Cost(0, self.total_ranks_by_level[i-1].get(), i)			
+#			print("PTP/MTP regained from %s at lvl %s: %s/%s" % (self.name, i, max(0, self.total_ptp_cost_at_level[i-1].get() - pregain), max(0, self.total_mtp_cost_at_level[i-1].get() - mregain)))	
 			self.ptp_regained_at_level[i].set(max(0, self.total_ptp_cost_at_level[i-1].get() - pregain))
 			self.mtp_regained_at_level[i].set(max(0, self.total_mtp_cost_at_level[i-1].get() - mregain))	
+			
 			if self.total_ranks_by_level[i].get() == self.total_ranks_by_level[100].get() and (self.ptp_regained_at_level[i].get() == 0 and self.mtp_regained_at_level[i].get() == 0):
 				break		
 				
 				
 	# Figures out the skill cost using the existing ranks and any subskill ranks.
-	def Get_Total_Skill_Cost(self, subskill_ranks, current_level, tranks_level):
+	def Get_Total_Skill_Cost(self, subskill_ranks, ranks, current_level):
 		pcost = 0; mcost = 0		
-		tranks = self.total_ranks_by_level[tranks_level].get()
+#		tranks = self.total_ranks_by_level[tranks_level].get()
 		
-		triple_train = max(0, tranks + subskill_ranks - 2 * (current_level + 1))
-		double_train = max(0, tranks + subskill_ranks - triple_train - (current_level + 1))
-		single_train = max(0, tranks + subskill_ranks - triple_train - double_train)		
+		triple_train = max(0, ranks + subskill_ranks - 2 * (current_level + 2))
+		double_train = max(0, ranks + subskill_ranks - triple_train - (current_level + 2))
+		single_train = max(0, ranks + subskill_ranks - triple_train - double_train)		
 				
 		pcost = self.ptp_cost * single_train  +  2 * self.ptp_cost * double_train  +  4 * self.ptp_cost * triple_train
 		mcost = self.mtp_cost * single_train  +  2 * self.mtp_cost * double_train  +  4 * self.mtp_cost * triple_train	
@@ -1635,14 +1637,14 @@ class Skill:
 		else:						
 			total_ranks = self.total_ranks_by_level[level].get()
 		
-		if total_ranks + new_ranks + subskill_ranks > self.max_ranks * (level+1):
+		if total_ranks + new_ranks + subskill_ranks > self.max_ranks * (level+2):
 			return (9999, 9999)
 		
 		for i in range(1, end):
-			if total_ranks + i + subskill_ranks > 2 * (level + 1):
+			if total_ranks + i + subskill_ranks > 2 * (level + 2):
 				pcost += 4 * self.ptp_cost
 				mcost += 4 * self.mtp_cost
-			elif total_ranks + i + subskill_ranks > level + 1:
+			elif total_ranks + i + subskill_ranks > level + 2:
 				pcost += 2 * self.ptp_cost
 				mcost += 2 * self.mtp_cost
 			else:
@@ -2017,7 +2019,7 @@ class Gear:
 		self.gear_traits = {}
 		if self.dialog_type == "Armor":
 			table = "Armor"
-			fields = "roundtime, action_penalty, minor_spiritual_spell_hindrance, major_spiritual_spell_hindrance, cleric_spell_hindrance, minor_elemental_spell_hindrance, minor_mental_spell_hindrance, major_elemental_spell_hindrance, major_mental_spell_hindrance, savant_spell_hindrance, ranger_spell_hindrance, sorcerer_spell_hindrance, wizard_spell_hindrance, bard_spell_hindrance, empath_spell_hindrance, paladin_spell_hindrance, max_spell_hindrance, dodging_hindrance_factor"	
+			fields = "roundtime, action_penalty, minor_spiritual_spell_hindrance, major_spiritual_spell_hindrance, cleric_spell_hindrance, minor_elemental_spell_hindrance, minor_mental_spell_hindrance, major_elemental_spell_hindrance, major_mental_spell_hindrance, savant_spell_hindrance, ranger_spell_hindrance, sorcerer_spell_hindrance, wizard_spell_hindrance, bard_spell_hindrance, empath_spell_hindrance, paladin_spell_hindrance, max_spell_hindrance, roundtime_train_off_ranks, AG"	
 		elif self.dialog_type == "Shields":
 			table = "Shields"
 			fields = "size, melee_size_modifer, ranged_size_modifer, ranged_size_bonus, dodging_shield_factor, dodging_size_penalty"	
@@ -2203,6 +2205,7 @@ class Information_Dialog:
 	def __init__(self):
 		global root	
 		self.width = 400; self.height = 250; self.xpos = 450; self.ypos = 300		
+		self.error_font = tkinter.font.Font(family="Helvetica", size=10)
 		self.dialogbox = Pmw.Dialog(root, buttons = ("Okay", ), title = "Information", command = self.Button_Onclick)
 		self.message = tkinter.StringVar()
 		self.myframe = Pmw.ScrolledFrame(self.dialogbox.interior(), usehullsize = 1, hull_width = self.width, hull_height = self.height-35)
@@ -2214,7 +2217,8 @@ class Information_Dialog:
 
 		self.myframe.configure(hscrollmode = "none")		
 		self.myframe.grid(row=0, column=0, sticky="nw")	
-		tkinter.Label(self.myframe_inner, anchor="w", font="-weight bold", wraplength=self.width-10, justify="left", textvariable=self.message).grid(row=0, column=0, sticky="w")
+#		tkinter.Label(self.myframe_inner, anchor="w", font="-weight bold", wraplength=self.width-10, justify="left", textvariable=self.message).grid(row=0, column=0, sticky="w")
+		tkinter.Label(self.myframe_inner, anchor="w", font=self.error_font, wraplength=self.width-10, justify="left", textvariable=self.message).grid(row=0, column=0, sticky="w")
 		self.dialogbox.bind("<MouseWheel>", self.Scroll_Inner_Frame)
 		self.dialogbox.withdraw()
 
@@ -2237,13 +2241,14 @@ class Information_Dialog:
 	def Scroll_Inner_Frame(self, event):
 		self.myframe.yview("scroll", -1*(event.delta/120), "units")
 		
-
 	
 #Planner globals	
 title = "Hymore Character Planner"
-version = "v2.6"
+version = "v2.6.1"
 char_name = "New Character"	
 root = tkinter.Tk()
+root.geometry("1140x600")
+root.resizable(0,0)
 notebook = ""
 db_file = "GS4_Planner.db"
 db_con = ""
@@ -2298,8 +2303,41 @@ LdP_Gear_List_Updated = 0				# Indicates that a change has been made to the Load
 LdP_Effects_List_Updated = 0			# Indicates that a change has been made to the Loadout Panel's effects list. Progression Panel needs this to have an accurate loadout lists
 LdP_gear_display_types = { 'None':'None', 'Brawling':'Brawling', 'Edged Weapons':'OHE', 'Blunt Weapons':'OHB', 'Two-Handed Weapons':'THW', 'Polearm Weapons':'Polearm', 'Ranged Weapons':'Ranged', 'Thrown Weapons':'Thrown', 'UAC Weapons':'UAC', 'Armor':'Armor', 'Shields':'Shield', 'Edged Weapons/Brawling':'OHE/BRW', 'Edged Weapons/Two-Handed Weapons':'OHE/THW', "Spell Aiming":'Spell' }
 
+LdP_effect_display_types = collections.OrderedDict()
+LdP_effect_display_types['Minor Spiritual (100s)'] = 'MnS Spell'
+LdP_effect_display_types['Major Spiritual (200s)'] = 'MjS Spell'
+LdP_effect_display_types['Cleric Base (300s)'] = 'Clrc Spell'
+LdP_effect_display_types['Minor Elemental (400s)'] = 'MnE Spell'
+LdP_effect_display_types['Major Elemental (500s)'] = 'MjE Spell'
+LdP_effect_display_types['Ranger Base (600s)'] = 'Rngr Spell'
+LdP_effect_display_types['Sorcerer Base (700s)'] = 'Sorc Spell'
+LdP_effect_display_types['Wizard Base (900s)'] = 'Wiz Spell'
+LdP_effect_display_types['Bard Base (1000s)'] = 'Spellsong'
+LdP_effect_display_types['Empath Base (1100s)'] = 'Emp Spell'
+LdP_effect_display_types['Minor Mental (1200s)'] = 'MnM Spell'
+# LdP_effect_display_types['Major Mental (1300s)'] = 'MjM Spell'
+# LdP_effect_display_types['Savant Base (1400s)'] = 'Svnt Spell'
+LdP_effect_display_types['Paladin Base (1600s)'] = 'Pala Spell'
+LdP_effect_display_types['Arcane (1700s)'] = 'Arc Spell'
+LdP_effect_display_types['Maneuvers'] = 'Maneuver'
+LdP_effect_display_types['Society Powers'] = 'Society'
+# LdP_effect_display_types['Enhancives (Resources)'] = 'Enhancive Resource'
+LdP_effect_display_types['Enhancives (Skills)'] = 'Enhancive Skill'
+LdP_effect_display_types['Enhancives (Statistics)'] = 'Enhancive Statistic'
+#LdP_effect_display_types['Generic Effects'] = 'Generic Effect'
+# LdP_effect_display_types['Special Abilities'] = 'Special Ability'
+LdP_effect_display_types['Status Effects'] = 'Status'
+LdP_effect_display_types['Room Effects'] = 'Room Effects'
+LdP_effect_display_types['Flares'] = 'Flare'
+# LdP_effect_display_types['Other'] = 'Other'
+# LdP_effect_display_types['Items'] = 'Item'
+
+'''
 LdP_effect_display_types = { 'Minor Spiritual (100s)':'MnS Spell', 'Major Spiritual (200s)':'MjS Spell', 'Cleric Base (300s)':'Clrc Spell', 'Minor Elemental (400s)':'MnE Spell',
-					'Major Elemental (500s)':'MjE Spell', 'Ranger Base (600s)':'Rngr Spell', 'Sorcerer Base (700s)':'Sorc Spell', 'Wizard Base (900s)':'Wiz Spell', 'Bard Base (1000s)':'Spellsong', 'Empath Base (1100s)':'Emp Spell', 'Minor Mental (1200s)':'MnM Spell', 'Major Mental (1300s)':'MjM Spell', 'Savant Base (1400s)':'Svnt Spell', 'Paladin Base (1600s)':'Pala Spell', 'Arcane (1700s)':'Arc Spell', 'Maneuvers':'Maneuver', 'Society Powers':'Society', 'Enhancives (Skills)':'Enhancive Skill', 'Enhancives (Resources)':'Enhancive Resource', 'Enhancives (Statistics)':'Enhancive Statistic', 'Generic Effects':'Generic Effect', 'Special Abilities':'Special Ability', 'Status Effects':'Status', 'Flares':'Flare', 'Other':'Other', 'Items':'Item' }
+					'Major Elemental (500s)':'MjE Spell', 'Ranger Base (600s)':'Rngr Spell', 'Sorcerer Base (700s)':'Sorc Spell', 'Wizard Base (900s)':'Wiz Spell', 'Bard Base (1000s)':'Spellsong', 'Empath Base (1100s)':'Emp Spell', 'Minor Mental (1200s)':'MnM Spell', 
+#					'Major Mental (1300s)':'MjM Spell', 'Savant Base (1400s)':'Svnt Spell', 
+					'Paladin Base (1600s)':'Pala Spell', 'Arcane (1700s)':'Arc Spell', 'Maneuvers':'Maneuver', 'Society Powers':'Society', 'Enhancives (Skills)':'Enhancive Skill', 'Enhancives (Resources)':'Enhancive Resource', 'Enhancives (Statistics)':'Enhancive Statistic', 'Generic Effects':'Generic Effect', 'Special Abilities':'Special Ability', 'Status Effects':'Status', 'Flares':'Flare', 'Other':'Other', 'Room':'Room Condition', 'Items':'Item' }
+'''
 					
 LdP_effect_display_scaling = { 'Spell Research, Minor Spiritual ranks':'Minor Spiritual', 'Spell Research, Major Spiritual ranks':'Major Spiritual', 'Spell Research, Cleric ranks':					  'Cleric', 'Spell Research, Minor Elemental ranks':'Minor Elemental', 'Spell Research, Major Elemental ranks':'Major Elemental', 
 					  'Spell Research, Ranger ranks':'Ranger', 'Spell Research, Sorcerer ranks':'Sorcerer', 'Spell Research, Wizard ranks':'Wizard', 'Spell Research, Bard ranks':'Bard', 'Spell Research, Empath ranks':'Empath', 'Spell Research, Minor Mental ranks':'Minor Mental', 
