@@ -1,5 +1,5 @@
 # TODO LIST
-# Add maneuver prerequisites to the Add/Edit Dialog box
+# convert most optionmenu objects from tkinter to tkinter.ttk
 
 # INDEX OF CLASSES AND METHODS
 '''
@@ -28,6 +28,7 @@ class Build_List_Maneuver:
 #!/usr/bin/python
 
 import tkinter
+import tkinter.ttk
 import re
 import math
 import Pmw
@@ -153,7 +154,7 @@ class Maneuvers_Panel:
 		topframe.grid(row=0, column=0, sticky="w")	
 		choices = ["Combat", "Shield", "Armor"]
 		self.man_select_menu = tkinter.OptionMenu(topframe, self.maneuver_mode, *choices, command=self.Maneuver_Style_Onchange)
-		self.man_select_menu.config(width=6, heigh=1)	
+		self.man_select_menu.config(width=6, height=1)	
 		self.man_select_menu.grid(row=0, column=0, sticky="w")		
 		tkinter.Button(topframe, height="1", text="Add Maneuver", command=lambda v="": self.Add_Edit_Button_Onclick(v)).grid(row=0, column=1)		
 		tkinter.Button(topframe, height="1", text="Calculate Build", command=lambda : self.Plan_Training_Schedule(self.maneuver_mode.get())).grid(row=0, column=2)		
@@ -322,27 +323,34 @@ class Maneuvers_Panel:
 									
 	
 
-		self.add_combat_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.add_combat_order_menu.config(width=1, heigh=1)	
 		self.dialog_combat_names_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_combat_maneuver, "", command="")
-		self.dialog_combat_names_menu.config(width=27, heigh=1)	
-		self.edit_combat_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.edit_combat_order_menu.config(width=1, heigh=1)	
+		self.dialog_combat_names_menu.config(width=27)	
+		self.add_combat_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_combat_order_menu.config(width=2)	
+		self.edit_combat_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_combat_order_menu.config(width=2)	
 		
-		self.add_shield_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.add_shield_order_menu.config(width=1, heigh=1)	
 		self.dialog_shield_names_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_shield_maneuver, "", command="")
-		self.dialog_shield_names_menu.config(width=27, heigh=1)	
-		self.edit_shield_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.edit_shield_order_menu.config(width=1, heigh=1)	
+		self.dialog_shield_names_menu.config(width=27)	
+		self.add_shield_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_shield_order_menu.config(width=2)	
+		self.edit_shield_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_shield_order_menu.config(width=2)	
 		
-		self.add_armor_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.add_armor_order_menu.config(width=1, heigh=1)	
 		self.dialog_armor_names_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_armor_maneuver, "", command="")
-		self.dialog_armor_names_menu.config(width=27, heigh=1)	
-		self.edit_armor_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.edit_armor_order_menu.config(width=1, heigh=1)	
-			
+#		self.dialog_armor_names_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_armor_maneuver, "", command="")
+		self.dialog_armor_names_menu.config(width=27)	
+		self.add_armor_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_armor_order_menu.config(width=2)	
+		self.edit_armor_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_armor_order_menu.config(width=2)	
+		
+		self.add_combat_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.edit_combat_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.add_shield_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.edit_shield_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.add_armor_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.edit_armor_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))			
 			
 		self.add_combat_order_menu.grid(row=4, column=1, sticky="w")
 		self.dialog_combat_names_menu.grid(row=0, column=1, sticky="w", columnspan=4)	
@@ -652,10 +660,8 @@ class Maneuvers_Panel:
 				man.ManP_Build_Row.grid_remove()
 			if self.combat_menu_size > 1:			
 				self.add_combat_order_menu['menu'].delete(1, "end")
-				try:
-					self.edit_combat_order_menu['menu'].delete(1, "end")
-				except Exception as err:
-					print("Error happened in Combat Maneuvers: %s" % err)
+				menu = [1]
+				self.edit_combat_order_menu.set_menu(1, *menu)
 				self.combat_menu_size = 1		
 			globals.character.build_combat_maneuvers_list = []	
 			self.total_available_combat_points_by_level = [tkinter.IntVar() for i in range(101)]
@@ -669,10 +675,8 @@ class Maneuvers_Panel:
 				man.ManP_Build_Row.grid_remove()
 			if self.shield_menu_size > 1:	
 				self.add_shield_order_menu['menu'].delete(1, "end")
-				try:
-					self.edit_shield_order_menu['menu'].delete(1, "end")
-				except Exception as err:
-					print("Error happened in Shield Maneuvers: %s" % err)
+				menu = [1]
+				self.edit_shield_order_menu.set_menu(1, *menu)
 				self.shield_menu_size = 1		
 			globals.character.build_shield_maneuvers_list = []	
 			self.total_available_shield_points_by_level = [tkinter.IntVar() for i in range(101)]
@@ -686,10 +690,9 @@ class Maneuvers_Panel:
 				man.ManP_Build_Row.grid_remove()		
 			if self.armor_menu_size > 1:				
 				self.add_armor_order_menu['menu'].delete(1, "end")
-				try:
-					self.edit_armor_order_menu['menu'].delete(1, "end")
-				except Exception as err:
-					print("Error happened in Armor Maneuvers: %s" % err)
+				menu = [1]
+				self.edit_armor_order_menu.set_menu(1, *menu)
+
 				self.armor_menu_size = 1	
 			globals.character.build_armor_maneuvers_list = []
 			self.total_available_armor_points_by_level = [tkinter.IntVar() for i in range(101)]
