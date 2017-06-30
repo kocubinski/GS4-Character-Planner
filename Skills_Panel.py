@@ -115,7 +115,13 @@ class Skills_Panel:
 			globals.skill_names.append(skill[0])		
 			globals.character.skills_list[skill[0]] = globals.Skill(skill)
 			globals.character.skills_list[skill[0]].Create_SkP_schedule_row(self.MR_Frame.interior())
-		
+		'''
+		globals.db_cur.execute("SELECT DISTINCT subskill_group FROM Skills")
+		globals.db_con.commit()		
+		data = globals.db_cur.fetchall()			
+		for group in data:
+			globals.character.subskill_groups.append(group)
+		'''
 		#initialize defaults
 		self.ML_Frame.bind_class("SkP_build", "<MouseWheel>", self.Scroll_Build_Frame)
 		self.MR_Frame.bind_class("SkP_schedule", "<MouseWheel>", self.Scroll_Schedule_Frame)
@@ -280,6 +286,8 @@ class Skills_Panel:
 		myframe.configure(hscrollmode = "none", vscrollmode = "none")		
 		myframe.grid(row=0, column=0, sticky="nw")	
 		myframe_inner = myframe.interior()	
+		
+		error_font = tkinter.font.Font(family="Helvetica", size=10)
 				
 		tkinter.Label(myframe_inner, width="12", anchor="w", bg="lightgray", text="Skill Name").grid(row=0, column=0, sticky="w")
 		tkinter.Label(myframe_inner, width="12", anchor="w", bg="lightgray", text="Cost & Ranks").grid(row=1, column=0, sticky="w")
@@ -294,13 +302,17 @@ class Skills_Panel:
 		tkinter.Checkbutton(myframe_inner, command="", variable=self.vars_dialog_hide).grid(row=4, column=1, sticky="w")		
 	
 		
-		self.add_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.add_order_menu.config(width=1, heigh=1)	
 		self.dialog_menu_skill_names = tkinter.OptionMenu(myframe_inner, self.vars_dialog_skill, "", command="")
 		self.dialog_menu_skill_names.config(width=27, heigh=1)	
 		
-		self.edit_order_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
-		self.edit_order_menu.config(width=1, heigh=1)			
+		self.add_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.add_order_menu.config(width=2)	
+		
+		self.edit_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
+		self.edit_order_menu.config(width=2)			
+		
+		self.add_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))
+		self.edit_order_menu["menu"].insert_command("end", label=1, command=lambda v=1: self.vars_dialog_order.set(v))	
 			
 		self.add_order_menu.grid(row=3, column=1, sticky="w")			
 		self.dialog_menu_skill_names.grid(row=0, column=1, sticky="w", columnspan=4)		
@@ -311,8 +323,8 @@ class Skills_Panel:
 		Pmw.Counter(lvlframe, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Start', entryfield_value = 0, datatype = "numeric", entryfield_entry_textvariable=self.vars_dialog_slevel).grid(row=0, column=0, sticky="w")
 		Pmw.Counter(lvlframe, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Target', entryfield_value = 0, datatype = "numeric", entryfield_entry_textvariable=self.vars_dialog_tlevel).grid(row=0, column=1, sticky="w", columnspan=2)
 		goal_box = tkinter.Entry(myframe_inner, width="6", justify="center", validate="key", validatecommand="", textvariable=self.vars_dialog_goal).grid(row=6, column=1, sticky="w", padx=2)
-		tkinter.Label(myframe_inner, anchor="w", font="-weight bold", wraplength=300, justify="left", textvariable=self.vars_dialog_errormsg).grid(row=8, column=0, sticky="w", columnspan=4)
-				
+#		tkinter.Label(myframe_inner, anchor="w", font="-weight bold", wraplength=300, justify="left", textvariable=self.vars_dialog_errormsg).grid(row=8, column=0, sticky="w", columnspan=4)
+		tkinter.Label(myframe_inner, anchor="w", font=error_font, wraplength=300, justify="left", textvariable=self.vars_dialog_errormsg).grid(row=8, column=0, sticky="w", columnspan=4)				
 			
 		return dialog
 
@@ -338,7 +350,7 @@ class Skills_Panel:
 			elif self.vars_dialog_goal.get()[-1] == "x" and float(self.vars_dialog_goal.get()[:-1]) > self.dialog_max_ranks:
 				self.vars_dialog_errormsg.set("ERROR: Goal rate cannot be greater than the skill's max ranks per level.")
 				return				
-			elif self.vars_dialog_goal.get()[-1] != "x" and	int(self.vars_dialog_goal.get()) > self.dialog_max_ranks * (1 + int(self.vars_dialog_tlevel.get()) ):
+			elif self.vars_dialog_goal.get()[-1] != "x" and	int(self.vars_dialog_goal.get()) > self.dialog_max_ranks * (2 + int(self.vars_dialog_tlevel.get()) ):
 				self.vars_dialog_errormsg.set("ERROR: Goal ranks cannot be achieved within level range.")
 				return					
 
@@ -482,10 +494,8 @@ class Skills_Panel:
 		# Fun fact, if you try to do delete(1, end)	on an option menue that only has 1 object in it, it throws a python error. So this check is needed.
 		if self.menu_size > 1:
 			self.add_order_menu['menu'].delete(1, "end")
-			try:
-				self.edit_order_menu['menu'].delete(1, "end")
-			except Exception as err:
-				print("Error happened in Skills: %s" % err)
+			menu = [1]
+			self.edit_order_menu.set_menu(1, *menu)
 			self.menu_size = 1
 		
 		globals.character.build_skills_list = []		
@@ -527,9 +537,13 @@ class Skills_Panel:
 		
 		# Loop through each level. All levels need to be covered regardless of what the level range of the skills in the build list 
 		for lvl in range(0, 101):	
-#			if abort_loops or lvl > 24:
+#			if abort_loops or lvl > 20:
 			if abort_loops:			
 				break
+			
+			
+			subskill_ranks_this_level = {}
+			
 			ptp_earned = globals.character.ptp_by_level[lvl].get()
 			mtp_earned = globals.character.mtp_by_level[lvl].get()
 			ptp_regained = 0
@@ -562,9 +576,11 @@ class Skills_Panel:
 				prev_mconverted += self.total_converted_mtp_by_level[lvl-1].get()	
 			
 			# Calculating the regained TP needs to be done for each skill at each level to get an accurate count of the TP. We need ALL the TP before we can determine if the skills cost can be meet
-			for key, sskill in globals.character.skills_list.items():	
+			for row in globals.character.build_skills_list:
 				if lvl == 0:
 					break
+				
+				sskill = globals.character.skills_list[row.name.get()]
 					
 				if sskill.subskill_group != "NONE":
 					if not sskill.subskill_group in subskills_calculated:					
@@ -581,7 +597,7 @@ class Skills_Panel:
 					
 			ptp_regained -= prev_pconverted 
 			mtp_regained -= prev_mconverted 
-					
+						
 			# In some cases, there isn't enough TP earned from leveling up to unconvert all the points. 
 			# So take back enough TP to set the convert-from TP to 0. Remember ptp_regained/mtp_regained is negative, so += is fine for subtraction.
 			if ptp_regained < 0:
@@ -599,10 +615,10 @@ class Skills_Panel:
 			for bskill in globals.character.build_skills_list:	
 				if abort_loops == 1:					
 					break
-				ranks_needed = 0; ranks_taken = 0; subskill_ranks = 0
+				ranks_needed = 0; ranks_taken = 0
 				ptp_cost_at_level = 0; mtp_cost_at_level = 0		
 				
-				# Skip this skill if it is hidden, falls outside the level range,  has no ranks needed to be trained this level
+				# Skip this skill if it is hidden, falls outside the level range, has no ranks needed to be trained this level
 				if bskill.hide.get() == "x" or int(bskill.slvl.get()) > lvl or int(bskill.tlvl.get()) < lvl or int(bskill.adjusted_training_rate[lvl]) == 0:
 					continue									
 							
@@ -614,17 +630,27 @@ class Skills_Panel:
 				row = globals.character.skills_list[bskill.name.get()]
 				ranks_taken = bskill.adjusted_training_rate[lvl]	
 				
-				subskill_tranks = globals.character.Get_Total_Ranks_Of_Subskill(bskill.name.get(), lvl, row.subskill_group)
+				if row.subskill_group == 'NONE':
+					subskill_ranks = 0
+				else:
+					try:
+						subskill_ranks = subskill_ranks_this_level[row.subskill_group] + globals.character.Get_Total_Ranks_Of_Subskill(bskill.name.get(), lvl-1, row.subskill_group)
+						subskill_ranks_this_level[row.subskill_group] += ranks_taken
+					except:
+						subskill_ranks = globals.character.Get_Total_Ranks_Of_Subskill(bskill.name.get(), lvl-1, row.subskill_group)
+						subskill_ranks_this_level[row.subskill_group] = ranks_taken
 				
+								
 				# Current skill would add too many ranks to the skill. This happens if a person tries to train the same skill (or subskill) more than once in a set range
-				if row.max_ranks * (1+lvl) < row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl] + subskill_tranks:
+				
+				if row.max_ranks * (1+lvl) < row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl] + subskill_ranks:
 					if lvl == int(bskill.tlvl.get()):
-						error_text += "ERROR: Unable to train %s ranks in %s at level %s. %s (maximum) vs. %s (desired) ranks." % (bskill.adjusted_training_rate[lvl], row.name, lvl, row.max_ranks * (1+lvl), row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl])								
+						error_text = "Level %s: Error training in %s\nRanks desired exceeds maximum profession ranks\n%s desired ranks vs. %s maximum ranks.  Aborting calculation." % (lvl, row.name, row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl], row.max_ranks * (1+lvl))								
 						abort_loops = 1
 						break
 						
 					# If we are not at the last level, we might be able to train some of the ranks even if we can't train them all. Try to figure out how many we can afford and set that to ranks_taken
-					elif row.max_ranks * (1+lvl) >= row.total_ranks_by_level[lvl].get() + 1 + subskill_tranks:
+					elif row.max_ranks * (1+lvl) >= row.total_ranks_by_level[lvl].get() + 1 + subskill_ranks:
 						j = ranks_taken
 						for k in range(j, 0, -1):				
 							if row.max_ranks * (1+lvl) >= row.total_ranks_by_level[lvl].get() + k:				
@@ -647,7 +673,7 @@ class Skills_Panel:
 					cur_mtp_available = total_mtp_available - mtp_cost + mtp_converted_at_level					
 						
 					# Calculate the cost of the next rank.
-					(ptp_cost_at_level, mtp_cost_at_level) = row.Get_Next_Ranks_Cost(lvl, subskill_tranks, k)
+					(ptp_cost_at_level, mtp_cost_at_level) = row.Get_Next_Ranks_Cost(lvl, subskill_ranks, k)
 					
 					# If we have enough PTP and MTP to train those ranks, do it and break out of the loop
 					if cur_ptp_available >= ptp_cost_at_level and cur_mtp_available >= mtp_cost_at_level:
@@ -687,21 +713,21 @@ class Skills_Panel:
 				
 				# Error checking
 				if ranks_taken < bskill.adjusted_training_rate[lvl] and lvl >= int(bskill.tlvl.get()):
-					error_text += "ERROR: Failed to meet training goal %s ranks by target level %s for %s. Aborting calculation." % (bskill.goal.get(), lvl, row.name)															
+					error_text += "Failed to meet training goal %s ranks by target level %s for %s. Aborting calculation." % (bskill.goal.get(), lvl, row.name)															
 					abort_loops = 1
 					break
 					
 				
 				# If we actually took some ranks, train them now
 				if ranks_taken > 0:
-					(ptp_cost_at_level, mtp_cost_at_level) = row.Get_Next_Ranks_Cost(lvl, subskill_tranks, ranks_taken)		
+					(ptp_cost_at_level, mtp_cost_at_level) = row.Get_Next_Ranks_Cost(lvl, subskill_ranks, ranks_taken)		
 					ptp_cost += ptp_cost_at_level
 					mtp_cost += mtp_cost_at_level	
-					row.Train_New_Ranks(lvl, subskill_tranks, ranks_taken)
+					row.Train_New_Ranks(lvl, subskill_ranks, ranks_taken)
 					
 					
 				if ranks_taken < bskill.adjusted_training_rate[lvl]:
-					error_text += "ERROR: Couldn't train %s ranks in %s at level %s (trained %s ranks).\nPushing back remaining training to next level.\n\n" % (bskill.adjusted_training_rate[lvl], row.name, lvl, ranks_taken)							
+					error_text += "Level %s: Error training in %s\nUnable to train %s ranks (trained %s ranks this level)\nRemaining training pushed back to next level.\n\n" % (lvl, row.name, bskill.adjusted_training_rate[lvl], ranks_taken)											
 					bskill.adjusted_training_rate[lvl+1] = bskill.adjusted_training_rate[lvl+1] + bskill.adjusted_training_rate[lvl] - ranks_taken
 					push_back = 1
 				
@@ -734,13 +760,17 @@ class Skills_Panel:
 	def Update_Schedule_Frames(self):
 		if self.level_counter.getvalue() == "":
 			return
+			
 		level = int(self.level_counter.getvalue())
+		subskill_ranks_this_level = {}
+		previous_subskill_ranks_this_level = {}
 		i = 0	
 		
 		# Go through each skill in the profession knows 
 		# Show skill if: Show All Skills is checked, Show All Trained is checked and the character has at least 1 rank in it, Show Trained this Level is checked and they have ranks for this level
 		for key in globals.skill_names:		
 			row = globals.character.skills_list[key]
+					
 			if row.active_skill == 1 and (self.SkP_radio_var.get() == 1 or (self.SkP_radio_var.get() == 2 and row.total_ranks_by_level[100].get() > 0) or (self.SkP_radio_var.get() == 3 and row.ranks_by_level[level].get() > 0)):
 				if row.ranks_by_level[level].get() > 0:
 					row.cost.set("%s / %s" % (row.ptp_cost_at_level[level].get(), row.mtp_cost_at_level[level].get()))
@@ -748,7 +778,27 @@ class Skills_Panel:
 					row.cost.set("")			
 					
 				if row.total_ranks_by_level[100].get() > 0:	
-					row.sum_cost.set("%s / %s" % (row.total_ptp_cost_at_level[level].get(), row.total_mtp_cost_at_level[level].get()))
+					if row.subskill_group == 'NONE':
+						row.sum_cost.set("%s / %s" % (row.Get_Total_Skill_Cost(0, row.total_ranks_by_level[level].get(), level)))
+					else:	
+						try:
+							subskill_ranks = subskill_ranks_this_level[row.subskill_group]	
+							base_skill_ranks = row.total_ranks_by_level[level].get() + previous_subskill_ranks_this_level[row.subskill_group]
+							
+							(base1, base2) = row.Get_Total_Skill_Cost(0, base_skill_ranks, level)
+							(subranks1, subranks2) = row.Get_Total_Skill_Cost(subskill_ranks, row.total_ranks_by_level[level].get(), level)			
+							
+							previous_subskill_ranks_this_level[row.subskill_group] = subskill_ranks_this_level[row.subskill_group]
+							subskill_ranks_this_level[row.subskill_group] += row.total_ranks_by_level[level].get()			
+							
+							row.sum_cost.set("%s / %s" % (subranks1-base1, subranks2-base2))		
+						except:
+							subskill_ranks = globals.character.Get_Total_Ranks_Of_Subskill(row.name, level-1, row.subskill_group)
+							subskill_ranks_this_level[row.subskill_group] = row.total_ranks_by_level[level].get()
+							previous_subskill_ranks_this_level[row.subskill_group] = 0
+							
+							row.sum_cost.set("%s / %s" % (row.Get_Total_Skill_Cost(0, row.total_ranks_by_level[level].get(), level)))				
+					
 				else:
 					row.sum_cost.set("")		
 				
