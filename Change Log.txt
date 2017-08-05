@@ -1,3 +1,36 @@
+-Version 2.6.2- (Date: 8/5/2017)
+STATISTICS PANEL
+-Health resource calculation now uses the proper formula for health gain instead of increasing health by 5 per Physical Fitness rank.
+
+MANEUVERS PANEL
+-Fixed an error that prevented training in Armor Specializations.
+
+LOADOUT PANEL
+-Fixed a formating problem with the effect scaling rows in the effect dialog box
+-4 new effect Categories:
+--Special Abilities: For effects that are gained through skills ranks (Stamina Burst) or as something or certain professions can do (Meditate). 3 Effects 
+--Generic Bonus: This set of 19 effects allows you to add from a +1 to a +100 bonus to any type of AS, DS, CS, or TD. These are meant to represent non-standard bonuses that come from unique or rare items and other sources.
+--Enhancive (Resources): These effects allow you to enhance the maximum and recovery bonus for health, mana, stamina, and spirit. 8 effects total.
+--Items: The 43 effects in this category are based of the enhancive items created through alchemy. Other items that don't fit into other categories are here too such as Defense Bonus Item.
+
+PROGRESSION PANEL
+-Added new formulas:
+--First Aid - Bandage Duration & Herb RT
+--Mana Control - Mana Pulse & Spellup
+--Trading - Skill Boost
+--Resources - Maximums & Recovery
+--Spellburst
+-The effects "Kneeling" and "Lying Down" now properly calculate Ranged AS when using a crossbow.
+-Added additional Effects that are not in the brand new categories:
+--Manna (203), Tend Lore (206), Symbol of Proselyte (340), Mana Focus (418), Assume Aspect (650) Bear, Core Tap (950), Vigor (1608)
+--Armor Blessing, Armored Evasion, Combat Toughness, Shield Forward
+--Sigil of Concentration, Sigil of Mending
+--Node
+
+CALCULATIONS
+-Fixed an error in Heroism (215) lore calculations
+
+
 -Version 2.6.1- (Date: 6/29/2017)
 GENREAL CHANGES
 -Attempting to run Planner.exe without GS4_Planner.db in the same directory will now display an error message box.
