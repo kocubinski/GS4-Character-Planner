@@ -856,7 +856,7 @@ class Maneuvers_Panel:
 					prev_leftover = 0
 					next_rank_cost = row.Get_Cost_At_Rank(row.total_ranks_by_level[lvl].get() + 1, prof_type)    
 					tcost = row.Get_Total_Cost_At_Rank(0, row.total_ranks_by_level[lvl].get() + 1, prof_type)
-								
+									
 					while available >= next_rank_cost and lvl+1 >= tcost:
 						cost_at_level += next_rank_cost
 						available -= next_rank_cost
@@ -906,8 +906,8 @@ class Maneuvers_Panel:
 			globals.info_dialog.Show_Message(error_text)
 
 #		globals.character.Update_Statistics()
-		for i in range(101):
-			globals.character.Update_Resources(i)	
+#		for i in range(101):
+#			globals.character.Update_Resources(i)	
 		self.Update_Schedule_Frames()	
 
 		
