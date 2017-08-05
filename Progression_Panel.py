@@ -1,12 +1,5 @@
 # INDEX OF CLASSES AND METHODS
 
-# TODO LIST
-# Allow +30 AS for ranged weapons if using a crossbow with the Lying Down or Kneeling effect
-# Need clarification on Steely Resolve shield maneuver. Block DS? Is that like Shield Use ranks? Phantom Shield Use ranks?
-# Symbol of the Proselyte (340) use a unique CS calculation and needs special code to get it to work
-
-
-
 '''
 class Progression_Panel
 	def __init__(self, panel)
@@ -33,6 +26,12 @@ class Progression_Panel
 	def Formula_Defense_Strength(self, vs_type, main_gear, other_hand_gear, armor_gear, gloves_gear, calc_style):
 	def Formula_Casting_Strength(self, display_spell_circles, statistic_names, calc_style):
 	def Formula_Target_Defense(self, calc_style):
+	def Formula_Multi_Opponent_Combat(self, calc_style):	
+	def Formula_Mana_Control(self, calc_style):	
+	def Formula_First_Aid(self, calc_style):	
+	def Formula_Trading(self, calc_style):
+	def Formula_Resources(self, calc_style):
+	def Formula_Spellburst(self, calc_style):
 	
 	
 class Graph_Data_Line_Container:	
@@ -101,6 +100,8 @@ class Progression_Panel:
 		"Casting Strength (Sorcerer - MnS, MnE, Sorc)", "Casting Strength (Wizard - MnE, MjE, Wizard)", "Casting Strength (Arcane Circle)", "Target Defense"]		
 #		self.subcategory_list_skills_physical = ["Armor Use - AAP, Hindrance, Roundtime", "Multi Opponent Combat - FoF, Mstrike"]			
 		self.subcategory_list_skills_physical = ["Multi Opponent Combat - FoF, Mstrike"]		
+		self.subcategory_list_skills_magical = ["Mana Control - Mana Pulse & Spellup"]
+		'''
 		self.subcategory_list_skills_magical = ["Arcane Symbols - Modifiers per Sphere", "Arcane Symbols - Max Spell, Spell Duration", "Magic Item Use - Modifiers per Sphere", "Magic Item Use - Max Spell, Spell Duration", 
 		"Elemental Lore, Air - Summations", "Elemental Lore, Earth - Summations", "Elemental Lore, Fire - Summations", "Elemental Lore, Water - Summations", 
 		"Mental Lore, Divination - Summations", "Mental Lore, Manipulation - Summations", "Mental Lore, Telepathy - Summations", 
@@ -108,8 +109,10 @@ class Progression_Panel:
 		"Sorcerous Lore, Demonology - Summations", "Sorcerous Lore, Necromancy - Summations", 
 		"Spiritual Lore, Blessings - Summations", "Spiritual Lore, Summoning - Summations", "Spiritual Lore, Religion - Summations", 
 		"Mana Control - Mana Pulse/Spellup"]
-		self.subcategory_list_skills_general = ["First Aid - Herb Roundtime Reduction", "Trading - Skill Boost"]
-		self.subcategory_list_other = ["Encumbrance - Max Carry Weight", "Health, Mana, Stamina Recovery",  "Spellburst", "Spellsong Renewal Time"]
+		'''
+		self.subcategory_list_skills_general = ["First Aid - Bandage Duration & Herb RT", "Trading - Skill Boost"]
+#		self.subcategory_list_other = ["Encumbrance - Max Carry Weight", "Resources - Maximums & Recovery",  "Spellburst", "Spellsong Renewal Time"]
+		self.subcategory_list_other = ["Resources - Maximums & Recovery",  "Spellburst"]
 			
 		
 		# Create each section of the Progression Panel
@@ -241,8 +244,7 @@ class Progression_Panel:
 		tkinter.Label(options_frame, width="13", anchor="w", bg="lightgray", text="Category").grid(row=0, column=0, sticky="w")
 		tkinter.Label(options_frame, width="13", anchor="w", bg="lightgray", text="Subcategory").grid(row=1, column=0, sticky="w")
 		
-#		choices = ["Physical Combat", "Magical Combat", "Physical Skills", "Magical Skills", "General Skills", "Other"]
-		choices = ["Physical Combat", "Magical Combat", "Physical Skills",]		
+		choices = ["Physical Combat", "Magical Combat", "Physical Skills", "Magical Skills", "General Skills", "Other"]
 		self.graph_option_category_menu = tkinter.OptionMenu(options_frame, self.graph_option_category, *choices, command=self.Graph_Option_Category_OnChange)
 		self.graph_option_category_menu.config(width=40, heigh=1)				
 		self.graph_option_subcategory_menu = tkinter.OptionMenu(options_frame, self.graph_option_subcategory, "", command=self.Graph_Option_Subcategory_OnChange)
@@ -291,8 +293,7 @@ class Progression_Panel:
 	# This method is used to plot data depending on the options selected by the user.
 	# The choice option determines which formula is called. This formula will populated
 	# the graph_information object which is used as the data for the figure's plot
-	def Plot_Graph_Data(self):		
-
+	def Plot_Graph_Data(self):	
 		# Reset the graphing data 
 		self.graph_information.Reset_Graph_Data()
 		self.graph_tooltip_text.set("Click the data points on the graph for more information.")
@@ -307,6 +308,8 @@ class Progression_Panel:
 					
 		category = self.graph_option_category.get()
 		choice = self.graph_option_subcategory.get()
+		calculations.override_dict = {}
+		
 				
 		if category == "Physical Combat":
 			if choice == "Attack Strength (Main Weapon)":	
@@ -457,6 +460,39 @@ class Progression_Panel:
 				print("ERROR!!! Progression choice is not implemented!")
 				self.Plot_Graph_Clear()
 				return			
+
+		elif category == "Magical Skills":			
+			if choice == "Mana Control - Mana Pulse & Spellup":				
+				self.Formula_Mana_Control(self.graph_radio_var.get())	
+				
+			else:
+				print("ERROR!!! Progression choice is not implemented!")
+				self.Plot_Graph_Clear()
+				return		
+				
+				
+		elif category == "General Skills":			
+			if choice == "First Aid - Bandage Duration & Herb RT":				
+				self.Formula_First_Aid(self.graph_radio_var.get())	
+			elif choice == "Trading - Skill Boost":				
+				self.Formula_Trading(self.graph_radio_var.get())	
+				
+			else:
+				print("ERROR!!! Progression choice is not implemented!")
+				self.Plot_Graph_Clear()
+				return		
+				
+				
+		elif category == "Other":			
+			if choice == "Resources - Maximums & Recovery":				
+				self.Formula_Resources(self.graph_radio_var.get())	
+			elif choice == "Spellburst":				
+				self.Formula_Spellburst(self.graph_radio_var.get())	
+				
+			else:
+				print("ERROR!!! Progression choice is not implemented!")
+				self.Plot_Graph_Clear()
+				return		
 		
 		else:
 			print("ERROR!!! Unknown Category selected")
@@ -686,6 +722,8 @@ class Progression_Panel:
 	def Find_Effects_By_Tags(self, effect_tags):
 		effects_list = globals.character.loadout_effects_build_list		
 		matching_arr = {}
+		override_list = []
+		parts = []
 		
 		for tag in effect_tags:
 			matching_arr[tag] = []		
@@ -700,11 +738,19 @@ class Progression_Panel:
 			for etag in tag_list:
 				for tag in effect_tags:
 					if etag == tag:
-						matching_arr[tag].append(effect)				
+						matching_arr[tag].append(effect)			
+						
+						if effect.options != "NONE":
+							parts = effect.options.split("|")
+							
+							for option in parts:
+								if option not in override_list:
+									override_list.append(option)
+							
 
-		return matching_arr
+		return (matching_arr, override_list)
 					
-	
+						
 	# Given a specific tag to look for, an effects_arr to search through, and an action_type to format the return data:
 	# Combine_Effects will get the total bonus for an effect from all the effects in effects_arr. Calculate_Tag_Bonus
 	# is called on each effect to execute a specfic internal method to calculate the data. This always returns an list
@@ -739,6 +785,29 @@ class Progression_Panel:
 			if sum > 0:
 				tooltip = "       %s  enhancive %s bonus (%s vs max +20)\n" % (("%+d" % min(20, sum)).rjust(4), effect_name, "%+d" % (sum)) + tooltip
 
+		
+		elif action_type == "stat_bonus_to_inc":
+			effects_arr = effects_lists_arr[0]
+			tag = tag_arr[0]			
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
+					continue		
+				tooltip += "%s%s statistic increase  (%s)\n" % ( indenting,  ("%+d" % (temp_arr[0]*2)).rjust(4), temp_arr[1])
+				sum += temp_arr[0] * 2		
+		
+			effects_arr = effects_lists_arr[1]
+			tag = tag_arr[1]		
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
+					continue
+				tooltip += "%s%s statistic increase  (%+d %s)\n" % ( indenting,  ("%+d" % temp_arr[0]).rjust(4),   temp_arr[0],   temp_arr[1])
+				sum += temp_arr[0]					
+
+			if sum > 0:
+				tooltip = "       %s  enhancive %s statistic increase (%s vs max +40)\n" % (("%+d" % min(40, sum)).rjust(4), effect_name, "%+d" % (sum)) + tooltip				
+				
 				
 		elif action_type == "skill_bonus_to_ranks":
 			effects_arr = effects_lists_arr[0]
@@ -802,7 +871,26 @@ class Progression_Panel:
 
 			if sum > 0:
 				tooltip = "       %s  enhancive %s bonus (%s vs max +50)\n" % (("%+d" % min(50, sum)).rjust(4), effect_name, "%+d" % sum) + tooltip
-			
+
+				
+			if len(effects_lists_arr) > 2:
+				effects_arr = effects_lists_arr[2]
+				tag = tag_arr[2]		
+				temp_value = 0
+				temp_value2 = 0
+				temp_tooltip = ""
+				for effect in effects_arr:
+					temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+					if temp_arr[0] == 0:           						
+						continue
+					temp_tooltip += "%s%s %s  (%s)\n" % (indenting,  ("%+d" % temp_arr[0]).rjust(4),  temp_arr[1],  effect.name.get())
+					temp_value += calculations.Convert_Ranks_To_New_Bonus(base_value, temp_arr[0])
+					temp_value2 += temp_arr[0]		
+				sum += temp_value				
+				
+				if temp_value > 0:
+					tooltip += "       %s  bonus from %s %s phantom ranks\n" % (("%+d" % temp_value).rjust(4), temp_value2, effect_name) + temp_tooltip	
+				
 			
 		elif action_type == "effect_display":
 			arr_length = len(effects_lists_arr)
@@ -817,6 +905,21 @@ class Progression_Panel:
 					tooltip += "%s%s %s  (%s)\n" % (indenting,  ("%+d" % temp_arr[0]).rjust(4),  temp_arr[1],  effect.name.get())
 					sum += temp_arr[0]	
 					
+
+		elif action_type == "effect_display_2":
+			arr_length = len(effects_lists_arr)
+			
+			for i in range(arr_length):
+				effects_arr = effects_lists_arr[i]
+				tag = tag_arr[i]
+				for effect in effects_arr:					
+					temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+					if temp_arr[0] == 0:           						
+						continue
+					tooltip += "%s%s  %s  (%s)\n" % ("      ",  ("%+d" % temp_arr[0]).rjust(4),  temp_arr[1],  effect.name.get())
+					sum += temp_arr[0]	
+					
+					
 		elif action_type == "float_format":
 			effects_arr = effects_lists_arr[0]
 			tag = tag_arr[0]		
@@ -824,10 +927,35 @@ class Progression_Panel:
 				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
 				if temp_arr[0] == 0:           						
 					continue					
-				tooltip += "%s%s bonus  (%s)\n" % ( "    ",  ("%+.2f" % temp_arr[0]).rjust(4), effect.name.get())
+				tooltip += "%s%s bonus  (%s)\n" % ("    ",  ("%+.2f" % temp_arr[0]).rjust(4), effect.name.get())
 				sum += temp_arr[0]	
 					
-							
+
+		elif action_type == "AAP_display":
+			arr_length = len(effects_lists_arr)
+			
+			for i in range(arr_length):
+				effects_arr = effects_lists_arr[i]
+				tag = tag_arr[i]
+				for effect in effects_arr:					
+					temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+					if temp_arr[0] == 0:           						
+						continue
+					tooltip += "%s%s %s  (%s)\n" % ("  ",  ("%+d" % temp_arr[0]).rjust(4),  temp_arr[1],  effect.name.get())
+					sum += temp_arr[0]	
+					
+					
+		elif action_type == "spellburst_float_format":
+			effects_arr = effects_lists_arr[0]
+			tag = tag_arr[0]		
+			for effect in effects_arr:
+				temp_arr = effect.Calculate_Tag_Bonus(tag, level)
+				if temp_arr[0] == 0:           						
+					continue					
+				tooltip += "%s%s %s  (%s)\n" % ("    ",  ("%.1f" % temp_arr[0]).rjust(4), temp_arr[1], effect.name.get())
+				sum += temp_arr[0]	
+
+					
 		return (sum, tooltip)
 
 		
@@ -836,13 +964,15 @@ class Progression_Panel:
 	# like the Katar. It can also calculate Bolt AS and TWC AS as well. All statistics, skills, and effects that
 	# increase skills, statistics, or AS itself are included in this calculation.	
 	def Formula_Attack_Strength(self, twc_mode, main_gear, ammo_enchantment, calc_style):	
+		redo = 0
 		index = 0
 		loop_range = [i for i in range(101)]
 		base_stat_arr = {}
 		base_ranks_arr = {}
 		base_bonus_arr = {}
 		postcap_intervals = []
-		lists_of_effects_by_tag = {}		
+		lists_of_effects_by_tag = {}	
+		override_options = []
 		
 		off_hand_text = ""			
 		main_enchantment = int(main_gear.enchantment)
@@ -893,7 +1023,25 @@ class Progression_Panel:
 			effects_list.append("Skill_Ranks_%s" % skill.replace(" ", "_").replace("-", "_").replace(",", ""))
 			effects_list.append("Skill_Bonus_%s" % skill.replace(" ", "_").replace("-", "_").replace(",", ""))
 			
-		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)				
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)			
+		
+		# Set the overrides if needed
+		for option in override_options:
+			if option == "Main Weapon":
+				calculations.override_dict["Main Weapon"] = main_gear.name.get()					
+			elif option == "Influence Bonus":
+				effects_list.extend(("Statistic_Influence", "Statistic_Bonus_Influence"))
+				statistic_names.append("Influence")
+				redo = 1
+			elif option == "Wisdom Bonus":
+				effects_list.extend(("Statistic_Wisdom", "Statistic_Bonus_Wisdom"))
+				statistic_names.append("Wisdom")
+				redo = 1
+				
+		# Fix this! For now, just do it again.		
+		if redo == 1:
+			(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)					
+		
 		
 		# In Postcap mode, loop_range is not 0-100, instead its whatever postcap intervals that have training in the relevant skills
 		if calc_style == 2:
@@ -977,9 +1125,14 @@ class Progression_Panel:
 				stat_tooltip_text += "       %s  Dexterity base bonus\n" % (("%+d" % base_stat_arr["Dexterity"]).rjust(4)) + temp_tooltip	
 				
 				stat_tooltip_text = "  %s  Statistic bonus: min(Strength %+d vs Dexterity %+d)\n" % (("%+d" % min(combined_strength_bonus, combined_dexterity_bonus)).rjust(4), combined_strength_bonus, combined_dexterity_bonus) + stat_tooltip_text	
+				
 			# Statistic calculations for every other weapon style	
 			else:
+				k = 0
 				for stat in statistic_names:
+					if stat == "Wisdom" or stat == "Influence":
+						continue
+						
 					stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, stat, 0, 
 													[lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], lists_of_effects_by_tag["Statistic_%s" % stat]], 
 													["Statistic_Bonus_%s" % stat, "Statistic_%s" % stat], 
@@ -988,21 +1141,35 @@ class Progression_Panel:
 					stat_enhancive_totals.append(base_stat_arr[stat] + min(50, stat_enh_bonus))	
 					combined_statistic_bonus += base_stat_arr[stat] + min(50, stat_enh_bonus)
 					stat_tooltip_text += "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip	
-								
-				combined_statistic_bonus /= len(statistic_names)							
+					k += 1									
+				combined_statistic_bonus /= k							
 
 								
-				if len(statistic_names) > 1:	
+				if k > 1:	
 					mutli_tooltip = ""
-					for j in range(len(statistic_names)):
+					for j in range(k):
 						mutli_tooltip = " %s (%s)," % (statistic_names[j], "%+d" % stat_enhancive_totals[j]) + mutli_tooltip
 					stat_tooltip_text = "  %s  Statistic bonus avg: %s\n" % (("%+d" % combined_statistic_bonus).rjust(4), mutli_tooltip[:-1]) + stat_tooltip_text
 				else:						
 					stat_tooltip_text = "  %s  %s bonus\n" % (("%+d" % combined_statistic_bonus).rjust(4), statistic_names[0]) + stat_tooltip_text
 			
 			
-			if weapon_types[0] == "Spell Aiming":
-				pass       # Yes, do nothing. Need to do this because the "else" below will calculate every other style aside from Ranged Weapons and Thrown Weapons
+			if weapon_types[0] == "Spell Aiming":	
+				if "Influence Bonus" in override_options:
+					stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, "Influence", 0, 
+													[lists_of_effects_by_tag["Statistic_Bonus_Influence"], lists_of_effects_by_tag["Statistic_Influence"]], 
+													["Statistic_Bonus_Influence", "Statistic_Influence"], 
+													"stat_inc_to_bonus")		
+
+					calculations.override_dict["Influence Bonus"] = base_stat_arr["Influence"] + stat_enh_bonus
+												
+				if "Wisdom Bonus" in override_options:
+					stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, "Wisdom", 0, 
+													[lists_of_effects_by_tag["Statistic_Bonus_Wisdom"], lists_of_effects_by_tag["Statistic_Wisdom"]], 
+													["Statistic_Bonus_Wisdom", "Statistic_Wisdom"], 
+													"stat_inc_to_bonus")			
+													
+					calculations.override_dict["Wisdom Bonus"] = base_stat_arr["Wisdom"] + stat_enh_bonus
 				
 			elif weapon_types[0] == "Ranged Weapons":
 				# Calculate Ambush ranks
@@ -1145,24 +1312,40 @@ class Progression_Panel:
 			def_stance_totals.append(value * 0.5)
 			
 			# Create Tooltip
-			tooltip += "%+s = %+d * 1.0  (Offensive Stance)\n" % (("%+d" % off_stance_totals[index]).rjust(4), value)
-			tooltip += "%+s = %+d * 0.9  (Advanced Stance)\n" % (("%+d" % adv_stance_totals[index]).rjust(4), value)
-			tooltip += "%+s = %+d * 0.8  (Forward Stance)\n" % (("%+d" % for_stance_totals[index]).rjust(4), value)
-			tooltip += "%+s = %+d * 0.7  (Neutral Stance)\n" % (("%+d" % neu_stance_totals[index]).rjust(4), value)
-			tooltip += "%+s = %+d * 0.6  (Guarded Stance)\n" % (("%+d" % gua_stance_totals[index]).rjust(4), value)
-			tooltip += "%+s = %+d * 0.5  (Defensive Stance)\n" % (("%+d" % def_stance_totals[index]).rjust(4), value)
-			tooltip += "%+d calculated with:\n" % value
-			if weapon_types[0] == "Ranged Weapons":			
-				tooltip += "  %s  Combined enchantment bonus (%+d vs max +50)\n" % (("%+d" % min(50, main_enchantment+ammo_enchantment)).rjust(4), main_enchantment+ammo_enchantment)
-				tooltip += "      %s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(4), main_gear.name.get())
-				tooltip += "      %s  Enchantment bonus of Arrows/Bolts\n" % (("%+d" % ammo_enchantment).rjust(4))
-			elif weapon_types[0] != "Spell Aiming":
-				tooltip += "  %s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(4), main_gear.name.get())
-			tooltip += stat_tooltip_text			
+			weapon_tooltip_text = ""	
 			for text in weapon_tooltip_arr:
-				tooltip += text
-			tooltip += skill_tooltip		
-			tooltip += effects_tooltip_text
+				weapon_tooltip_text += text
+				
+			tooltip = "".join( [ tooltip,
+						"%+s = %+d * 1.0  (Offensive Stance)\n" % (("%+d" % off_stance_totals[index]).rjust(4), value),
+						"%+s = %+d * 0.9  (Advanced Stance)\n" % (("%+d" % adv_stance_totals[index]).rjust(4), value),
+						"%+s = %+d * 0.8  (Forward Stance)\n" % (("%+d" % for_stance_totals[index]).rjust(4), value),
+						"%+s = %+d * 0.7  (Neutral Stance)\n" % (("%+d" % neu_stance_totals[index]).rjust(4), value),
+						"%+s = %+d * 0.6  (Guarded Stance)\n" % (("%+d" % gua_stance_totals[index]).rjust(4), value),
+						"%+s = %+d * 0.5  (Defensive Stance)\n" % (("%+d" % def_stance_totals[index]).rjust(4), value),
+						"%+d calculated with:\n" % value
+						])			
+			
+			if weapon_types[0] == "Ranged Weapons":						
+				tooltip = "".join( [ tooltip,
+							"  %s  Combined enchantment bonus (%+d vs max +50)\n" % (("%+d" % min(50, main_enchantment+ammo_enchantment)).rjust(4), main_enchantment+ammo_enchantment),
+							"      %s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(4), main_gear.name.get()),
+							"      %s  Enchantment bonus of Arrows/Bolts\n" % (("%+d" % ammo_enchantment).rjust(4))
+							])
+							
+			elif weapon_types[0] != "Spell Aiming":					
+				tooltip = "".join( [ tooltip,
+							"  %s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(4), main_gear.name.get())
+							])
+
+			tooltip = "".join( [ tooltip,
+						stat_tooltip_text,
+						weapon_tooltip_text,
+						skill_tooltip,
+						effects_tooltip_text
+						])
+
+			
 			self.graph_information.tooltip_array.append(tooltip[:-1])					
 
 			index += 1
@@ -1195,12 +1378,11 @@ class Progression_Panel:
 						self.graph_information.graph_xaxis_tick_labels.append(interval)
 					i += 1								
 					
-					
-		if def_stance_totals[0] < off_stance_totals[0]:			
-			self.graph_information.graph_yaxis_min = def_stance_totals[0] - 5
-		else:	
-			self.graph_information.graph_yaxis_min = off_stance_totals[0] - 5
-		self.graph_information.graph_yaxis_max = off_stance_totals[-1] + 5	
+		
+		ymin = min(def_stance_totals[0], off_stance_totals[0])
+		yman = max(def_stance_totals[-1], off_stance_totals[-1])
+		self.graph_information.graph_yaxis_min = ymin - 5
+		self.graph_information.graph_yaxis_max = yman + 5
 		self.graph_information.graph_data_lists.append(off_stance_totals)
 		self.graph_information.graph_data_lists.append(adv_stance_totals)
 		self.graph_information.graph_data_lists.append(for_stance_totals)
@@ -1250,7 +1432,8 @@ class Progression_Panel:
 		base_ranks_arr = {}
 		base_bonus_arr = {}
 		postcap_intervals = []
-		lists_of_effects_by_tag = {}		
+		lists_of_effects_by_tag = {}	
+		override_options = []	
 		gloves_totals = []
 		boots_totals = []
 			
@@ -1260,7 +1443,7 @@ class Progression_Panel:
 			effects_list.append("Statistic_%s" % stat)
 
 			
-		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)				
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)				
 
 		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
 		if calc_style == 2:
@@ -1285,6 +1468,8 @@ class Progression_Panel:
 			stat_tooltip_arr = {}
 			skill_tooltip_arr = {}
 			effects_tooltip_text = ""
+			stat_tooltip = ""
+			skill_tooltip = ""
 		
 			# Only a minor change depending on calc_style
 			# Get the base ranks and bonus for each relevant statistic and skill for this level/interval
@@ -1318,9 +1503,10 @@ class Progression_Panel:
 												"stat_inc_to_bonus")													
 
 				stat_enhancive_totals[stat] = int(base_stat_arr[stat] + min(50, stat_enh_bonus))
-				stat_tooltip_arr[stat] = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip		
-				stat_tooltip_arr[stat] = "  %s  %s bonus (%+d / 2)\n" % (("%+d" % (stat_enhancive_totals[stat]/2)).rjust(4), stat, stat_enhancive_totals[stat]) + stat_tooltip_arr[stat]			
-			
+				stat_tooltip_arr[stat] = "".join( [ "  %s  %s bonus (%+d / 2)\n" % (("%+d" % (stat_enhancive_totals[stat]/2)).rjust(4), stat, stat_enhancive_totals[stat]),
+											"       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat),
+											temp_tooltip
+											])			
 			
 				
 			# Calculate Weapon Skill bonus. 
@@ -1330,10 +1516,11 @@ class Progression_Panel:
 											"skill_bonus_to_ranks")
 
 			brawling_total = base_ranks_arr["Brawling"] + min(50, weapon_inc_bonus)	
-			skill_tooltip_arr["Brawling"] = "  %s  Brawling ranks  (%s * 2)\n" % (("%+d" % (brawling_total*2)).rjust(4), brawling_total) 	
-			skill_tooltip_arr["Brawling"] += "       %s  Brawling base ranks\n" % (("%+d" % base_ranks_arr["Brawling"]).rjust(4)) 	
-			skill_tooltip_arr["Brawling"] += temp_tooltip
-			
+			skill_tooltip_arr["Brawling"] = "".join( [ "  %s  Brawling ranks  (%s * 2)\n" % (("%+d" % (brawling_total*2)).rjust(4), brawling_total), 	
+											"       %s  Brawling base ranks\n" % (("%+d" % base_ranks_arr["Brawling"]).rjust(4)),
+											temp_tooltip
+											] )
+											
 			
 			# Calculate Combat Maneuver ranks
 			skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Combat Maneuvers", base_ranks_arr["Combat Maneuvers"], 
@@ -1341,11 +1528,11 @@ class Progression_Panel:
 											["Skill_Bonus_Combat_Maneuvers", "Skill_Ranks_Combat_Maneuvers", "Skill_Phantom_Ranks_Combat_Maneuvers"], 
 											"skill_bonus_to_ranks")
 
-			cman_total = base_ranks_arr["Combat Maneuvers"] + skill_rank_count		
-			skill_tooltip_arr["Combat Maneuvers"] = "  %s  Combat Maneuver ranks  (%s / 2)\n" % (("%+d" % (cman_total/2)).rjust(4), cman_total) 		
-			skill_tooltip_arr["Combat Maneuvers"] += "       %s  Combat Maneuvers base ranks\n" % (("%+d" % base_ranks_arr["Combat Maneuvers"]).rjust(4)) 				
-			skill_tooltip_arr["Combat Maneuvers"] += temp_tooltip				
-			
+			cman_total = base_ranks_arr["Combat Maneuvers"] + skill_rank_count	
+			skill_tooltip_arr["Combat Maneuvers"] = "".join( [ "  %s  Combat Maneuver ranks  (%s / 2)\n" % (("%+d" % (cman_total/2)).rjust(4), cman_total),
+											"       %s  Combat Maneuvers base ranks\n" % (("%+d" % base_ranks_arr["Combat Maneuvers"]).rjust(4)),
+											temp_tooltip
+											] )
 				
 	
 			# Calculate total of UAF effects
@@ -1381,18 +1568,24 @@ class Progression_Panel:
 			boots_totals.append(boots_value)
 			
 		
-			# Create Tooltip info
-			tooltip += "%s = %s + %s (Jab/Punch/Grapple)\n" % (("%+d" % gloves_value).rjust(4), base_value, gloves_enchantment)
-			tooltip += "%s = %s + %s (Kick)\n" % (("%+d" % boots_value).rjust(4), base_value, boots_enchantment)
-			tooltip += "%s from enchantment bonus of %s\n" % (("%+d" % gloves_enchantment).rjust(4), gloves.name.get())
-			tooltip += "%s from enchantment bonus of %s\n" % (("%+d" % boots_enchantment).rjust(4), boots.name.get())
-			tooltip += "%+d calculated with:\n" % base_value
+			# Create Tooltip info			
 			for stat in statistic_names:
-				tooltip += stat_tooltip_arr[stat]
+				stat_tooltip += stat_tooltip_arr[stat]
 			for skill in skill_names:
-				tooltip += skill_tooltip_arr[skill]		
-			tooltip += held_weapons_tooltip
-			tooltip += effects_tooltip_text
+				skill_tooltip += skill_tooltip_arr[skill]		
+				
+			tooltip = "".join( [ tooltip,
+						"%s = %s + %s (Jab/Punch/Grapple)\n" % (("%+d" % gloves_value).rjust(4), base_value, gloves_enchantment),
+						"%s = %s + %s (Kick)\n" % (("%+d" % boots_value).rjust(4), base_value, boots_enchantment),
+						"%s from enchantment bonus of %s\n" % (("%+d" % gloves_enchantment).rjust(4), gloves.name.get()),
+						"%s from enchantment bonus of %s\n" % (("%+d" % boots_enchantment).rjust(4), boots.name.get()),
+						"%+d calculated with:\n" % base_value,
+						stat_tooltip,
+						skill_tooltip,
+						held_weapons_tooltip,
+						effects_tooltip_text
+						])
+			
 			
 			self.graph_information.tooltip_array.append(tooltip[:-1])	
 
@@ -1458,6 +1651,7 @@ class Progression_Panel:
 		base_bonus_arr = {}
 		postcap_intervals = []
 		lists_of_effects_by_tag = {}	
+		override_options = []
 		
 		main_enchantment = int(main_gear.enchantment)
 		other_name = other_hand_gear.name.get()
@@ -1556,7 +1750,9 @@ class Progression_Panel:
 				effects_list.append("Skill_Ranks_%s" % skill.replace(" ", "_").replace("-", "_").replace(",", ""))
 				effects_list.append("Skill_Bonus_%s" % skill.replace(" ", "_").replace("-", "_").replace(",", ""))
 			
-		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)				
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)		
+		if "Armor Group" in override_options:
+			calculations.override_dict["Armor Group"] = armor_AG
 
 
 		# In Postcap mode, loop_range is not 0-100, instead its whatever postcap intervals that have training in the relevant skills
@@ -1634,8 +1830,8 @@ class Progression_Panel:
 												"stat_inc_to_bonus")													
 
 				stat_enhancive_totals[stat] = base_stat_arr[stat] + min(50, stat_enh_bonus)		
-				stat_tooltip_text = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip	
-				stat_tooltip_arr[stat] = stat_tooltip_text
+				stat_tooltip_arr[stat] = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip	
+				
 						
 
 			# Calculate Parry DS	
@@ -1724,13 +1920,14 @@ class Progression_Panel:
 												"skill_ranks_to_bonus")
 
 				weapons_bonus = base_bonus_arr["Ranged Weapons"] + min(50, skill_inc_bonus) 
-				weapon_enhancive_totals.append(base_bonus_arr["Ranged Weapons"] + min(50, skill_inc_bonus) )
-				
-				weapon_tooltip_text = "       %s bonus from %s Ranged Weapons base ranks\n" % (("%+d" % base_bonus_arr["Ranged Weapons"]).rjust(4), base_ranks_arr["Ranged Weapons"]) 
-				weapon_tooltip_text += "       %s  Ranged Weapons base ranks\n" % (("%+d" % base_ranks_arr["Ranged Weapons"]).rjust(4)) 
-				weapon_tooltip_text += temp_tooltip		
-				weapon_tooltip_text = "  %s  %s skill bonus\n" % (("%+d" % weapons_bonus).rjust(4), weapon_types[0]) + weapon_tooltip_text
+				weapon_enhancive_totals.append(base_bonus_arr["Ranged Weapons"] + min(50, skill_inc_bonus) )				
 
+				weapon_tooltip_text = "".join([ "  %s  %s skill bonus\n" % (("%+d" % weapons_bonus).rjust(4), weapon_types[0]),
+									"       %s bonus from %s Ranged Weapons base ranks\n" % (("%+d" % base_bonus_arr["Ranged Weapons"]).rjust(4), base_ranks_arr["Ranged Weapons"]),
+									"       %s  Ranged Weapons base ranks\n" % (("%+d" % base_ranks_arr["Ranged Weapons"]).rjust(4)),
+									temp_tooltip
+									])	
+									
 				
 				# Calculate Ambush ranks
 				skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Ambush", base_ranks_arr["Ambush"], 
@@ -1739,10 +1936,11 @@ class Progression_Panel:
 												"skill_bonus_to_ranks")
 
 				ambush_total = base_ranks_arr["Ambush"] + min(50, skill_rank_count)		
-				skill_tooltip = "  %s  Ambush ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((ambush_total - 40) / 4) )) ).rjust(4), ambush_total) 		
-				skill_tooltip += "       %s  Ambush base ranks\n" % (("%+d" % base_ranks_arr["Ambush"]).rjust(4)) 
-				skill_tooltip += temp_tooltip		
-				skill_tooltip_arr["Ambush"] = skill_tooltip					
+				
+				skill_tooltip_arr["Ambush"] = "".join([ "  %s  Ambush ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((ambush_total - 40) / 4) )) ).rjust(4), ambush_total),
+										"       %s  Ambush base ranks\n" % (("%+d" % base_ranks_arr["Ambush"]).rjust(4)),
+										temp_tooltip
+										])
 				
 				
 				# Calculate Perception ranks
@@ -1752,11 +1950,11 @@ class Progression_Panel:
 												"skill_bonus_to_ranks")
 
 				perception_total = base_ranks_arr["Perception"] + min(50, skill_rank_count)		
-				skill_tooltip = "  %s  Perception ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((perception_total - 40) / 4) )) ).rjust(4), perception_total)			
-				skill_tooltip += "       %s  Perception base ranks\n" % (("%+d" % base_ranks_arr["Perception"]).rjust(4)) 
-				skill_tooltip += temp_tooltip	
-				skill_tooltip_arr["Perception"] = skill_tooltip	
 
+				skill_tooltip_arr["Perception"] = "".join([ "  %s  Perception ranks  ((%s - 40) / 4) vs min +0)\n" % (("%+d" % ( max(0, math.floor(0/4) + math.floor((perception_total - 40) / 4) )) ).rjust(4), perception_total),
+										"       %s  Perception base ranks\n" % (("%+d" % base_ranks_arr["Perception"]).rjust(4)),
+										temp_tooltip
+										])
 
 
 				# Calculate Parry DS
@@ -1789,12 +1987,13 @@ class Progression_Panel:
 						else:
 							parry_tooltip_text += "%+d = (%s  x  %.2f)  +  %s  (%s)\n" % (value, parry_base_value, stance_mod[j], main_enchantment, stance_arr[j]) 	
 
-
-					parry_tooltip_text += "%+d (Parry Base Value) calculated with:\n" % parry_base_value		
-					parry_tooltip_text += weapon_tooltip_text	
-					parry_tooltip_text += skill_tooltip_arr["Perception"]			
-					parry_tooltip_text += skill_tooltip_arr["Ambush"]		
-					parry_tooltip_text += "%s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(3), main_gear.name.get())			
+					parry_tooltip_text = "".join([ parry_tooltip_text,
+								"%+d (Parry Base Value) calculated with:\n" % parry_base_value,
+								weapon_tooltip_text,
+								skill_tooltip_arr["Perception"],
+								skill_tooltip_arr["Ambush"],
+								"%s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(3), main_gear.name.get())
+								])
 			
 			# THW Parry DS
 			elif weapon_types[0] == "Two-Handed Weapons" or (weapon_types[0] == "Polearm Weapons" and (main_gear.name.get() != "Pilum" and main_gear.name.get() != "Spear, One-Handed")):
@@ -1841,15 +2040,16 @@ class Progression_Panel:
 							parry_tooltip_text += "%+d = (%s  x  %.2f)  + %s  (%s)\n" % (value, parry_base_value, stance_mod[j], stance_bonus[j], stance_arr[j]) 
 						else:
 							parry_tooltip_text += "%+d = (%s  x  %.2f)  (%s)\n" % (value, parry_base_value, stance_mod[j], stance_arr[j]) 
-													
-
-					parry_tooltip_text += "%+d (Parry Base Value) calculated with:\n" % parry_base_value		
-					parry_tooltip_text += weapon_tooltip_text	
-					parry_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
-					parry_tooltip_text += stat_tooltip_arr["Strength"]		
-					parry_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
-					parry_tooltip_text += stat_tooltip_arr["Dexterity"]		
-					parry_tooltip_text += "  %s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(3), main_gear.name.get())		
+							
+					parry_tooltip_text = "".join([ parry_tooltip_text,
+									"%+d (Parry Base Value) calculated with:\n" % parry_base_value,
+									weapon_tooltip_text,
+									"  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"]),
+									stat_tooltip_arr["Strength"],
+									"  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"]),
+									stat_tooltip_arr["Dexterity"],
+									"  %s  Enchantment bonus of %s\n" % (("%+d" % main_enchantment).rjust(3), main_gear.name.get())
+									])
 			
 			# Every other weapon for Parry DS (one handed and possible off-hand)
 			else:			
@@ -1910,13 +2110,15 @@ class Progression_Panel:
 							parry_tooltip_text += "%+d = (%s  x  %.2f)  (%s)\n" % (value, parry_base_value, stance_mod[j], stance_arr[j])						
 						'''							
 
-					parry_tooltip_text += "%+d (Parry Base Value) calculated with:\n" % parry_base_value		
-					parry_tooltip_text += weapon_tooltip_text	
-					parry_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
-					parry_tooltip_text += stat_tooltip_arr["Strength"]		
-					parry_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
-					parry_tooltip_text += stat_tooltip_arr["Dexterity"]		
-					parry_tooltip_text += "  %s  Enchantment bonus of %s  (%+d / 2)\n" % (("%+d" % int(math.floor(enchantment/2))).rjust(3), parry_weapon.name.get(), enchantment)	
+					parry_tooltip_text = "".join([ parry_tooltip_text,
+										"%+d (Parry Base Value) calculated with:\n" % parry_base_value,
+										weapon_tooltip_text,
+										"  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"]),
+										stat_tooltip_arr["Strength"],
+										"  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"]),
+										stat_tooltip_arr["Dexterity"],
+										"  %s  Enchantment bonus of %s  (%+d / 2)\n" % (("%+d" % int(math.floor(enchantment/2))).rjust(3), parry_weapon.name.get(), enchantment)
+										])
 			
 			
 				# Checked for off-hand Parry. If not using a shield		
@@ -1928,6 +2130,7 @@ class Progression_Panel:
 													
 					weapons_bonus = base_ranks_arr["Two Weapon Combat"] + min(50, weapon_inc_bonus) 
 					weapon_enhancive_totals.append(weapons_bonus)	
+					
 					off_hand_tooltip_text = "       %s Two Weapon Combat base ranks\n" % (("%+d" % base_ranks_arr["Two Weapon Combat"]).rjust(4)) + off_hand_tooltip_text
 					off_hand_tooltip_text = "  %s  Two Weapon Combat ranks\n" % (("%+d" % weapons_bonus).rjust(4)) + off_hand_tooltip_text
 					skill_tooltip_arr["Two Weapon Combat"] = off_hand_tooltip_text	
@@ -1960,14 +2163,16 @@ class Progression_Panel:
 							else:
 								off_hand_tooltip_text += "%+d = (%s  x  %.2f)  (%s)\n" % (value, parry_base_value, stance_mod[j], stance_arr[j])						
 							'''
-
-						off_hand_tooltip_text += "%+d (Off-Hand Parry Base Value) calculated with:\n" % parry_base_value		
-						off_hand_tooltip_text += skill_tooltip_arr["Two Weapon Combat"]
-						off_hand_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])		
-						off_hand_tooltip_text += stat_tooltip_arr["Strength"]		
-						off_hand_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])		
-						off_hand_tooltip_text += stat_tooltip_arr["Dexterity"]		
-						off_hand_tooltip_text += "  %s  Enchantment bonus of %s  (%+d / 2)\n" % (("%+d" % int(math.floor(other_enchantment/2))).rjust(3), other_hand_gear.name.get(), other_enchantment)				
+						
+						off_hand_tooltip_text = "".join([ off_hand_tooltip_text,
+											"%+d (Off-Hand Parry Base Value) calculated with:\n" % parry_base_value,
+											skill_tooltip_arr["Two Weapon Combat"],
+											"  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"]),
+											stat_tooltip_arr["Strength"],
+											"  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"]),
+											stat_tooltip_arr["Dexterity"],
+											"  %s  Enchantment bonus of %s  (%+d / 2)\n" % (("%+d" % int(math.floor(other_enchantment/2))).rjust(3), other_hand_gear.name.get(), other_enchantment)
+											])
 					
 
 			
@@ -1983,9 +2188,11 @@ class Progression_Panel:
 												
 				shield_total = base_ranks_arr["Shield Use"] + min(50, skill_rank_count)	
 
-				skill_tooltip_arr["Shield Use"] = "  %s  Shield Use ranks  \n" % (("%+d" % shield_total).rjust(4)) 
-				skill_tooltip_arr["Shield Use"] += "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Shield Use"]).rjust(4))
-				skill_tooltip_arr["Shield Use"] += temp_tooltip			
+				skill_tooltip_arr["Shield Use"] = "".join([ "  %s  Shield Use ranks  \n" % (("%+d" % shield_total).rjust(4)),
+										"       %s  base ranks\n" % (("%+d" % base_ranks_arr["Shield Use"]).rjust(4)),
+										temp_tooltip
+										])
+			
 				
 				
 				# Block DS calculations				
@@ -2007,25 +2214,33 @@ class Progression_Panel:
 						shield_tooltip_text += "%+d = %s  x  %.2f  x  %s  /  1.5  +  20  + %s  (%s)\n" % (value, shield_base_value, shield_melee_size_modifer, block_stance_mod[j], other_enchantment, stance_arr[j]) 
 					else:
 						shield_tooltip_text += "%+d = (%s  x  %.2f  +  %s)  x  %s  /  1.5  +  20  + %s  (%s)\n" % (value, shield_base_value, shield_ranged_size_modifer, shield_ranged_size_bonus, block_stance_mod[j], other_enchantment, stance_arr[j]) 
+
+				shield_tooltip_text = "".join([ shield_tooltip_text,
+									"%+d (Shield Base Value) calculated with:\n" % shield_base_value,
+									skill_tooltip_arr["Shield Use"],
+									"  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"]),
+									stat_tooltip_arr["Strength"],
+									"  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"]),
+									stat_tooltip_arr["Dexterity"]
+									])
 				
-				shield_tooltip_text += "%+d (Shield Base Value) calculated with:\n" % shield_base_value			
-				shield_tooltip_text += skill_tooltip_arr["Shield Use"]		
-				shield_tooltip_text += "  %s  Strength bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Strength"]/4)).rjust(4), stat_enhancive_totals["Strength"])
-				shield_tooltip_text += stat_tooltip_arr["Strength"]		
-				shield_tooltip_text += "  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"])	
-				shield_tooltip_text += stat_tooltip_arr["Dexterity"]	
-				if vs_type == "Melee":		
-					shield_tooltip_text += "%+.2f (Melee Shield Size Modifier) calculated with:\n" % shield_melee_size_modifer		
-					shield_tooltip_text += "    %+.2f base modifier of %s :\n" % (shield_melee_size_modifer, other_hand_gear.name.get())
+				if vs_type == "Melee":						
+					shield_tooltip_text = "".join([ shield_tooltip_text,
+									"%+.2f (Melee Shield Size Modifier) calculated with:\n" % shield_melee_size_modifer,
+									"    %+.2f base modifier of %s :\n" % (shield_melee_size_modifer, other_hand_gear.name.get())
+									])
 				else:
-					shield_tooltip_text += "%+.2f (Ranged Shield Size Modifier) calculated with:\n" % shield_ranged_size_modifer		
-					shield_tooltip_text += "    %+.2f base modifier of %s\n" % (shield_ranged_size_modifer, other_hand_gear.name.get())
-					shield_tooltip_text += "%+d (Ranged Shield Size Bonus) calculated with:\n" % shield_ranged_size_bonus		
-					shield_tooltip_text += "    %+d base modifier of %s\n" % (shield_ranged_size_bonus, other_hand_gear.name.get())
-				
-				shield_tooltip_text += "+20  Base shield DS\n"
-				shield_tooltip_text += "%s  Enchantment bonus of %s\n" % (("%+d" % other_enchantment).rjust(3), other_hand_gear.name.get())
-			
+					shield_tooltip_text = "".join([ shield_tooltip_text,
+									"%+.2f (Ranged Shield Size Modifier) calculated with:\n" % shield_ranged_size_modifer,
+									"    %+.2f base modifier of %s\n" % (shield_ranged_size_modifer, other_hand_gear.name.get()),
+									"%+d (Ranged Shield Size Bonus) calculated with:\n" % shield_ranged_size_bonus,
+									"    %+d base modifier of %s\n" % (shield_ranged_size_bonus, other_hand_gear.name.get())
+									])
+
+				shield_tooltip_text = "".join([ shield_tooltip_text,
+									"+20  Base shield DS\n",
+									"%s  Enchantment bonus of %s\n" % (("%+d" % other_enchantment).rjust(3), other_hand_gear.name.get())
+									])
 				
 			# Calculate Evade DS
 			
@@ -2036,10 +2251,11 @@ class Progression_Panel:
 											"skill_bonus_to_ranks")
 
 			dodge_total = base_ranks_arr["Dodging"] + skill_rank_count
-			skill_tooltip_arr["Dodging"] = "  %s  Dodging ranks\n" % (("%+d" % dodge_total).rjust(4))		
-			skill_tooltip_arr["Dodging"] += "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Dodging"]).rjust(4))
-			skill_tooltip_arr["Dodging"] += temp_tooltip	
 
+			skill_tooltip_arr["Dodging"] = "".join([ "  %s  Dodging ranks\n" % (("%+d" % dodge_total).rjust(4)),
+										"       %s  base ranks\n" % (("%+d" % base_ranks_arr["Dodging"]).rjust(4)),
+										temp_tooltip
+										])
 			
 			# Calculate Armor Use ranks 
 			skill_rank_count, temp_tooltip = self.Combine_Effects(i, "Armor Use", base_ranks_arr["Armor Use"], 
@@ -2047,9 +2263,11 @@ class Progression_Panel:
 											["Skill_Bonus_Armor_Use", "Skill_Ranks_Armor_Use"], 
 											"skill_bonus_to_ranks")
 			armor_total = base_ranks_arr["Armor Use"] + skill_rank_count
-			skill_tooltip_arr["Armor Use"] = "  %s  Armor Use ranks\n" % (("%+d" % armor_total).rjust(4))		
-			skill_tooltip_arr["Armor Use"] += "       %s  base ranks\n" % (("%+d" % base_ranks_arr["Armor Use"]).rjust(4))
-			skill_tooltip_arr["Armor Use"] += temp_tooltip				
+
+			skill_tooltip_arr["Armor Use"] = "".join([ "  %s  Armor Use ranks\n" % (("%+d" % armor_total).rjust(4)),
+										"       %s  base ranks\n" % (("%+d" % base_ranks_arr["Armor Use"]).rjust(4)),
+										temp_tooltip
+										])
 			
 
 			# Calculate Evade DS				
@@ -2067,10 +2285,10 @@ class Progression_Panel:
 			s_factor += shield_factor 
 			
 			# Calculate Armor Action Penalty
-			armor_hindrance, armor_hindrance_tooltip = self.Combine_Effects(i, "Action_Penalty", 0, [lists_of_effects_by_tag["Action_Penalty"]], ["Action_Penalty",], "float_format")	
+			armor_hindrance, armor_hindrance_tooltip = self.Combine_Effects(i, "Action_Penalty", 0, [lists_of_effects_by_tag["Action_Penalty"]], ["Action_Penalty",], "AAP_display")	
 			base_armor_hindrance = int(dodge_armor_action_penalty)
 			min_armor_hindrance = -1 * math.ceil(base_armor_hindrance / 2)
-			reduction = (armor_AG - 1)  * math.floor((armor_total - armor_overtrain_ranks) / 50)
+			reduction = (armor_AG - 1)  * math.floor((armor_total - armor_overtrain_ranks) / 50) 
 			
 			if reduction < 0:
 				reduction = 0
@@ -2078,10 +2296,10 @@ class Progression_Panel:
 				reduction = min_armor_hindrance
 			
 			if reduction != 0:
-				overtrain_hindrance_tooltip = "  %+.2f  from %s Armor Use ranks\n" % ((reduction/200), armor_total)
+				overtrain_hindrance_tooltip = "    %+d (%+.2f) bonus from %s Armor Use ranks\n" % (reduction, (reduction/200), armor_total)
 			
-			dodge_armor_hindrance = 1.00 + (math.floor((dodge_armor_action_penalty + reduction) / 2) / 100)	
-			dodge_armor_hindrance = min(1.00, dodge_armor_hindrance)			
+			raw_dodge_armor_hindrance = 1.00 + (math.floor((dodge_armor_action_penalty + reduction + armor_hindrance) / 2) / 100)	
+			dodge_armor_hindrance = min(1.00, raw_dodge_armor_hindrance)			
 			for j in range(6):
 				if vs_type == "Melee":
 					value = math.floor(dodge_base_value * dodge_armor_hindrance) 
@@ -2100,25 +2318,29 @@ class Progression_Panel:
 					evade_tooltip_text += "%+d = ((%s  x  %.2f  x  %.2f)  -  %s)  x  %.2f  (%s)\n" % (value, dodge_base_value, dodge_armor_hindrance, s_factor, shield_size_penalty, evade_stance_mod[j], stance_arr[j]) 
 				else:
 					evade_tooltip_text += "%+d = %s  x  %.2f  x  %.2f   x  %.2f  x  1.5  (%s)\n" % (value, dodge_base_value, dodge_armor_hindrance, s_factor, evade_stance_mod[j], stance_arr[j]) 
+
+			evade_tooltip_text = "".join([ evade_tooltip_text,
+									"%+d (Dodge Base Value) calculated with:\n" % dodge_base_value,
+									skill_tooltip_arr["Dodging"],
+									"    %s  Agility bonus\n" % (("%+d" % stat_enhancive_totals["Agility"]).rjust(4)),
+									stat_tooltip_arr["Agility"],
+									"    %s  Intuition bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Intuition"]/4)).rjust(4), stat_enhancive_totals["Intuition"]),
+									stat_tooltip_arr["Intuition"],
+									"%.2f (Armor Hindrance) (%.2f vs max 1.00) calculated with:\n" % (dodge_armor_hindrance, raw_dodge_armor_hindrance),
+									"    %+d (%.2f) base AP of %s\n" % (base_armor_hindrance, 1.00 + base_armor_hindrance/200, armor_gear.name.get()),
+									overtrain_hindrance_tooltip,
+									armor_hindrance_tooltip,
+									"%.2f (Shield Factor) calculated with:\n" % s_factor,
+									"    %.2f base modifier of %s\n" % (shield_factor, other_hand_gear.name.get()),
+									s_factor_tooltip
+									])
 			
-			evade_tooltip_text += "%+d (Dodge Base Value) calculated with:\n" % dodge_base_value			
-			evade_tooltip_text += skill_tooltip_arr["Dodging"]		
-			evade_tooltip_text += "    %s  Agility bonus\n" % (("%+d" % stat_enhancive_totals["Agility"]).rjust(4))
-			evade_tooltip_text += stat_tooltip_arr["Agility"]		
-			evade_tooltip_text += "    %s  Intuition bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Intuition"]/4)).rjust(4), stat_enhancive_totals["Intuition"])		
-			evade_tooltip_text += stat_tooltip_arr["Intuition"]				
-			evade_tooltip_text += "%.2f (Armor Hindrance) calculated with:\n" % dodge_armor_hindrance		
-			evade_tooltip_text += "    %.2f  base modifier of %s\n" % (1.00 + base_armor_hindrance/200, armor_gear.name.get())
-			evade_tooltip_text += overtrain_hindrance_tooltip			
-			evade_tooltip_text += armor_hindrance_tooltip			
-			evade_tooltip_text += "%.2f (Shield Factor) calculated with:\n" % s_factor		
-			evade_tooltip_text += "    %.2f  base modifier of %s\n" % (shield_factor, other_hand_gear.name.get())
-			evade_tooltip_text += s_factor_tooltip
-			if vs_type == "Melee":		
-				evade_tooltip_text += "%d (Shield Size Penalty) calculated with:\n" % shield_size_penalty		
-				evade_tooltip_text += "  -%d base modifier of %s\n" % (shield_size_penalty, other_hand_gear.name.get())			
 			
-			
+			if vs_type == "Melee":			
+				evade_tooltip_text = "".join([ evade_tooltip_text,
+									"%d (Shield Size Penalty) calculated with:\n" % shield_size_penalty,
+									"  -%d base modifier of %s\n" % (shield_size_penalty, other_hand_gear.name.get())	
+									])
 			
 			# Calculate Effects values from total of DS_All effects and either DS_Melee, DS_Ranged, or DS_Bolt effects
 			effects_total, effects_tooltip_text = self.Combine_Effects(i, "", 0, 
@@ -2129,9 +2351,12 @@ class Progression_Panel:
 			if effects_tooltip_text != "":
 					effects_tooltip_text = "  %s  bonus from Defense Strength effects\n" % (("%+d" % effects_total).rjust(4)) + effects_tooltip_text		
 					
-			effects_tooltip_text = "  %s  Enchantment bonus of %s\n" % (("%+d" % armor_enchantment).rjust(3), armor_gear.name.get()) + effects_tooltip_text	
 			effects_total += armor_enchantment		
-			effects_tooltip_text = "--Effects DS--\n" + effects_tooltip_text	
+			
+			effects_tooltip_text = "".join([ "--Effects DS--\n",
+								"  %s  Enchantment bonus of %s\n" % (("%+d" % armor_enchantment).rjust(3), armor_gear.name.get()),
+								effects_tooltip_text								
+								])
 						
 			# Calculate DS totals 						
 			off_stance.append(parry_totals_arr[0] + shield_totals_arr[0] + evade_totals_arr[0] + effects_total)
@@ -2142,18 +2367,19 @@ class Progression_Panel:
 			def_stance.append(parry_totals_arr[5] + shield_totals_arr[5] + evade_totals_arr[5] + effects_total)
 			
 			# Create Tooltip info
-			tooltip += "%s = %d  +  %d  +  %d  +  %d  (Offensive Stance)\n" % (("%+d" % off_stance[index]).rjust(4), parry_totals_arr[0], shield_totals_arr[0], evade_totals_arr[0], effects_total)
-			tooltip += "%s = %d  +  %d  +  %d  +  %d  (Advanced Stance)\n" % (("%+d" % adv_stance[index]).rjust(4), parry_totals_arr[1], shield_totals_arr[1], evade_totals_arr[1], effects_total)
-			tooltip += "%s = %d  +  %d  +  %d  +  %d  (Forward Stance)\n" % (("%+d" % for_stance[index]).rjust(4), parry_totals_arr[2], shield_totals_arr[2], evade_totals_arr[2], effects_total)
-			tooltip += "%s = %d  +  %d  +  %d  +  %d  (Neutral Stance)\n" % (("%+d" % neu_stance[index]).rjust(4), parry_totals_arr[3], shield_totals_arr[3], evade_totals_arr[3], effects_total)
-			tooltip += "%s = %d  +  %d  +  %d  +  %d  (Guarded Stance)\n" % (("%+d" % gua_stance[index]).rjust(4), parry_totals_arr[4], shield_totals_arr[4], evade_totals_arr[4], effects_total)
-			tooltip += "%s = %d  +  %d  +  %d  +  %d  (Defensive Stance)\n" % (("%+d" % def_stance[index]).rjust(4), parry_totals_arr[5], shield_totals_arr[5], evade_totals_arr[5], effects_total)
-
-			tooltip += parry_tooltip_text
-			tooltip += off_hand_tooltip_text
-			tooltip += shield_tooltip_text
-			tooltip += evade_tooltip_text	
-			tooltip += effects_tooltip_text
+			tooltip = "".join( [ tooltip,
+						"%s = %d  +  %d  +  %d  +  %d  (Offensive Stance)\n" % (("%+d" % off_stance[index]).rjust(4), parry_totals_arr[0], shield_totals_arr[0], evade_totals_arr[0], effects_total),
+						"%s = %d  +  %d  +  %d  +  %d  (Forward Stance)\n" % (("%+d" % for_stance[index]).rjust(4), parry_totals_arr[2], shield_totals_arr[2], evade_totals_arr[2], effects_total),
+						"%s = %d  +  %d  +  %d  +  %d  (Neutral Stance)\n" % (("%+d" % neu_stance[index]).rjust(4), parry_totals_arr[3], shield_totals_arr[3], evade_totals_arr[3], effects_total),
+						"%s = %d  +  %d  +  %d  +  %d  (Guarded Stance)\n" % (("%+d" % gua_stance[index]).rjust(4), parry_totals_arr[4], shield_totals_arr[4], evade_totals_arr[4], effects_total),
+						"%s = %d  +  %d  +  %d  +  %d  (Defensive Stance)\n" % (("%+d" % def_stance[index]).rjust(4), parry_totals_arr[5], shield_totals_arr[5], evade_totals_arr[5], effects_total),
+						parry_tooltip_text,
+						off_hand_tooltip_text,
+						shield_tooltip_text,
+						evade_tooltip_text,
+						effects_tooltip_text
+						])
+			
 			
 			self.graph_information.tooltip_array.append(tooltip[:-1])	
 			index += 1
@@ -2220,11 +2446,13 @@ class Progression_Panel:
 	# All statistics skills, and effects that increase statistics or CS itself are included in these calculations.		
 	def Formula_Casting_Strength(self, display_spell_circles, statistic_names, calc_style):
 		index = 0
+		redo = 0
 		loop_range = [i for i in range(101)]
 		base_stat_arr = {}
 		base_ranks_arr = {}
 		postcap_intervals = []
 		lists_of_effects_by_tag = {}	
+		override_options = []
 		skill_names = []
 		
 		cs_effects_per_display = {}
@@ -2253,9 +2481,28 @@ class Progression_Panel:
 			effects_list.append("Statistic_Bonus_%s" % stat)
 			effects_list.append("Statistic_%s" % stat)				
 			
-		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)	
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)	
 		
-
+		# Set the overrides if needed
+		for option in override_options:			
+			if option == "Armor Group":
+				calculations.override_dict["Armor Group"] = int(self.Get_Gear_By_Order(self.gear_armor.get()).gear_traits["AG"])	
+			elif option == "Influence Bonus":
+				if "Influence" not in statistic_names:
+					effects_list.extend(("Statistic_Influence", "Statistic_Bonus_Influence"))
+					statistic_names.append("Influence")
+					redo = 1
+			elif option == "Wisdom Bonus":
+				if "Wisdom" not in statistic_names:
+					effects_list.extend(("Statistic_Wisdom", "Statistic_Bonus_Wisdom"))
+					statistic_names.append("Wisdom")
+					redo = 1
+				
+		# Fix this! For now, just do it again.		
+		if redo == 1:
+			(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)					
+			
+			
 		# In Postcap mode, loop_range is not 0-100, instead its whatever postcap intervals that have training in the relevant skills
 		if calc_style == 2:
 			interval = 7575000
@@ -2314,6 +2561,24 @@ class Progression_Panel:
 
 				stat_enhancive_totals[stat] = base_stat_arr[stat] + min(50, stat_enh_bonus)
 				stat_tooltip_arr[stat] = "       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat) + temp_tooltip		
+	
+			# Set override options
+			if "Influence Bonus" in override_options:
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, "Influence", 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_Influence"], lists_of_effects_by_tag["Statistic_Influence"]], 
+												["Statistic_Bonus_Influence", "Statistic_Influence"], 
+												"stat_inc_to_bonus")		
+
+				calculations.override_dict["Influence Bonus"] = base_stat_arr["Influence"] + stat_enh_bonus
+											
+			if "Wisdom Bonus" in override_options:
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, "Wisdom", 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_Wisdom"], lists_of_effects_by_tag["Statistic_Wisdom"]], 
+												["Statistic_Bonus_Wisdom", "Statistic_Wisdom"], 
+												"stat_inc_to_bonus")			
+												
+				calculations.override_dict["Wisdom Bonus"] = base_stat_arr["Wisdom"] + stat_enh_bonus				
+		
 		
 			# Calculate CS. Cycle through the spell circles we are showing and compare to each character user spell circles. 
 			# Treat as primary if the match or secondary if not
@@ -2436,6 +2701,7 @@ class Progression_Panel:
 			# Create Tooltip info
 			for display_circle in display_spell_circles:			
 				tooltip += "  %+d = %d + %d + " % (casting_strength_totals[display_circle][index], base_cs, cs_stat)
+				
 				for char_circle in character_spell_circles:
 					tooltip += "%d + " % (casting_strength_per_display_per_character[display_circle][char_circle])
 				tooltip += "%d  (%s)\n" % (effects_total, display_circle)
@@ -2524,7 +2790,7 @@ class Progression_Panel:
 			td_stat_per_type[type] = []
 			td_tooltips_per_type[type] = []
 				
-		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)				
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)				
 
 		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
 		if calc_style == 2:
@@ -2541,7 +2807,8 @@ class Progression_Panel:
 
 		# Begin the big loop to calculate all the data	
 		for i in loop_range:	
-			ce_tooltip = ""					
+			sub_tooltip1 = ""	
+			sub_tooltip2 = ""					
 			ce_total = 0
 			stat_enh_bonus = 0
 			effects_total = 0
@@ -2578,9 +2845,7 @@ class Progression_Panel:
 			td_base = min(300, i*3)
 			level = min(100, i)
 			for type in td_types:
-				td_tooltips_per_type[type] = "%s  Base Target Defense\n" % ("%+d" % td_base).rjust(4)	
-
-				td_tooltips_per_type[type] += "%s  %s racial bonus\n" % (("%+d" % racial_td[type]).rjust(4), char_race.name)
+				td_tooltips_per_type[type] = ""
 						
 				# Add the relevant statistics to the TD
 				if type == "Elemental":							
@@ -2613,18 +2878,26 @@ class Progression_Panel:
 						
 				td_effects_per_type[type] = effects_total	
 				td_totals_by_type[type].append(td_base + td_stat_per_type[type] + effects_total)
-				td_tooltips_per_type[type] += "  " + effects_tooltip_text
 				
-				td_tooltips_per_type[type] = ("%+d calculated with:\n" % td_totals_by_type[type][index]) + td_tooltips_per_type[type]
-				td_tooltips_per_type[type] = "-- %s TD --\n" % (type) + td_tooltips_per_type[type]
-			
+				td_tooltips_per_type[type] = "".join( [ "-- %s TD --\n" % (type),
+											("%+d calculated with:\n" % td_totals_by_type[type][index]),
+											"%s  Base Target Defense\n" % ("%+d" % td_base).rjust(4),
+											"%s  %s racial bonus\n" % (("%+d" % racial_td[type]).rjust(4), char_race.name),
+											td_tooltips_per_type[type],
+											effects_tooltip_text
+											])
 			
 			# Create Tooltip info
 			for type in td_types:			
-				tooltip += "  %+d = %d + %d + %d + %d  (%s)\n" % (td_totals_by_type[type][index], td_base, racial_td[type], td_stat_per_type[type], td_effects_per_type[type], type)
+				sub_tooltip1 += "  %+d = %d + %d + %d + %d  (%s)\n" % (td_totals_by_type[type][index], td_base, racial_td[type], td_stat_per_type[type], td_effects_per_type[type], type)
 			
 			for type in td_types:		
-				tooltip += td_tooltips_per_type[type]			
+				sub_tooltip2 += td_tooltips_per_type[type]		
+			
+			tooltip = "".join( [tooltip,
+						sub_tooltip1,
+						sub_tooltip2])
+						
 			
 			self.graph_information.tooltip_array.append(tooltip[:-1])	
 
@@ -2681,7 +2954,10 @@ class Progression_Panel:
 		self.graph_information.graph_legend_labels.append("Sorcerer TD")
 		self.graph_information.graph_legend_styles.append("cH-")			
 	
-
+	
+	# This method is used to calculate the character's Force on Force enemy offset, Open Mstrike targets, and Focused 
+	# Mstrike swings from level 0-100 or across postcap training.
+	# All Multi Opponent Combat related abilities are calculated at the same time.
 	def Formula_Multi_Opponent_Combat(self, calc_style):
 		effects_list = ["Skill_Bonus_Multi_Opponent_Combat", "Skill_Ranks_Multi_Opponent_Combat", "Force_On_Force"]
 		skill_names = ["Multi Opponent Combat"]
@@ -2696,10 +2972,11 @@ class Progression_Panel:
 		loop_range = [i for i in range(101)]
 		base_ranks_arr = {}
 		postcap_intervals = []
-		lists_of_effects_by_tag = {}			
+		lists_of_effects_by_tag = {}	
+		override_options = []		
 					
 					
-		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)		
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)		
 		
 		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
 		if calc_style == 2:
@@ -2750,7 +3027,7 @@ class Progression_Panel:
 											["Skill_Bonus_Multi_Opponent_Combat", "Skill_Ranks_Multi_Opponent_Combat"], 
 											"skill_bonus_to_ranks")
 
-			moc_total = base_ranks_arr["Multi Opponent Combat"] + skill_rank_count		
+			moc_total = base_ranks_arr["Multi Opponent Combat"] + min(50, skill_rank_count)	
 
 			
 			# Force of Force calculations
@@ -2816,13 +3093,13 @@ class Progression_Panel:
 			
 			
 			# Create Tooltip info
-			tooltip += "%s  Foes ignored beyond first  (Force on Force)\n" % ("%s" % fof_total).rjust(4)
-			tooltip += "%s  Max targets  (Open Mstrike)\n" % ("%s" % open_mstrike_total).rjust(4)
-			tooltip += "%s  Max swings  (Focused Mstrike)\n" % ("%s" % focused_mstrike_total).rjust(4)
-			tooltip += fof_tooltip
-			tooltip += open_mstrike_tooltip
-			tooltip += focused_mstrike_tooltip
-			
+			tooltip = "".join( [tooltip,
+							"%s  Foes ignored beyond first  (Force on Force)\n" % ("%s" % fof_total).rjust(4),
+							"%s  Max targets  (Open Mstrike)\n" % ("%s" % open_mstrike_total).rjust(4),
+							"%s  Max swings  (Focused Mstrike)\n" % ("%s" % focused_mstrike_total).rjust(4),
+							fof_tooltip,
+							open_mstrike_tooltip,
+							focused_mstrike_tooltip] )
 			
 			self.graph_information.tooltip_array.append(tooltip[:-1])	
 
@@ -2864,7 +3141,6 @@ class Progression_Panel:
 					
 
 		# Set the minimum height for the graph
-#		ymin = min(fof_totals[0], open_mstrike_totals[0], focused_mstrike_totals[0])
 		ymax = max(fof_totals[-1], open_mstrike_totals[-1], focused_mstrike_totals[-1])		
 		self.graph_information.graph_yaxis_min = -1
 		self.graph_information.graph_yaxis_max = ymax + 1			
@@ -2880,8 +3156,1321 @@ class Progression_Panel:
 		self.graph_information.graph_legend_styles.append("r^-")	
 
 
+	# This method is used to calculate how many uses of Mana Spellup are useable per day and how many seconds from a 
+	# pulse that Mana Pulse can be invoked from level 0-100 or across postcap training. Mana control is the primary
+	# skill for this method but the exact type will vary by profession.
+	def Formula_Mana_Control(self, calc_style):
+		effects_list = []
+		skill_names = []
 
-	
+		index = 0
+		loop_range = [i for i in range(101)]
+		base_stat_arr = {}
+		base_ranks_arr = {}
+		base_bonus_arr = {}
+		postcap_intervals = []
+		lists_of_effects_by_tag = {}	
+		override_options = []	
+			
+		pulse_totals = []
+		spellup_totals = []		
+								
+		profession = globals.character.profession.name
+		
+		# Determine	which mana controls to use 
+		if profession == "Cleric" or profession == "Paladin" or profession == "Ranger":
+			effects_list = ["Skill_Bonus_Spiritual_Mana_Control", "Skill_Ranks_Spiritual_Mana_Control"]
+			skill_names = ["Spiritual Mana Control"]
+		elif profession == "Rogue" or profession == "Sorcerer" or profession == "Warrior":
+			effects_list = ["Skill_Bonus_Elemental_Mana_Control", "Skill_Ranks_Elemental_Mana_Control", "Skill_Bonus_Spiritual_Mana_Control", "Skill_Ranks_Spiritual_Mana_Control"]
+			skill_names = ["Elemental Mana Control", "Spiritual Mana Control"]
+		elif profession == "Empath" or profession == "Monk":
+			effects_list = ["Skill_Bonus_Mental_Mana_Control", "Skill_Ranks_Mental_Mana_Control", "Skill_Bonus_Spiritual_Mana_Control", "Skill_Ranks_Spiritual_Mana_Control"]
+			skill_names = ["Mental Mana Control", "Spiritual Mana Control"]
+		elif profession == "Bard":
+			effects_list = ["Skill_Bonus_Elemental_Mana_Control", "Skill_Ranks_Elemental_Mana_Control", "Skill_Bonus_Mental_Mana_Control", "Skill_Ranks_Mental_Mana_Control"]
+			skill_names = ["Elemental Mana Control", "Mental Mana Control"]
+		elif profession == "Wizard":
+			effects_list = ["Skill_Bonus_Elemental_Mana_Control", "Skill_Ranks_Elemental_Mana_Control"]
+			skill_names = ["Elemental Mana Control"]
+		elif profession == "Savant":
+			effects_list = ["Skill_Bonus_Mental_Mana_Control", "Skill_Ranks_Mental_Mana_Control"]
+			skill_names = ["Mental Mana Control"]			
+			
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)				
+
+		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
+		if calc_style == 2:
+			interval = 7575000
+			for interval, training in globals.character.postcap_skill_training_by_interval.items():
+				for skill in skill_names:
+					if skill in training:
+						postcap_intervals.append(interval)
+						break										
+							
+			if len(postcap_intervals) == 0:
+				postcap_intervals.append(7572500)
+				postcap_intervals.append(interval)
+			elif postcap_intervals[0] != 7572500:
+				postcap_intervals.insert(0, 7572500)			
+			
+			if postcap_intervals[-1] != interval:
+				postcap_intervals.append(interval)		
+							
+			loop_range = postcap_intervals
+					
+			
+		# Begin the big loop to calculate all the data	
+		for i in loop_range:
+			highest_name = ""
+			highest_value = -1
+			ce_tooltip = ""	
+			stat_enhancive_totals = {}
+			skill_ranks_arr = {}
+			skill_tooltip_arr = {}
+			pulse_tootip = ""
+			spellup_tootip = ""
+			pulse_value = 0
+			spellup_value = 0
+		
+			# Only a minor change depending on calc_style
+			if calc_style == 1:
+				tooltip = "Level %s: Mana Control - Mana Pulse & Spellup\n" % (i)					
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[i].get()
+					
+			elif calc_style == 2:	
+				tooltip = "Postcap Experience Interval %s: Mana Control - Mana Pulse & Spellup\n" % ("{:,}".format(i))		
+		
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[100].get()					
+					base_ranks_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Total_Ranks_Closest_To_Interval(i)
+					
+				
+			# Calculate all Mana Control ranks
+			for skill in skill_names:				
+				tagname = skill.replace(" ", "_")
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, skill, base_ranks_arr[skill], 
+												[lists_of_effects_by_tag["Skill_Bonus_%s" % tagname], lists_of_effects_by_tag["Skill_Ranks_%s" % tagname]], 
+												["Skill_Bonus_%s" % tagname, "Skill_Ranks_%s" % tagname], 
+												"skill_bonus_to_ranks")
+
+				skill_ranks_arr[skill] = base_ranks_arr[skill] + min(50, skill_rank_count)			
+				skill_tooltip_arr[skill] = temp_tooltip
+				
+				if skill_ranks_arr[skill] > highest_value:
+					highest_name = skill
+					highest_value = skill_ranks_arr[skill]
+
+			
+			
+			# Main Calculation section
+			for skill in skill_names:			
+				if skill == highest_name:					
+					pulse_value += skill_ranks_arr[skill]
+					spellup_value += skill_ranks_arr[skill]
+					pulse_tootip += "".join([
+								"    %s  %s ranks\n" % (("%+d" % skill_ranks_arr[skill] ).rjust(4), skill),
+								"       %s  %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), skill),
+								skill_tooltip_arr[skill]
+								])
+					spellup_tootip += "".join([
+								"    %s  %s ranks\n" % (("%+d" % skill_ranks_arr[skill] ).rjust(4), skill),
+								"       %s  %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), skill),
+								skill_tooltip_arr[skill]
+								])					
+				else:
+					pulse_value += math.floor(skill_ranks_arr[skill] / 2)
+					spellup_value += math.floor(skill_ranks_arr[skill] / 2)
+					pulse_tootip += "".join([
+								"    %s  %s ranks (%s / 2)\n" % (("%+d" % math.floor(skill_ranks_arr[skill] / 2)).rjust(4), skill, skill_ranks_arr[skill]),
+								"       %s  %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), skill),
+								skill_tooltip_arr[skill]		
+								])
+					spellup_tootip += "".join([
+								"    %s  %s ranks (%s / 2)\n" % (("%+d" % math.floor(skill_ranks_arr[skill] / 2)).rjust(4), skill, skill_ranks_arr[skill]),
+								"       %s  %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), skill),
+								skill_tooltip_arr[skill]		
+								])								
+					
+			
+			
+			# Create Tooltip info
+			pulse_tootip = "".join([ 
+							"--Mana Pulse--\n",
+							"%s  Seconds calculated with:\n" % pulse_value,
+							"%s  Mana Control ranks\n" % (("%s" % pulse_value).rjust(4)),
+							pulse_tootip
+							])		
+				
+			spellup_tootip = "".join([ 
+							"--Mana Spellup--\n",
+							"%s  Uses per day calculated with:\n" % math.floor(spellup_value / 25),
+							"%s  from Mana Control ranks (%s / 25)\n" % (("%s" % math.floor(spellup_value / 25)).rjust(4), spellup_value),
+							spellup_tootip
+							])										
+							
+			tooltip = "".join([ 
+							tooltip,
+							"%s  Seconds mana pulse may be invoked\n" % ("%s" % pulse_value).rjust(4),
+							"%s  Mana spellup\n" % ("%s" % math.floor(spellup_value / 25)).rjust(4),
+							pulse_tootip,
+							spellup_tootip
+							])
+
+			pulse_totals.append(pulse_value)
+			spellup_totals.append(math.floor(spellup_value / 25))
+			
+			self.graph_information.tooltip_array.append(tooltip[:-1])	
+
+			index += 1
+					
+		
+		# Loop is done, set up the graph_infomation object		
+		self.graph_information.graph_ylabel = "Seconds / Uses"	
+		if calc_style == 1:
+			self.graph_information.graph_xlabel = "Mana Pulse & Spellup per Level"
+			self.graph_information.graph_xaxis_rotation = 0
+			self.graph_information.graph_xlabel_size = 12
+			self.graph_information.graph_xaxis_size = 12
+			self.graph_information.graph_xaxis_tick_range = loop_range
+			self.graph_information.graph_xaxis_tick_labels = [0,10,20,30,40,50,60,70,80,90,100]		
+		elif calc_style == 2:
+			self.graph_information.graph_xlabel = "Mana Pulse & Spellup per Postcap Experience Interval"
+			self.graph_information.graph_xaxis_rotation = 30
+			self.graph_information.graph_xlabel_size = 10
+			self.graph_information.graph_xaxis_size = 9			
+			self.graph_information.graph_xaxis_tick_range = [i for i in range(index)]
+			
+			if len(postcap_intervals) <= 10:
+				self.graph_information.graph_xaxis_tick_labels = [i for i in postcap_intervals]	
+			else:
+				temp = math.floor(len(postcap_intervals)/10)
+				i = 0
+								
+				for interval in postcap_intervals:
+					if i % temp == 0:
+						self.graph_information.graph_xaxis_tick_labels.append(interval)
+					i += 1			
+
+
+		# Append the completed lists to graph_infomation object
+		self.graph_information.graph_data_lists.append(pulse_totals)
+		self.graph_information.graph_data_lists.append(spellup_totals)					
+					
+
+		# Set the minimum height for the graph
+		self.graph_information.graph_yaxis_min = min(pulse_totals[0], spellup_totals[0]) - 5
+		self.graph_information.graph_yaxis_max = max(pulse_totals[-1], spellup_totals[-1]) + 5		
+		
+
+		# Setup the Legend
+		self.graph_information.graph_num_lines = 2
+		self.graph_information.graph_legend_columns = 2
+		self.graph_information.graph_legend_labels.append("Mana Pulse Seconds")
+		self.graph_information.graph_legend_styles.append("bs-")		
+		self.graph_information.graph_legend_labels.append("Mana Spellup Uses")
+		self.graph_information.graph_legend_styles.append("y^-")			
+		
+		
+	# This method is used to calculate the duration of the character's bandages and roundtime reduction when eating herbs
+	# from level 0-100 or across postcap training.
+	def Formula_First_Aid(self, calc_style):
+		effects_list = ["Skill_Bonus_First_Aid", "Skill_Ranks_First_Aid", "Skill_Phantom_Ranks_First_Aid"]
+		skill_names = ["First Aid"]
+
+		index = 0
+		loop_range = [i for i in range(101)]
+		base_stat_arr = {}
+		base_ranks_arr = {}
+		base_bonus_arr = {}
+		postcap_intervals = []
+		lists_of_effects_by_tag = {}	
+		override_options = []	
+			
+		bandage_totals = []
+		herb_totals = []			
+			
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)				
+
+		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
+		if calc_style == 2:
+			interval = 7575000
+			for interval, training in globals.character.postcap_skill_training_by_interval.items():
+				for skill in skill_names:
+					if skill in training:
+						postcap_intervals.append(interval)
+						break										
+							
+			if len(postcap_intervals) == 0:
+				postcap_intervals.append(7572500)
+				postcap_intervals.append(interval)
+			elif postcap_intervals[0] != 7572500:
+				postcap_intervals.insert(0, 7572500)			
+			
+			if postcap_intervals[-1] != interval:
+				postcap_intervals.append(interval)		
+							
+			loop_range = postcap_intervals
+					
+			
+		# Begin the big loop to calculate all the data	
+		for i in loop_range:	
+			ce_tooltip = ""					
+			ce_total = 0
+			stat_enh_bonus = 0
+			effects_total = 0
+			stat_enhancive_totals = {}
+			stat_tooltip_text = ""
+			stat_tooltip_arr = {}
+			skill_tooltip_arr = {}
+			effects_tooltip_text = ""
+		
+			# Only a minor change depending on calc_style
+			if calc_style == 1:
+				tooltip = "Level %s: First Aid - Bandage Duration & Herb Roundtime\n" % (i)					
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[i].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[i].get()		
+					
+			elif calc_style == 2:	
+				tooltip = "Postcap Experience Interval %s: First Aid - Bandage Duration & Herb Roundtime\n" % ("{:,}".format(i))		
+		
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[100].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[100].get()
+					
+					base_ranks_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Total_Ranks_Closest_To_Interval(i)
+					base_bonus_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Bonus_Closest_To_Interval(i)	
+					
+				
+			# Calculate First Aid ranks
+			skill_rank_count, temp_tooltip = self.Combine_Effects(i, "First Aid", base_ranks_arr["First Aid"], 
+											[lists_of_effects_by_tag["Skill_Bonus_First_Aid"], lists_of_effects_by_tag["Skill_Ranks_First_Aid"], lists_of_effects_by_tag["Skill_Phantom_Ranks_First_Aid"]], 
+											["Skill_Bonus_First_Aid", "Skill_Ranks_First_Aid", "Skill_Phantom_Ranks_First_Aid"], 
+											"skill_bonus_to_ranks")
+
+			fa_ranks_total = base_ranks_arr["First Aid"] + min(50, skill_rank_count)			
+			fa_ranks_tootip = temp_tooltip
+			
+			
+			# Calculate First Aid bonus							
+			skill_bonus_count, temp_tooltip = self.Combine_Effects(i, "First Aid", base_ranks_arr["First Aid"], 
+											[lists_of_effects_by_tag["Skill_Bonus_First_Aid"], lists_of_effects_by_tag["Skill_Ranks_First_Aid"], lists_of_effects_by_tag["Skill_Phantom_Ranks_First_Aid"]], 
+											["Skill_Bonus_First_Aid", "Skill_Ranks_First_Aid", "Skill_Phantom_Ranks_First_Aid"], 
+											"skill_ranks_to_bonus")
+
+			fa_bonus_total = base_bonus_arr["First Aid"] + min(50, skill_bonus_count)		
+			fa_bonus_tootip = temp_tooltip		
+			
+			
+			# Set the bandage duration and herb roundtime values
+			bandage_value = math.floor(fa_ranks_total / 10)
+			herb_value = -1 * math.floor(fa_bonus_total / 20)	
+			
+			bandage_totals.append(bandage_value)
+			herb_totals.append(herb_value)
+			
+			
+			# Create Tooltip info
+			fa_ranks_tootip = "".join([ 
+							"--Bandage Duration--\n",
+							"%s  Offensive actions calculated with:\n" % bandage_value,
+							"  %s  from First Aid ranks (%s / 10)\n" % (("%+d" %bandage_value ).rjust(4), fa_ranks_total),
+							"       %s  First Aid base ranks\n" % (("%+d" % base_ranks_arr["First Aid"]).rjust(4)),
+							fa_ranks_tootip
+							])		
+				
+			fa_bonus_tootip = "".join([ 
+							"--Herb Roundtime Reduction--\n",
+							"%s  Roundtime reduction calculated with:\n" % herb_value,
+							"  %s  from First Aid bonus (%s / 20)\n" % (("%+d" % herb_value).rjust(4), fa_bonus_total),
+							"       %s  bonus from %s First Aid base ranks\n" % (("%+d" % base_bonus_arr["First Aid"]).rjust(4), base_ranks_arr["First Aid"]),
+							fa_bonus_tootip
+							])										
+							
+			tooltip = "".join([ 
+							tooltip,
+							"%s  Offensive actions per bandage application\n" % ("%s" % bandage_value).rjust(5),
+							"%s  Roundtime reduction when using herbs\n" % ("%+d" % herb_value).rjust(4),
+							fa_ranks_tootip,
+							fa_bonus_tootip
+							])
+			
+			self.graph_information.tooltip_array.append(tooltip[:-1])	
+
+			index += 1
+					
+		
+		# Loop is done, set up the graph_infomation object		
+		self.graph_information.graph_ylabel = "Duration / Roundtime Reduction"	
+		if calc_style == 1:
+			self.graph_information.graph_xlabel = "Bandage Duration & Herb Roundtime per Level"
+			self.graph_information.graph_xaxis_rotation = 0
+			self.graph_information.graph_xlabel_size = 12
+			self.graph_information.graph_xaxis_size = 12
+			self.graph_information.graph_xaxis_tick_range = loop_range
+			self.graph_information.graph_xaxis_tick_labels = [0,10,20,30,40,50,60,70,80,90,100]		
+		elif calc_style == 2:
+			self.graph_information.graph_xlabel = "Bandage Duration & Herb Roundtime per Postcap Experience Interval"
+			self.graph_information.graph_xaxis_rotation = 30
+			self.graph_information.graph_xlabel_size = 10
+			self.graph_information.graph_xaxis_size = 9			
+			self.graph_information.graph_xaxis_tick_range = [i for i in range(index)]
+			
+			if len(postcap_intervals) <= 10:
+				self.graph_information.graph_xaxis_tick_labels = [i for i in postcap_intervals]	
+			else:
+				temp = math.floor(len(postcap_intervals)/10)
+				i = 0
+								
+				for interval in postcap_intervals:
+					if i % temp == 0:
+						self.graph_information.graph_xaxis_tick_labels.append(interval)
+					i += 1			
+
+
+		# Append the completed lists to graph_infomation object
+		self.graph_information.graph_data_lists.append(bandage_totals)
+		self.graph_information.graph_data_lists.append(herb_totals)					
+					
+
+		# Set the minimum height for the graph
+		self.graph_information.graph_yaxis_min = herb_totals[-1] - 1
+		self.graph_information.graph_yaxis_max = bandage_totals[-1] + 1		
+		
+
+		# Setup the Legend
+		self.graph_information.graph_num_lines = 2
+		self.graph_information.graph_legend_columns = 2
+		self.graph_information.graph_legend_labels.append("Bandage Duration")
+		self.graph_information.graph_legend_styles.append("rs-")		
+		self.graph_information.graph_legend_labels.append("Herb Roundtime Reduction")
+		self.graph_information.graph_legend_styles.append("g^-")	
+
+
+	# This method is used to calculate the character's Trading Skill Boost from level 0-100 or across postcap training.
+	# This number is meant to be used as a percent. IE Skill Boost 13 = 13% (base * 1.13) bonus when selling or discount
+	# when buying items.
+	def Formula_Trading(self, calc_style):
+		effects_list = ["Statistic_Influence", "Statistic_Bonus_Influence", "Skill_Bonus_Trading", "Skill_Ranks_Trading"]
+		skill_names = ["Trading"]
+		statistic_names = ["Influence"]
+
+		index = 0
+		loop_range = [i for i in range(101)]
+		base_stat_arr = {}
+		base_ranks_arr = {}
+		base_bonus_arr = {}
+		postcap_intervals = []
+		lists_of_effects_by_tag = {}	
+		override_options = []	
+			
+		boost_totals = []		
+			
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)				
+
+		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
+		if calc_style == 2:
+			interval = 7575000
+			for interval, training in globals.character.postcap_skill_training_by_interval.items():
+				for skill in skill_names:
+					if skill in training:
+						postcap_intervals.append(interval)
+						break										
+							
+			if len(postcap_intervals) == 0:
+				postcap_intervals.append(7572500)
+				postcap_intervals.append(interval)
+			elif postcap_intervals[0] != 7572500:
+				postcap_intervals.insert(0, 7572500)			
+			
+			if postcap_intervals[-1] != interval:
+				postcap_intervals.append(interval)		
+							
+			loop_range = postcap_intervals
+					
+			
+		# Begin the big loop to calculate all the data	
+		for i in loop_range:	
+			ce_tooltip = ""					
+			ce_total = 0
+			stat_enh_bonus = 0
+			effects_total = 0
+			stat_tooltip_text = ""
+		
+			# Only a minor change depending on calc_style
+			if calc_style == 1:
+				tooltip = "Level %s: Trading - Skill Boost\n" % i
+				for stat in statistic_names:				
+					base_stat_arr[stat] = globals.character.statistics_list[stat].bonuses_by_level[i].get()	
+				
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[i].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[i].get()		
+					
+			elif calc_style == 2:	
+				tooltip = "Postcap Experience Interval %s: Trading - Skill Boost\n" % ("{:,}".format(i))
+				for stat in statistic_names:				
+					base_stat_arr[stat] = globals.character.statistics_list[stat].bonuses_by_level[100].get()	
+				
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[100].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[100].get()
+					
+					base_ranks_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Total_Ranks_Closest_To_Interval(i)
+					base_bonus_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Bonus_Closest_To_Interval(i)	
+					
+
+
+			# Calculate Influence bonus
+			stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, "Influence", 0, 
+											[lists_of_effects_by_tag["Statistic_Bonus_Influence"], lists_of_effects_by_tag["Statistic_Influence"]], 
+											["Statistic_Bonus_Influence", "Statistic_Influence"], 
+											"stat_inc_to_bonus")	
+												
+			stat_total = math.floor(base_stat_arr["Influence"] + min(50, stat_enh_bonus))
+			stat_tootip = "".join( [ "  %s  Influence bonus\n" % (("%+d" % stat_total).rjust(4)),
+									"       %s  %s base bonus\n" % (("%+d" % base_stat_arr["Influence"]).rjust(4), stat),
+									temp_tooltip
+									])			
+			
+					
+			# Calculate Trading bonus							
+			skill_bonus_count, temp_tooltip = self.Combine_Effects(i, "Trading", base_ranks_arr["Trading"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Trading"], lists_of_effects_by_tag["Skill_Ranks_Trading"]], 
+											["Skill_Bonus_Trading", "Skill_Ranks_Trading"], 
+											"skill_ranks_to_bonus")
+
+			skill_total = base_bonus_arr["Trading"] + min(50, skill_bonus_count)		
+			skill_tootip = "".join( [ "  %s  Trading skill bonus\n" % (("%+d" % skill_total).rjust(4)),
+									"       %s  bonus from %s Trading base ranks\n" % (("%+d" % base_bonus_arr["Trading"]).rjust(4), base_ranks_arr["Trading"]),
+									temp_tooltip
+									])			
+
+			
+			# The skill boost is limited by the number of ranks in Trading the character has. 
+			skill_ranks_count, temp_tooltip = self.Combine_Effects(i, "Trading", base_ranks_arr["Trading"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Trading"], lists_of_effects_by_tag["Skill_Ranks_Trading"]], 
+											["Skill_Bonus_Trading", "Skill_Ranks_Trading"], 
+											"skill_bonus_to_ranks")
+			boost_limit = base_ranks_arr["Trading"] + min(50, skill_rank_count)	
+			
+			
+			# Calculate the skill boost
+			boost_value = min(skill_total, math.floor((stat_total + skill_total) / 12))			
+			boost_totals.append(boost_value)
+			
+			
+			# Create Tooltip info			
+			tooltip = "".join([ 
+							tooltip,
+							"%s  Skill boost\n" % ("%s" % boost_value).rjust(5),
+							"--Skill Boost--\n",
+							"%s  calculated with:\n" % boost_value,
+							"%s  from truc((%s + %s) / 12) = %s vs max %s\n" % (("%d" % boost_value).rjust(4), skill_total, stat_total, math.floor((stat_total + skill_total) / 12), boost_limit),
+							stat_tootip,
+							skill_tootip,
+							])
+			
+			self.graph_information.tooltip_array.append(tooltip[:-1])	
+
+			index += 1
+					
+		
+		# Loop is done, set up the graph_infomation object		
+		self.graph_information.graph_ylabel = "Skill Boost"	
+		if calc_style == 1:
+			self.graph_information.graph_xlabel = "Trading - Skill Boost per Level"
+			self.graph_information.graph_xaxis_rotation = 0
+			self.graph_information.graph_xlabel_size = 12
+			self.graph_information.graph_xaxis_size = 12
+			self.graph_information.graph_xaxis_tick_range = loop_range
+			self.graph_information.graph_xaxis_tick_labels = [0,10,20,30,40,50,60,70,80,90,100]		
+		elif calc_style == 2:
+			self.graph_information.graph_xlabel = "Trading - Skill Boost per Postcap Experience Interval"
+			self.graph_information.graph_xaxis_rotation = 30
+			self.graph_information.graph_xlabel_size = 10
+			self.graph_information.graph_xaxis_size = 9			
+			self.graph_information.graph_xaxis_tick_range = [i for i in range(index)]
+			
+			if len(postcap_intervals) <= 10:
+				self.graph_information.graph_xaxis_tick_labels = [i for i in postcap_intervals]	
+			else:
+				temp = math.floor(len(postcap_intervals)/10)
+				i = 0
+								
+				for interval in postcap_intervals:
+					if i % temp == 0:
+						self.graph_information.graph_xaxis_tick_labels.append(interval)
+					i += 1			
+
+
+		# Append the completed lists to graph_infomation object
+		self.graph_information.graph_data_lists.append(boost_totals)			
+					
+
+		# Set the minimum height for the graph
+		self.graph_information.graph_yaxis_min = boost_totals[0] - 5
+		self.graph_information.graph_yaxis_max = boost_totals[-1] + 5
+		
+
+		# Setup the Legend
+		self.graph_information.graph_num_lines = 1
+		self.graph_information.graph_legend_columns = 1
+		self.graph_information.graph_legend_labels.append("Skill Boost")
+		self.graph_information.graph_legend_styles.append("g^-")	
+
+		
+	# This method is used to calculate the character's maximum value and recovery for Health, Mana, Stamina and Spriit 
+	# from level 0-100 or across postcap training.
+	def Formula_Resources(self, calc_style):
+		effects_list = ["Statistic_Strength", "Statistic_Bonus_Strength", "Statistic_Constitution", "Statistic_Bonus_Constitution", "Statistic_Agility", "Statistic_Bonus_Agility", "Statistic_Discipline", "Statistic_Bonus_Discipline", "Statistic_Aura", "Statistic_Bonus_Aura", 
+		"Skill_Bonus_Physical_Fitness", "Skill_Ranks_Physical_Fitness", "Skill_Bonus_Harness_Power", "Skill_Ranks_Harness_Power",
+		"Resource_Maximum_Health", "Resource_Maximum_Mana", "Resource_Maximum_Stamina", "Resource_Maximum_Spirit",
+		"Resource_Recovery_Health", "Resource_Recovery_Mana", "Resource_Recovery_Stamina", "Resource_Recovery_Spirit",
+		"Resource_Recovery_Mana_Normal", "Resource_Recovery_Stamina_Normal",		
+		]
+		skill_names = ["Physical Fitness", "Harness Power"]
+		statistic_names = ["Strength", "Constitution", "Agility", "Discipline", "Aura"]		
+		race = globals.character.race.name
+		profession = globals.character.profession.name
+
+		redo = 0
+		index = 0
+		loop_range = [i for i in range(101)]
+		base_stat_arr = {}
+		base_ranks_arr = {}
+		base_bonus_arr = {}
+		postcap_intervals = []
+		lists_of_effects_by_tag = {}	
+		override_options = []	
+					
+		resource_names = ["Health", "Mana", "Stamina", "Spirit"]	
+		spirit_value_tiers = [1, 1, 1, 2, 2, 3, 2]
+		spirit_minute_tiers = [5, 4, 3, 5, 4, 5, 3]
+		health_max_totals = []
+		mana_max_totals = []
+		stamina_max_totals = []
+		spirit_max_totals = []
+		health_recovery_totals = []
+		mana_recovery_totals = []
+		stamina_recovery_totals = []
+		spirit_recovery_totals = []
+		highest_mc_name = ""
+		lowest_mc_name = ""
+		
+		# Set variables used with maximum health
+		str_level0 = int(globals.character.statistics_list["Strength"].values_by_level[0].get())
+		con_level0 = int(globals.character.statistics_list["Constitution"].values_by_level[0].get())		
+		base_health = math.floor((str_level0 + con_level0) / 10)
+		race_health_gain = int(globals.character.race.health_gain_rate)
+		race_max_health = int(globals.character.race.max_health)		
+		
+		# Set variables used with maximum mana
+		mana_stat1 = globals.character.profession.mana_statistics[0]
+		mana_stat2 = globals.character.profession.mana_statistics[1]		
+		stat1_level0 = int(globals.character.statistics_list[mana_stat1].bonuses_by_level[0].get())
+		stat2_level0 = int(globals.character.statistics_list[mana_stat2].bonuses_by_level[0].get())	
+		
+		# Set variables used with resource recovery
+		health_regen = globals.character.race.health_regen		
+		mana_regen = 15		
+		base_spirit_tier = int(globals.character.race.spirit_regen_tier) - 1
+		
+		# Mana recovery uses the Mana Control ranks of the profession's magic spheres. Add them to the effects list as appropriate
+		if profession == "Cleric" or profession == "Paladin" or profession == "Ranger":
+			effects_list.extend(("Skill_Bonus_Spiritual_Mana_Control", "Skill_Ranks_Spiritual_Mana_Control"))
+			skill_names.append("Spiritual Mana Control")
+			highest_mc_name = "Spiritual"
+			lowest_mc_name = "Spiritual"
+			
+		elif profession == "Rogue" or profession == "Sorcerer" or profession == "Warrior":
+			effects_list.extend(("Skill_Bonus_Elemental_Mana_Control", "Skill_Ranks_Elemental_Mana_Control", "Skill_Bonus_Spiritual_Mana_Control", "Skill_Ranks_Spiritual_Mana_Control"))
+			skill_names.extend(("Elemental Mana Control", "Spiritual Mana Control"))
+			highest_mc_name = "Elemental"
+			lowest_mc_name = "Spiritual"
+			
+		elif profession == "Empath" or profession == "Monk":
+			effects_list.extend(("Skill_Bonus_Mental_Mana_Control", "Skill_Ranks_Mental_Mana_Control", "Skill_Bonus_Spiritual_Mana_Control", "Skill_Ranks_Spiritual_Mana_Control"))
+			skill_names.extend(("Mental Mana Control", "Spiritual Mana Control"))
+			highest_mc_name = "Spiritual"
+			lowest_mc_name = "Mental"
+			
+		elif profession == "Bard":
+			effects_list.extend(("Skill_Bonus_Elemental_Mana_Control", "Skill_Ranks_Elemental_Mana_Control", "Skill_Bonus_Mental_Mana_Control", "Skill_Ranks_Mental_Mana_Control"))
+			skill_names.extend(("Elemental Mana Control", "Mental Mana Control"))
+			highest_mc_name = "Elemental"
+			lowest_mc_name = "Mental"
+			
+		elif profession == "Wizard":
+			effects_list.extend(("Skill_Bonus_Elemental_Mana_Control", "Skill_Ranks_Elemental_Mana_Control"))
+			skill_names.append("Elemental Mana Control")
+			highest_mc_name = "Elemental"
+			lowest_mc_name = "Elemental"
+			
+		elif profession == "Savant":
+			effects_list.extend(("Skill_Bonus_Mental_Mana_Control", "Skill_Ranks_Mental_Mana_Control"))
+			skill_names.append("Mental Mana Control")		
+			highest_mc_name = "Mental"	
+			lowest_mc_name = "Mental"		
+
+			
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)	
+
+
+		# Set the overrides if needed
+		for option in override_options:
+			if option == "Node Room":
+				mana_regen = 25					
+			elif option == "Discipline Bonus":
+				if "Discipline" not in statistic_names:
+					effects_list.extend(("Statistic_Discipline", "Statistic_Bonus_Discipline"))
+					statistic_names.append("Discipline")
+					redo = 1
+			elif option == "Wisdom Bonus":
+				if "Wisdom" not in statistic_names:
+					effects_list.extend(("Statistic_Wisdom", "Statistic_Bonus_Wisdom"))
+					statistic_names.append("Wisdom")
+					redo = 1
+				
+		# Fix this! For now, just do it again.		
+		if redo == 1:
+			(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)	
+				
+
+		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
+		if calc_style == 2:
+			interval = 7575000
+			for interval, training in globals.character.postcap_skill_training_by_interval.items():
+				for skill in skill_names:
+					if skill in training:
+						postcap_intervals.append(interval)
+						break										
+							
+			if len(postcap_intervals) == 0:
+				postcap_intervals.append(7572500)
+				postcap_intervals.append(interval)
+			elif postcap_intervals[0] != 7572500:
+				postcap_intervals.insert(0, 7572500)			
+			
+			if postcap_intervals[-1] != interval:
+				postcap_intervals.append(interval)		
+							
+			loop_range = postcap_intervals
+					
+			
+		# Begin the big loop to calculate all the data	
+		for i in loop_range:	
+			stat_enh_bonus = 0
+			spirit_stat = 0
+			temp_name = ""
+			
+			values_dict = {}
+			tooltip_dict = {}				
+		
+			# Only a minor change depending on calc_style
+			if calc_style == 1:
+				tooltip = "Level %s: Resources - Maximums & Recovery\n" % i
+				for stat in statistic_names:				
+					base_stat_arr[stat] = globals.character.statistics_list[stat].bonuses_by_level[i].get()	
+				
+				spirit_stat = int(globals.character.statistics_list["Aura"].values_by_level[i].get())
+				
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[i].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[i].get()		
+					
+			elif calc_style == 2:	
+				tooltip = "Postcap Experience Interval %s: Resources - Maximums & Recovery\n" % ("{:,}".format(i))
+				for stat in statistic_names:				
+					base_stat_arr[stat] = globals.character.statistics_list[stat].bonuses_by_level[100].get()	
+					
+				spirit_stat = int(globals.character.statistics_list["Aura"].values_by_level[100].get())
+				
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[100].get()
+					base_bonus_arr[skill] = globals.character.skills_list[skill].bonus_by_level[100].get()
+					
+					base_ranks_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Total_Ranks_Closest_To_Interval(i)
+					base_bonus_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Bonus_Closest_To_Interval(i)	
+					
+
+
+			# Calculate statistic bonuses
+			for stat in statistic_names:
+				stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, stat, 0, 
+												[lists_of_effects_by_tag["Statistic_Bonus_%s" % stat], lists_of_effects_by_tag["Statistic_%s" % stat]], 
+												["Statistic_Bonus_%s" % stat, "Statistic_%s" % stat], 
+												"stat_inc_to_bonus")													
+				values_dict[stat] = math.floor(base_stat_arr[stat] + stat_enh_bonus)
+				tooltip_dict[stat] = "".join( [ "  %s  %s bonus\n" % (("%+d" % values_dict[stat]).rjust(4), stat),
+										"       %s  %s base bonus\n" % (("%+d" % base_stat_arr[stat]).rjust(4), stat),
+										temp_tooltip
+										])			
+			
+			# Spirit is based of the statistic value, not the bonus. Get the statistic value of Aura.	
+			stat_enh_bonus, temp_tooltip = self.Combine_Effects(i, "Aura", 0, 
+											[lists_of_effects_by_tag["Statistic_Bonus_Aura"], lists_of_effects_by_tag["Statistic_Aura"]], 
+											["Statistic_Bonus_Aura", "Statistic_Aura"], 
+											"stat_bonus_to_inc")												
+			values_dict["Spriit"] = math.floor(spirit_stat + min(40, stat_enh_bonus))
+			tooltip_dict["Spirit"] = "".join( [ "  %s  Aura statistic value\n" % (("%+d" % values_dict["Spriit"]).rjust(4)),
+									"       %s  Aura statistic value\n" % (("%+d" % spirit_stat).rjust(4)),
+									temp_tooltip
+									])			
+									
+			# Set the override variable if needed
+			if "Discipline Bonus" in override_options:
+				calculations.override_dict["Discipline Bonus"] = values_dict["Discipline"]
+											
+			if "Wisdom Bonus" in override_options:												
+				calculations.override_dict["Wisdom Bonus"] = values_dict["Wisdom"]			
+				
+					
+			# Calculate skill ranks and bonus
+			for skill in skill_names:
+				tagname = skill.replace(" ", "_")
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, skill, base_ranks_arr[skill], 
+												[lists_of_effects_by_tag["Skill_Bonus_%s" % tagname], lists_of_effects_by_tag["Skill_Ranks_%s" % tagname]], 
+												["Skill_Bonus_%s" % tagname, "Skill_Ranks_%s" % tagname], 
+												"skill_bonus_to_ranks")
+				values_dict[skill] = base_ranks_arr[skill] + skill_rank_count	
+				tooltip_dict[skill] = "".join( [ "  %s  %s ranks\n" % (("%+d" % values_dict[skill]).rjust(4), skill),
+										"       %s  %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), skill),
+										temp_tooltip
+										])			
+
+
+			# In addition to needing the ranks, maximum stamina requires the bonus of Physical Fitness as well
+			skill_bonus_count, temp_tooltip = self.Combine_Effects(i, "Physical Fitness", base_ranks_arr["Physical Fitness"], 
+											[lists_of_effects_by_tag["Skill_Bonus_Physical_Fitness"], lists_of_effects_by_tag["Skill_Ranks_Physical_Fitness"]], 
+											["Skill_Bonus_Physical_Fitness", "Skill_Ranks_Physical_Fitness"], 
+											"skill_ranks_to_bonus")
+			values_dict["Physical Fitness bonus"] = base_bonus_arr["Physical Fitness"] + skill_bonus_count	
+			tooltip_dict["Physical Fitness bonus"] = "".join( [ 
+									"  %s  Physical Fitness bonus\n" % (("%+d" % values_dict["Physical Fitness bonus"]).rjust(4)),
+									temp_tooltip
+									])													
+			
+			
+			# Calculate resource maximums and recoveries
+			for resource in resource_names:			
+				resource_value, temp_tooltip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["Resource_Maximum_%s" % resource]], ["Resource_Maximum_%s" % resource], 					"effect_display")
+				values_dict["Maximum %s" % resource] = min(50, resource_value)
+				tooltip_dict["Maximum %s" % resource] = "".join( [ 
+											"%+d  Enhancive max %s (%+d vs +50)\n" % (values_dict["Maximum %s" % resource], resource, values_dict["Maximum %s" % resource]),
+											temp_tooltip
+											])													
+
+				# Spirit has the maximum enhancive value of +3 instead of +50
+				if resource == "Spirit":
+					enhancive_max = 3
+				else:
+					enhancive_max = 50
+											
+				resource_value, temp_tooltip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["Resource_Recovery_%s" % resource]], ["Resource_Recovery_%s" % resource], 					"effect_display_2")
+				values_dict["%s Recovery" % resource] = min(enhancive_max, resource_value)
+				tooltip_dict["%s Recovery" % resource] = "".join( [ 
+											"%s  Enhancive %s recovery (%+d vs +%s)\n" % (("%+d" % values_dict["%s Recovery" % resource]).rjust(6), resource, values_dict["%s Recovery" % resource], enhancive_max),
+											temp_tooltip
+											])													
+											
+											
+			# "Normal" recovery is like an enhancive bonus that doesn't have an upper limit
+			values_dict["Mana Recovery Normal"], temp_tooltip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["Resource_Recovery_Mana_Normal"]], ["Resource_Recovery_Mana_Normal"], "effect_display_2")			
+			tooltip_dict["Mana Recovery Normal"] = "".join( [ 
+										"%s  Additional Mana recovery\n" % (("%+d" % values_dict["Mana Recovery Normal"]).rjust(6)),
+										temp_tooltip
+										])	
+										
+			values_dict["Stamina Recovery Normal"], temp_tooltip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["Resource_Recovery_Stamina_Normal"]], ["Resource_Recovery_Stamina_Normal"], "effect_display_2")			
+			tooltip_dict["Stamina Recovery Normal"] = "".join( [ 
+										"%s  Additional Stamina recovery\n" % (("%+d" % values_dict["Stamina Recovery Normal"]).rjust(6)),
+										temp_tooltip
+										])	
+										
+													
+			# Main Calculation section
+			
+			# Maximum Health
+			health_extra = min(50, values_dict["Constitution"] + values_dict["Maximum Health"])
+			health_PF = ((race_health_gain + math.floor(values_dict["Constitution"] / 10)) * values_dict["Physical Fitness"])
+			health_max = min(base_health + health_PF + values_dict["Maximum Health"],  race_max_health + health_extra)  
+							
+							
+			# Maximum Mana
+			base_mana = max(0, math.floor((stat1_level0 + stat2_level0) / 4))
+			if values_dict["Harness Power"] > index:
+				mana_HP = (3 * index) + (values_dict["Harness Power"] - index)			
+			else:
+				mana_HP = 3 * values_dict["Harness Power"]				
+			mana_max = base_mana + mana_HP + values_dict["Maximum Mana"]
+				
+				
+			# Maximum Stamina
+			stamina_max = values_dict["Constitution"] + math.floor((values_dict["Strength"] + values_dict["Agility"] + values_dict["Discipline"]) / 3) + math.floor(values_dict["Physical Fitness bonus"] / 3) + values_dict["Maximum Stamina"]
+			
+			
+			# Maximum Spirit
+			spirit_max = math.floor(values_dict["Spriit"] / 10) + round(0.1 + (values_dict["Spriit"] % 10) / 10) + values_dict["Maximum Spirit"]
+			
+			
+			# Health Recovery
+			health_recovery = health_regen + math.floor(values_dict["Physical Fitness"] / 20) + values_dict["Health Recovery"]
+			
+						
+			# Mana Recovery
+			base_mana_recovery = max(1, math.floor(mana_max * (mana_regen / 100)))
+			
+			# Find the highest mana control value
+			if values_dict["%s Mana Control" % lowest_mc_name] > values_dict["%s Mana Control" % highest_mc_name]:
+				temp_name = highest_mc_name
+				highest_mc_name = lowest_mc_name
+				lowest_mc_name = temp_name
+				
+			higher_mc = values_dict["%s Mana Control" % highest_mc_name]
+			lower_mc = values_dict["%s Mana Control" % lowest_mc_name]			
+			
+			# If the mana control names match, the profession only uses one mana type. Otherwise, they use two types.
+			if highest_mc_name == lowest_mc_name:
+				mana_recovery = base_mana_recovery + math.floor(higher_mc / 10) + values_dict["Mana Recovery"] + values_dict["Mana Recovery Normal"]
+				mana_tooltip = "%s = %s + (%s / 10) + %s + %s\n" % (mana_recovery, base_mana_recovery, higher_mc, values_dict["Mana Recovery"], values_dict["Mana Recovery Normal"])
+				mana_tooltip2 = ""
+			else:			
+				mana_recovery = base_mana_recovery + math.floor(higher_mc / 10) + math.floor(lower_mc / 20) + values_dict["Mana Recovery"] + values_dict["Mana Recovery Normal"]
+				mana_tooltip = "%s = %s + (%s / 10) + (%s / 20) + %s + %s\n" % (mana_recovery, base_mana_recovery, higher_mc, lower_mc, values_dict["Mana Recovery"], values_dict["Mana Recovery Normal"])
+				mana_tooltip2 = tooltip_dict["%s Mana Control" % lowest_mc_name]
+				
+			
+			# Stamina Recovery
+			stamina_percent = 20 + math.floor(values_dict["Constitution"] / 4.5) + values_dict["Stamina Recovery"] + values_dict["Stamina Recovery Normal"]
+			stamina_recovery = round(stamina_max  * (stamina_percent / 100))	
+			
+			
+			# Spirit Recovery
+			spirit_tier = min(6, base_spirit_tier + values_dict["Spirit Recovery"])
+			
+			if "Node Room" in override_options:
+				spirit_recovery = 2 * spirit_value_tiers[spirit_tier] / spirit_minute_tiers[spirit_tier]
+				spirit_recovery = math.floor(100 * spirit_recovery) / 100
+				
+				spirit_tooltip = "%s = %s per %s minutes (Tier %s).  Recovery tier %s vs max 7\n" % (spirit_recovery, 2 * spirit_value_tiers[spirit_tier], spirit_minute_tiers[spirit_tier], spirit_tier+1, base_spirit_tier + values_dict["Spirit Recovery"] + 1)
+				spirit_node_tooltip = "     2x  Spirit recovered while on a node\n"
+			else:
+				spirit_recovery = round(spirit_value_tiers[spirit_tier] / spirit_minute_tiers[spirit_tier], 2)
+				spirit_recovery = math.floor(100 * spirit_recovery) / 100
+				
+				spirit_tooltip = "%s = %s per %s minutes (Tier %s).  Recovery tier %s vs max 7\n" % (spirit_recovery, spirit_value_tiers[spirit_tier], spirit_minute_tiers[spirit_tier], spirit_tier+1, base_spirit_tier + values_dict["Spirit Recovery"] + 1)
+				spirit_node_tooltip = ""			
+			
+			
+			
+			# Added the results to the totals array
+			health_max_totals.append(health_max)
+			mana_max_totals.append(mana_max)
+			stamina_max_totals.append(stamina_max)
+			spirit_max_totals.append(spirit_max)
+			health_recovery_totals.append(health_recovery)
+			mana_recovery_totals.append(mana_recovery)
+			stamina_recovery_totals.append(stamina_recovery)
+			spirit_recovery_totals.append(spirit_recovery)
+			
+			
+			# Create Tooltip info		
+			max_health_tooltip = "".join([ 
+							"--Maximum Health--\n",
+							"%s = (%s + %s + %s) vs max (%s + %s + %s)\n" % (health_max, base_health, health_PF, values_dict["Maximum Health"], race_max_health, values_dict["Constitution"], values_dict["Maximum Health"]),
+							"%s  Base health  ((%s + %s) / 10)\n" % (("%d" % base_health).rjust(3), str_level0, con_level0),
+							"        %s  Strength statistic at level 0\n" % ("%d" % str_level0).rjust(4),
+							"        %s  Constitution statistic at level 0\n" % ("%d" % con_level0).rjust(4),
+							"%s  Health from PF ranks ((%s + (%s / 10)) * %s)\n" % (("%d" % health_PF).rjust(3), race_health_gain, values_dict["Constitution"], values_dict["Physical Fitness"]),
+							"%s  %s health gained per PF rank\n" % (("%d" % race_health_gain).rjust(7), race),
+							tooltip_dict["Constitution"],
+							tooltip_dict["Physical Fitness"],
+							"%s  %s maximum health\n" % (("%d" % race_max_health).rjust(3), race),
+							"%s  Additional maximum health (%s + %s) vs max +50\n" % (("%d" % health_extra).rjust(3), values_dict["Constitution"], values_dict["Maximum Health"]),
+							tooltip_dict["Constitution"],
+							tooltip_dict["Maximum Health"],
+							])
+				
+			max_mana_tooltip = "".join([ 
+							"\n--Maximum Mana--\n",	
+							"%s = %s + %s + %s\n" % (mana_max, base_mana, mana_HP, values_dict["Maximum Mana"]),							
+							"%s  Base mana  ((%s + %s) / 4) vs min 0\n" % (("%+d" % base_mana).rjust(3), stat1_level0, stat2_level0),
+							"        %s  %s statistic at level 0\n" % (("%d" % stat1_level0).rjust(4), mana_stat1),
+							"        %s  %s statistic at level 0\n" % (("%d" % stat2_level0).rjust(4), mana_stat2),
+							"%s  Mana from Harness Power (3 * %s) + %s\n" % (("%+d" % mana_HP).rjust(3), min(values_dict["Harness Power"], index), max(0, values_dict["Harness Power"] - index)),
+							tooltip_dict["Harness Power"],
+							tooltip_dict["Maximum Mana"],
+							])	
+			
+			max_stamina_tooltip = "".join([ 
+							"\n--Maximum Stamina--\n",
+							"%s = %s + (%s + %s + %s) / 3 + %s + %s\n" % (stamina_max, values_dict["Constitution"], values_dict["Strength"], values_dict["Agility"], values_dict["Discipline"], values_dict["Physical Fitness bonus"], values_dict["Maximum Stamina"]),								
+							tooltip_dict["Constitution"],
+							tooltip_dict["Strength"],
+							tooltip_dict["Agility"],
+							tooltip_dict["Discipline"],	
+							tooltip_dict["Physical Fitness bonus"],	
+							tooltip_dict["Maximum Stamina"],							
+							])
+			
+			max_spirit_tooltip = "".join([ 
+							"\n--Maximum Spirit--\n",
+							"%s = (%s / 10) + %s\n" % (spirit_max, values_dict["Spriit"], values_dict["Maximum Spirit"]),			
+							tooltip_dict["Spirit"],
+							tooltip_dict["Maximum Spirit"],	
+							])
+							
+			recovery_health_tooltip = "".join([ 
+							"\n--Health Recovery--\n",
+							"%s = %s + (%s / 20) + %s\n" % (health_recovery, health_regen, values_dict["Physical Fitness"], values_dict["Health Recovery"]),
+							"%s  %s base health recovery\n" % (("%+d" % health_regen).rjust(7), race),
+							tooltip_dict["Physical Fitness"],	
+							tooltip_dict["Health Recovery"],								
+							])
+			
+			recovery_mana_tooltip = "".join([ 
+							"\n--Mana Recovery--\n",		
+							mana_tooltip,
+							tooltip_dict["%s Mana Control" % highest_mc_name],
+							mana_tooltip2,
+							tooltip_dict["Mana Recovery"],
+							tooltip_dict["Mana Recovery Normal"]
+							])
+			
+			recovery_stamina_tooltip = "".join([ 
+							"\n--Stamina Recovery--\n",		
+							"%s = %s * .%s\n" % (stamina_recovery, stamina_max, stamina_percent),
+							" %s%% = 20 + (%s / 4.5) + %s + %s\n" % (stamina_percent, values_dict["Constitution"], values_dict["Stamina Recovery"], values_dict["Stamina Recovery Normal"]),
+							tooltip_dict["Constitution"],
+							tooltip_dict["Stamina Recovery"],
+							tooltip_dict["Stamina Recovery Normal"],
+							])
+			
+			recovery_spirit_tooltip = "".join([ 
+							"\n--Spirit Recovery--\n",	
+							spirit_tooltip,		
+							"%s  %s base tier (%s per %s minutes)\n" % (("%+d" % (base_spirit_tier+1)).rjust(6), race, spirit_value_tiers[base_spirit_tier], spirit_minute_tiers[base_spirit_tier]),
+							tooltip_dict["Spirit Recovery"],
+							spirit_node_tooltip,
+							])
+			
+			tooltip = "".join([ 
+							tooltip,
+							"%s  Maximum Health\n" % ("%s" % health_max).rjust(4),
+							"%s  Maximum Mana\n" % ("%s" % mana_max).rjust(4),
+							"%s  Maximum Stamina\n" % ("%s" % stamina_max).rjust(4),
+							"%s  Maximum Spirit\n" % ("%s" % spirit_max).rjust(4),
+							"%s  Health Recovery\n" % ("%s" % health_recovery).rjust(4),
+							"%s  Mana Recovery\n" % ("%s" % mana_recovery).rjust(4),
+							"%s  Stamina Recovery\n" % ("%s" % stamina_recovery).rjust(4),
+							"%s  Spirit Recovery\n" % ("%s" % spirit_recovery).rjust(4),
+							max_health_tooltip,
+							max_mana_tooltip,
+							max_stamina_tooltip,
+							max_spirit_tooltip,
+							recovery_health_tooltip,
+							recovery_mana_tooltip,
+							recovery_stamina_tooltip,
+							recovery_spirit_tooltip,
+							])
+			
+			self.graph_information.tooltip_array.append(tooltip[:-1])	
+
+			index += 1
+					
+		
+		# Loop is done, set up the graph_infomation object		
+		self.graph_information.graph_ylabel = "Resources"	
+		if calc_style == 1:
+			self.graph_information.graph_xlabel = "Resources - Maximums & Recovery per Level"
+			self.graph_information.graph_xaxis_rotation = 0
+			self.graph_information.graph_xlabel_size = 12
+			self.graph_information.graph_xaxis_size = 12
+			self.graph_information.graph_xaxis_tick_range = loop_range
+			self.graph_information.graph_xaxis_tick_labels = [0,10,20,30,40,50,60,70,80,90,100]		
+		elif calc_style == 2:
+			self.graph_information.graph_xlabel = "Resources - Maximums & Recovery per Postcap Experience Interval"
+			self.graph_information.graph_xaxis_rotation = 30
+			self.graph_information.graph_xlabel_size = 10
+			self.graph_information.graph_xaxis_size = 9			
+			self.graph_information.graph_xaxis_tick_range = [i for i in range(index)]
+			
+			if len(postcap_intervals) <= 10:
+				self.graph_information.graph_xaxis_tick_labels = [i for i in postcap_intervals]	
+			else:
+				temp = math.floor(len(postcap_intervals)/10)
+				i = 0
+								
+				for interval in postcap_intervals:
+					if i % temp == 0:
+						self.graph_information.graph_xaxis_tick_labels.append(interval)
+					i += 1			
+
+
+		# Append the completed lists to graph_infomation object
+		self.graph_information.graph_data_lists.append(health_max_totals)		
+		self.graph_information.graph_data_lists.append(health_recovery_totals)	
+		self.graph_information.graph_data_lists.append(mana_max_totals)	
+		self.graph_information.graph_data_lists.append(mana_recovery_totals)	
+		self.graph_information.graph_data_lists.append(stamina_max_totals)	
+		self.graph_information.graph_data_lists.append(stamina_recovery_totals)	
+		self.graph_information.graph_data_lists.append(spirit_max_totals)	
+		self.graph_information.graph_data_lists.append(spirit_recovery_totals)		
+					
+
+		# Set the minimum height for the graph
+		self.graph_information.graph_yaxis_min = min(health_max_totals[0], mana_max_totals[0], stamina_max_totals[0], spirit_max_totals[0], health_recovery_totals[0], mana_recovery_totals[0], stamina_recovery_totals[0], spirit_recovery_totals[0]) - 5
+		self.graph_information.graph_yaxis_max = max(health_max_totals[-1], mana_max_totals[-1], stamina_max_totals[-1], spirit_max_totals[-1], health_recovery_totals[-1], mana_recovery_totals[-1], stamina_recovery_totals[-1], spirit_recovery_totals[-1]) + 5
+		
+
+		# Setup the Legend
+		self.graph_information.graph_num_lines = 8
+		self.graph_information.graph_legend_columns = 4
+		self.graph_information.graph_legend_labels.append("Max Health")
+		self.graph_information.graph_legend_styles.append("ro-")			
+		self.graph_information.graph_legend_labels.append("Health Regen")
+		self.graph_information.graph_legend_styles.append("r^-")			
+		self.graph_information.graph_legend_labels.append("Max Mana")
+		self.graph_information.graph_legend_styles.append("bo-")			
+		self.graph_information.graph_legend_labels.append("Mana Regen")
+		self.graph_information.graph_legend_styles.append("b^-")			
+		self.graph_information.graph_legend_labels.append("Max Stamina")
+		self.graph_information.graph_legend_styles.append("yo-")			
+		self.graph_information.graph_legend_labels.append("Stamina Regen")
+		self.graph_information.graph_legend_styles.append("y^-")			
+		self.graph_information.graph_legend_labels.append("Max Spirit")
+		self.graph_information.graph_legend_styles.append("co-")			
+		self.graph_information.graph_legend_labels.append("Spirit Regen")
+		self.graph_information.graph_legend_styles.append("c^-")			
+
+		
+	# This method is used to calculate the character wearable mana in regards to the Spellburst mechanics from level
+	# 0-100 or across postcap training. It also calculates how much worn mana the character has based on the spell
+	# effects they are using. Spell Research ranks are taken into consideration when determining worn mana.
+	def Formula_Spellburst(self, calc_style):
+		effects_list = ["Skill_Ranks_Arcane_Symbols", "Skill_Ranks_Magic_Item_Use", "Skill_Ranks_Harness_Power", "Skill_Ranks_Spell_Aiming",
+						"Skill_Ranks_Elemental_Mana_Control", "Skill_Ranks_Mental_Mana_Control", "Skill_Ranks_Spiritual_Mana_Control",
+						"Skill_Ranks_Elemental_Lore_Air", "Skill_Ranks_Elemental_Lore_Earth", "Skill_Ranks_Elemental_Lore_Fire", "Skill_Ranks_Elemental_Lore_Water",
+						"Skill_Ranks_Spiritual_Lore_Blessings", "Skill_Ranks_Spiritual_Lore_Summoning", "Skill_Ranks_Spiritual_Lore_Religion",
+						"Skill_Ranks_Mental_Lore_Divination", "Skill_Ranks_Mental_Lore_Manipulation", "Skill_Ranks_Mental_Lore_Telepathy", "Skill_Ranks_Mental_Lore_Transference", "Skill_Ranks_Mental_Lore_Transformation",
+						"Skill_Ranks_Sorcerous_Lore_Demonology", "Skill_Ranks_Sorcerous_Lore_Necromancy", "Skill_Ranks_Spell_Research_Minor_Spiritual", 
+						"Skill_Bonus_Arcane_Symbols", "Skill_Bonus_Magic_Item_Use", "Skill_Bonus_Harness_Power", "Skill_Bonus_Spell_Aiming",
+						"Skill_Bonus_Elemental_Mana_Control", "Skill_Bonus_Mental_Mana_Control", "Skill_Bonus_Spiritual_Mana_Control",
+						"Skill_Bonus_Elemental_Lore_Air", "Skill_Bonus_Elemental_Lore_Earth", "Skill_Bonus_Elemental_Lore_Fire", "Skill_Bonus_Elemental_Lore_Water",
+						"Skill_Bonus_Spiritual_Lore_Blessings", "Skill_Bonus_Spiritual_Lore_Summoning", "Skill_Bonus_Spiritual_Lore_Religion",
+						"Skill_Bonus_Mental_Lore_Divination", "Skill_Bonus_Mental_Lore_Manipulation", "Skill_Bonus_Mental_Lore_Telepathy", "Skill_Bonus_Mental_Lore_Transference", "Skill_Bonus_Mental_Lore_Transformation",
+						"Skill_Bonus_Sorcerous_Lore_Demonology", "Skill_Bonus_Sorcerous_Lore_Necromancy", "Skill_Bonus_Spell_Research_Minor_Spiritual", 
+						"Spellburst"]	
+		skill_names = ["Arcane Symbols", "Magic Item Use", "Harness Power", "Spell Aiming",
+						"Elemental Mana Control", "Mental Mana Control", "Spiritual Mana Control", 
+						"Elemental Lore, Air", "Elemental Lore, Earth", "Elemental Lore, Fire", "Elemental Lore, Water",
+						"Spiritual Lore, Blessings", "Spiritual Lore, Summoning", "Spiritual Lore, Religion",
+						"Mental Lore, Divination", "Mental Lore, Manipulation", "Mental Lore, Telepathy", "Mental Lore, Transference", "Mental Lore, Transformation", 
+						"Sorcerous Lore, Demonology", "Sorcerous Lore, Necromancy"
+						]
+
+		index = 0
+		loop_range = [i for i in range(101)]
+		base_ranks_arr = {}
+		base_bonus_arr = {}
+		postcap_intervals = []
+		lists_of_effects_by_tag = {}	
+		override_options = []	
+			
+		wearable_totals = []
+		worn_totals = []		
+		
+						
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)				
+
+		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
+		if calc_style == 2:
+			interval = 7575000
+			for interval, training in globals.character.postcap_skill_training_by_interval.items():
+				for skill in skill_names:
+					if skill in training:
+						postcap_intervals.append(interval)
+						break										
+							
+			if len(postcap_intervals) == 0:
+				postcap_intervals.append(7572500)
+				postcap_intervals.append(interval)
+			elif postcap_intervals[0] != 7572500:
+				postcap_intervals.insert(0, 7572500)			
+			
+			if postcap_intervals[-1] != interval:
+				postcap_intervals.append(interval)		
+							
+			loop_range = postcap_intervals
+					
+			
+		# Begin the big loop to calculate all the data	
+		for i in loop_range:
+			temp_tooltip = ""
+			temp_mana1 = 0
+			temp_mana2 = 0
+			skill_ranks_arr = {}
+			skill_tooltip_arr = {}
+			wearable_tootip = ""
+			worn_tootip = ""
+			wearable_mana = 0
+			worn_mana = 0
+		
+			# Only a minor change depending on calc_style
+			if calc_style == 1:
+				tooltip = "Level %s: Spellburst\n" % (i)					
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[i].get()
+					
+			elif calc_style == 2:	
+				tooltip = "Postcap Experience Interval %s: Spellburst\n" % ("{:,}".format(i))		
+		
+				for skill in skill_names:
+					base_ranks_arr[skill] = globals.character.skills_list[skill].total_ranks_by_level[100].get()					
+					base_ranks_arr[skill] += globals.character.skills_list[skill].Postcap_Get_Total_Ranks_Closest_To_Interval(i)
+					
+			
+			# Need to use the current level in the spell burst calculations but it can't be 0 or a postcap interval.
+			# This check makes sure the level is accurate.
+			if i > 100:
+				level = 100
+			elif i == 0:
+				level = 1
+			else:
+				level = i
+				
+				
+			# Calculate all skill ranks for wearable mana
+			for skill in skill_names:				
+				tagname = skill.replace(" ", "_").replace(",", "")
+				skill_rank_count, temp_tooltip = self.Combine_Effects(i, skill, base_ranks_arr[skill], 
+												[lists_of_effects_by_tag["Skill_Bonus_%s" % tagname], lists_of_effects_by_tag["Skill_Ranks_%s" % tagname]], 
+												["Skill_Bonus_%s" % tagname, "Skill_Ranks_%s" % tagname], 
+												"skill_bonus_to_ranks")
+
+				skill_ranks_arr[skill] = base_ranks_arr[skill] + min(50, skill_rank_count)		
+				skill_tooltip_arr[skill] = "".join([ 
+										"    %s %s ranks\n" % (("%+d" % skill_ranks_arr["Arcane Symbols"]).rjust(4), skill),
+										"       %s  %s base ranks\n" % (("%+d" % base_ranks_arr[skill]).rjust(4), skill),
+										temp_tooltip
+										])
+				
+
+			# Calculate mana cost for all spell effects
+			worn_mana, worn_tootip = self.Combine_Effects(i, "", 0, [lists_of_effects_by_tag["Spellburst"]], ["Spellburst"], "spellburst_float_format")				
+			
+			
+			# Calculate wearable mana
+			temp_mana2 = skill_ranks_arr["Elemental Mana Control"] + skill_ranks_arr["Mental Mana Control"] + skill_ranks_arr["Spiritual Mana Control"]
+			temp_mana2 += skill_ranks_arr["Elemental Lore, Air"] + skill_ranks_arr["Elemental Lore, Earth"] + skill_ranks_arr["Elemental Lore, Fire"] + skill_ranks_arr["Elemental Lore, Water"]
+			temp_mana2 += skill_ranks_arr["Spiritual Lore, Blessings"] + skill_ranks_arr["Spiritual Lore, Religion"] + skill_ranks_arr["Spiritual Lore, Summoning"]
+			temp_mana2 += skill_ranks_arr["Mental Lore, Divination"] + skill_ranks_arr["Mental Lore, Manipulation"] + skill_ranks_arr["Mental Lore, Telepathy"] + skill_ranks_arr["Mental Lore, Transference"] + skill_ranks_arr["Mental Lore, Transformation"]
+			temp_mana2 += skill_ranks_arr["Sorcerous Lore, Demonology"] + skill_ranks_arr["Sorcerous Lore, Necromancy"]
+			
+			temp_mana1 = skill_ranks_arr["Arcane Symbols"] + skill_ranks_arr["Magic Item Use"] + skill_ranks_arr["Harness Power"] + skill_ranks_arr["Spell Aiming"]
+			
+			wearable_mana = (temp_mana1 + (0.5 * temp_mana2)) / (225/level)
+
+			
+			# Create Tooltip info			
+			wearable_tootip = "".join([ 
+							"--Wearable Mana--\n",
+							"%.1f  Mana = (%s + (0.5 * (%s))) / (225 / %s) \n" % (wearable_mana, temp_mana1, temp_mana2, level),
+							"   %s calculated with:\n" % temp_mana1,
+							skill_tooltip_arr["Arcane Symbols"],
+							skill_tooltip_arr["Harness Power"],
+							skill_tooltip_arr["Magic Item Use"],
+							skill_tooltip_arr["Spell Aiming"],
+							"  %s calculated with:\n" % temp_mana2,
+							skill_tooltip_arr["Elemental Mana Control"], skill_tooltip_arr["Mental Mana Control"], skill_tooltip_arr["Spiritual Mana Control"],
+							skill_tooltip_arr["Elemental Lore, Air"], skill_tooltip_arr["Elemental Lore, Earth"], skill_tooltip_arr["Elemental Lore, Fire"], skill_tooltip_arr["Elemental Lore, Water"],
+							skill_tooltip_arr["Spiritual Lore, Blessings"], skill_tooltip_arr["Spiritual Lore, Religion"], skill_tooltip_arr["Spiritual Lore, Summoning"],
+							skill_tooltip_arr["Mental Lore, Divination"], skill_tooltip_arr["Mental Lore, Manipulation"], skill_tooltip_arr["Mental Lore, Telepathy"], skill_tooltip_arr["Mental Lore, Transference"], skill_tooltip_arr["Mental Lore, Transformation"],
+							skill_tooltip_arr["Sorcerous Lore, Demonology"], skill_tooltip_arr["Sorcerous Lore, Necromancy"],
+							])		
+			
+			if worn_mana == 0:			
+				worn_tootip = "".join([ 
+								"--Worn Mana--\n",
+								"0 mana. No worn effects count toward spellburst\n"
+								])			
+			else:
+				worn_tootip = "".join([ 
+								"--Worn Mana--\n",
+								"%.1f  mana calculated with:\n" % worn_mana,
+								worn_tootip
+								])		
+							
+			tooltip = "".join([ 
+							tooltip,
+							"%s  Wearable mana\n" % ("%.1f" % wearable_mana).rjust(4),
+							"%s  Worn mana from spells\n" % ("%.1f" % worn_mana).rjust(4),
+							wearable_tootip,
+							worn_tootip
+							])
+			
+
+			wearable_totals.append(wearable_mana)
+			worn_totals.append(worn_mana)
+			
+			self.graph_information.tooltip_array.append(tooltip[:-1])	
+
+			index += 1
+					
+		
+		# Loop is done, set up the graph_infomation object		
+		self.graph_information.graph_ylabel = "Mana"	
+		if calc_style == 1:
+			self.graph_information.graph_xlabel = "Spellburst wearable and worn mana per Level"
+			self.graph_information.graph_xaxis_rotation = 0
+			self.graph_information.graph_xlabel_size = 12
+			self.graph_information.graph_xaxis_size = 12
+			self.graph_information.graph_xaxis_tick_range = loop_range
+			self.graph_information.graph_xaxis_tick_labels = [0,10,20,30,40,50,60,70,80,90,100]		
+		elif calc_style == 2:
+			self.graph_information.graph_xlabel = "Spellburst wearable and worn mana per Postcap Experience Interval"
+			self.graph_information.graph_xaxis_rotation = 30
+			self.graph_information.graph_xlabel_size = 10
+			self.graph_information.graph_xaxis_size = 9			
+			self.graph_information.graph_xaxis_tick_range = [i for i in range(index)]
+			
+			if len(postcap_intervals) <= 10:
+				self.graph_information.graph_xaxis_tick_labels = [i for i in postcap_intervals]	
+			else:
+				temp = math.floor(len(postcap_intervals)/10)
+				i = 0
+								
+				for interval in postcap_intervals:
+					if i % temp == 0:
+						self.graph_information.graph_xaxis_tick_labels.append(interval)
+					i += 1			
+
+
+		# Append the completed lists to graph_infomation object
+		self.graph_information.graph_data_lists.append(wearable_totals)
+		self.graph_information.graph_data_lists.append(worn_totals)					
+					
+
+		# Set the minimum height for the graph
+		self.graph_information.graph_yaxis_min = min(wearable_totals[0], worn_totals[-1]) - 5
+		self.graph_information.graph_yaxis_max = max(wearable_totals[1], worn_totals[0]) + 5	
+		
+
+		# Setup the Legend
+		self.graph_information.graph_num_lines = 2
+		self.graph_information.graph_legend_columns = 2
+		self.graph_information.graph_legend_labels.append("Wearable Mana")
+		self.graph_information.graph_legend_styles.append("bo-")		
+		self.graph_information.graph_legend_labels.append("Worn Mana")
+		self.graph_information.graph_legend_styles.append("ro-")			
+
+
+
+
+
 		
 	'''		
 	# Formula Template
@@ -2896,7 +4485,8 @@ class Progression_Panel:
 		base_ranks_arr = {}
 		base_bonus_arr = {}
 		postcap_intervals = []
-		lists_of_effects_by_tag = {}				
+		lists_of_effects_by_tag = {}	
+		override_options = []			
 			
 		# Setup the effects lists and td lists	
 		for stat in statistic_names:
@@ -2904,7 +4494,11 @@ class Progression_Panel:
 			effects_list.append("Statistic_%s" % stat)
 
 			
-		lists_of_effects_by_tag = self.Find_Effects_By_Tags(effects_list)				
+		gloves_totals = []
+		boots_totals = []		
+		
+			
+		(lists_of_effects_by_tag, override_options) = self.Find_Effects_By_Tags(effects_list)				
 
 		# In Postcap mode, loop_range is not 0-100, instead its the first and last time the character trained in something
 		if calc_style == 2:
@@ -2999,7 +4593,8 @@ class Progression_Panel:
 			boots_totals.append(boots_value)
 			
 			# Create Tooltip info
-			tooltip += ""	
+			tooltip = "".join([ tooltip,
+						])
 			
 			self.graph_information.tooltip_array.append(tooltip[:-1])	
 
@@ -3041,7 +4636,7 @@ class Progression_Panel:
 
 		# Set the minimum height for the graph
 		ymin = min(gloves_totals[0], boots_totals[0])
-		ymax = max(gloves_totals[100], boots_totals[100])
+		ymax = max(gloves_totals[-1], boots_totals[-1])
 		self.graph_information.graph_yaxis_min = ymin - 5
 		self.graph_information.graph_yaxis_max = ymax + 5		
 		
