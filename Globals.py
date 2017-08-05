@@ -743,14 +743,15 @@ class Character:
 #		INF = float(0) if self.statistics_list["Influence"].values_by_level[i].get() == "" else float(self.statistics_list["Influence"].values_by_level[i].get())
 			
 		
-		# Health calculation. Combines stats, Physical Training ranks, Combat Toughness maneuver ranks
+		# Health calculation. Combines stats and Physical Training ranks
+		health_gain_rate = int(self.race.health_gain_rate)
 		PF_ranks = 0 if not "Physical Fitness" in self.skills_list else	self.skills_list["Physical Fitness"].total_ranks_by_level[i].get() 
 		H_str = float(0) if self.statistics_list["Strength"].values_by_level[0].get() == "" else float(self.statistics_list["Strength"].values_by_level[0].get())
 		H_con = float(0) if self.statistics_list["Constitution"].values_by_level[0].get() == "" else float(self.statistics_list["Constitution"].values_by_level[0].get())
 		base_con = math.floor((H_str + H_con) / 10)
 		con_bonus = float(0) if self.statistics_list["Constitution"].values_by_level[i].get() == "" else float(self.statistics_list["Constitution"].values_by_level[i].get())
 		con_bonus = int(math.floor((con_bonus - 50) / 2 + self.racial_stat_bonus["Constitution"].get()))
-		self.health_by_level[i].set(max(0, min(base_con + PF_ranks*5, self.race.max_health + con_bonus)))
+		self.health_by_level[i].set(max(0, min(base_con +  PF_ranks * (health_gain_rate + math.floor(con_bonus /10)), self.race.max_health + con_bonus)))
 	
 		# Mana calculation. Just factor in the Harness power ranks at this level
 		M_bonus1 = self.statistics_list[self.profession.mana_statistics[0]].values_by_level[0].get()
@@ -1176,10 +1177,11 @@ class Character:
 class Race:
 	def __init__(self, arr):	
 		self.name = arr['name']
-		self.man_bonus = arr['manauever_bonus']
+		self.manauever_bonus = arr['manauever_bonus']
 		self.max_health = arr['max_health']
-		self.base_regen = arr['health_regen']
-		self.spirit_regen = arr['spirit_regen']
+		self.health_regen = arr['health_regen']
+		self.health_gain_rate = arr['health_gain_rate']
+		self.spirit_regen_tier = arr['spirit_regen_tier']
 		self.decay_timer = arr['decay_timer']
 		self.encumberance_factor = arr['encumberance_factor']
 		self.weight_factor = arr['weight_factor']
@@ -1856,9 +1858,14 @@ class Maneuver:
 
 	# Similar to Get_Cost_At_Rank, this method will figure out the CUMULATIVE cost to train "new_ranks" ranks in this manevuer starting at "start_rank" ranks.
 	# "prof_type" will determine if there is an additional cost to train in the skill. Only "combat" maneuvers have an extra cost.
-	def Get_Total_Cost_At_Rank(self, start_rank, new_ranks, prof_type):		
+	# "armor" maneuvers just return their current rank cost
+	def Get_Total_Cost_At_Rank(self, start_rank, new_ranks, prof_type):	
 		total = 0
 		end_rank = start_rank + new_ranks
+		
+		if self.type == "armor":
+			return self.cost_by_rank[end_rank - 1]
+				
 		if prof_type == "square" or self.type != "combat":
 			modifier = 1
 		elif prof_type == "semi":
@@ -2244,7 +2251,7 @@ class Information_Dialog:
 	
 #Planner globals	
 title = "Hymore Character Planner"
-version = "v2.6.1"
+version = "v2.6.2"
 char_name = "New Character"	
 root = tkinter.Tk()
 root.geometry("1140x600")
@@ -2301,6 +2308,7 @@ armor_maneuver_names = []
 # Loadout Panel globals
 LdP_Gear_List_Updated = 0				# Indicates that a change has been made to the Loadout Panel's gear list. Progression Panel needs this to have an accurate loadout lists
 LdP_Effects_List_Updated = 0			# Indicates that a change has been made to the Loadout Panel's effects list. Progression Panel needs this to have an accurate loadout lists
+
 LdP_gear_display_types = { 'None':'None', 'Brawling':'Brawling', 'Edged Weapons':'OHE', 'Blunt Weapons':'OHB', 'Two-Handed Weapons':'THW', 'Polearm Weapons':'Polearm', 'Ranged Weapons':'Ranged', 'Thrown Weapons':'Thrown', 'UAC Weapons':'UAC', 'Armor':'Armor', 'Shields':'Shield', 'Edged Weapons/Brawling':'OHE/BRW', 'Edged Weapons/Two-Handed Weapons':'OHE/THW', "Spell Aiming":'Spell' }
 
 LdP_effect_display_types = collections.OrderedDict()
@@ -2321,23 +2329,17 @@ LdP_effect_display_types['Paladin Base (1600s)'] = 'Pala Spell'
 LdP_effect_display_types['Arcane (1700s)'] = 'Arc Spell'
 LdP_effect_display_types['Maneuvers'] = 'Maneuver'
 LdP_effect_display_types['Society Powers'] = 'Society'
-# LdP_effect_display_types['Enhancives (Resources)'] = 'Enhancive Resource'
+LdP_effect_display_types['Special Abilities'] = 'Special Ability'
+LdP_effect_display_types['Enhancives (Resources)'] = 'Enhancive Resource'
 LdP_effect_display_types['Enhancives (Skills)'] = 'Enhancive Skill'
 LdP_effect_display_types['Enhancives (Statistics)'] = 'Enhancive Statistic'
-#LdP_effect_display_types['Generic Effects'] = 'Generic Effect'
-# LdP_effect_display_types['Special Abilities'] = 'Special Ability'
+LdP_effect_display_types['Generic Bonus'] = 'Generic Bonus'
 LdP_effect_display_types['Status Effects'] = 'Status'
-LdP_effect_display_types['Room Effects'] = 'Room Effects'
+LdP_effect_display_types['Room Effects'] = 'Room\nEffect'
 LdP_effect_display_types['Flares'] = 'Flare'
+LdP_effect_display_types['Items'] = 'Item'
 # LdP_effect_display_types['Other'] = 'Other'
-# LdP_effect_display_types['Items'] = 'Item'
 
-'''
-LdP_effect_display_types = { 'Minor Spiritual (100s)':'MnS Spell', 'Major Spiritual (200s)':'MjS Spell', 'Cleric Base (300s)':'Clrc Spell', 'Minor Elemental (400s)':'MnE Spell',
-					'Major Elemental (500s)':'MjE Spell', 'Ranger Base (600s)':'Rngr Spell', 'Sorcerer Base (700s)':'Sorc Spell', 'Wizard Base (900s)':'Wiz Spell', 'Bard Base (1000s)':'Spellsong', 'Empath Base (1100s)':'Emp Spell', 'Minor Mental (1200s)':'MnM Spell', 
-#					'Major Mental (1300s)':'MjM Spell', 'Savant Base (1400s)':'Svnt Spell', 
-					'Paladin Base (1600s)':'Pala Spell', 'Arcane (1700s)':'Arc Spell', 'Maneuvers':'Maneuver', 'Society Powers':'Society', 'Enhancives (Skills)':'Enhancive Skill', 'Enhancives (Resources)':'Enhancive Resource', 'Enhancives (Statistics)':'Enhancive Statistic', 'Generic Effects':'Generic Effect', 'Special Abilities':'Special Ability', 'Status Effects':'Status', 'Flares':'Flare', 'Other':'Other', 'Room':'Room Condition', 'Items':'Item' }
-'''
 					
 LdP_effect_display_scaling = { 'Spell Research, Minor Spiritual ranks':'Minor Spiritual', 'Spell Research, Major Spiritual ranks':'Major Spiritual', 'Spell Research, Cleric ranks':					  'Cleric', 'Spell Research, Minor Elemental ranks':'Minor Elemental', 'Spell Research, Major Elemental ranks':'Major Elemental', 
 					  'Spell Research, Ranger ranks':'Ranger', 'Spell Research, Sorcerer ranks':'Sorcerer', 'Spell Research, Wizard ranks':'Wizard', 'Spell Research, Bard ranks':'Bard', 'Spell Research, Empath ranks':'Empath', 'Spell Research, Minor Mental ranks':'Minor Mental', 
@@ -2351,10 +2353,17 @@ LdP_effect_display_scaling = { 'Spell Research, Minor Spiritual ranks':'Minor Sp
 					  'Multi-Opponent Combat ranks':'MOC',
 					  'Maneuver ranks':'Maneuver ranks', "Guild skill ranks":"Guild skill ranks",
 					  'Council of Light rank':'COL rank', 'Guardians of Sunfist rank':'GoS rank', 'Order of Voln rank':'Voln rank',
-					  'Resource bonus':'Resource bonus', 'Resource recovery':'Resource recovery', 'Resource maximum increase':'Resource maximum', 
+					  # The effects below do not have dynamic scaling
+					  'Health recovery bonus':'Health recovery', 'Health maximum bonus':'Maximum health', 
+					  'Mana recovery bonus':'Mana recovery', 'Mana maximum bonus':'Maximum mana', 
+					  'Stamina recovery bonus':'Stam recovery', 'Stamina maximum bonus':'Maximum stam', 
+					  'Spirit recovery bonus':'Spirit recovery', 'Spirit maximum bonus':'Maximum spirit', 
 					  'Statistic increase':'Statistic increase', 'Statistic bonus':'Statistic bonus', 'Skill ranks':'Skill ranks', 'Skill bonus':'Skill bonus', 
-					  'Generic AS Bonus':'Generic AS Bonus', 'Generic DS Bonus':'Generic DS Bonus', 
-					  'Ensorcell tier':'Ensorcell tier', 'Acuity tier':'Acuity tier' }
+					  'All AS bonus':'All AS bonus', 'Melee AS bonus':'Melee AS bonus', 'Ranged AS bonus':'Ranged AS bonus', 'Bolt AS bonus':'Bolt AS bonus', 'UAF bonus':'UAF bonus', 
+					  'All DS bonus':'All DS bonus', 'Melee DS bonus':'Melee DS bonus', 'Ranged DS bonus':'Ranged DS bonus', 'Bolt DS bonus':'Bolt DS bonus', 
+					  'All CS bonus':'All CS bonus', 'Elemental CS bonus':'Ele CS bonus', 'Mental CS bonus':'Mental CS bonus', 'Spiritual CS bonus':'Spirit CS bonus', 'Sorcerer CS bonus':'Sorc CS bonus',
+					  'All TD bonus':'All TD bonus', 'Elemental TD bonus':'Ele TD bonus', 'Mental TD bonus':'Mental TD bonus', 'Spiritual TD bonus':'Spirit TD bonus', 'Sorcerer TD bonus':'Sorc TD bonus',
+					  'Tier':'Tier' }
 
 # Progression Panel globals
 summation_bonuses =[ [0],
