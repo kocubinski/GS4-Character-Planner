@@ -12,7 +12,7 @@ the effect changes.
 # A few select calculations are dependent on information other than skill training. This dictionary will
 # keep track of that special information so the these calculations can be performed. The Progresson Panel 
 # will populate the dictionary as needed.
-calculation_vars = {}
+override_dict = {}
 
 
 # While it is possible to use a formula to calculate the summation bonus for each seed. The process is 
@@ -109,18 +109,18 @@ def Calculate_101(effect, tag, level):
 	elif tag == "Spellburst":				
 		if "Minor Spiritual" in globals.character.profession.spell_circles:
 			if level > 100:
-				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
 				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
 			else:
 				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
 			
 			if spell_ranks >= 1:
-				return [0, "Mana"]
+				return [0, "mana"]
 			else:
-				return [0.5, "Mana"]				
+				return [0.5, "mana"]				
 			
 		else:
-			return [1, "Mana"]
+			return [1, "mana"]
 		
 	elif tag == "TD_Elemental" or tag == "TD_Mental" or tag == "TD_Spiritual" or tag == "TD_Sorcerer":		
 		TD = 10
@@ -181,6 +181,21 @@ def Calculate_102(effect, tag, level):
 		
 		return [bonus, type]
 		
+	elif tag == "Spellburst":				
+		if "Minor Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 2:
+				return [0, "mana"]
+			else:
+				return [1, "mana"]				
+			
+		else:
+			return [2, "mana"]		
 		
 	return [0, ""]
 
@@ -189,6 +204,22 @@ def Calculate_102(effect, tag, level):
 def Calculate_103(effect, tag, level):
 	if tag == "DS_All":				
 		return [10, "All DS"]
+		
+	elif tag == "Spellburst":				
+		if "Minor Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 3:
+				return [0, "mana"]
+			else:
+				return [1.5, "mana"]				
+			
+		else:
+			return [3, "mana"]
 		
 	return [0, ""]
 	
@@ -214,8 +245,45 @@ def Calculate_107(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [TD, type]
+		
+	elif tag == "Spellburst":				
+		if "Minor Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 7:
+				return [0, "mana"]
+			else:
+				return [3.5, "mana"]				
+			
+		else:
+			return [7, "mana"]
 
 	return [0, ""]
+	
+	
+# Fasthr's Reward (115) - Just spellburst stuff
+def Calculate_115(effect, tag, level):
+	if tag == "Spellburst":				
+		if "Minor Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 15:
+				return [0, "mana"]
+			else:
+				return [8, "mana"]				
+			
+		else:
+			return [15.5, "mana"]		
+		
+	return [0, ""]	
 	
 	
 # Spirit Strike (117) - +75 AS, +75 UAF
@@ -225,6 +293,22 @@ def Calculate_117(effect, tag, level):
 	elif tag == "UAF":				
 		return [75, "UAF"]
 
+	elif tag == "Spellburst":				
+		if "Minor Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 17:
+				return [0, "mana"]
+			else:
+				return [9, "mana"]				
+			
+		else:
+			return [17.5, "mana"]		
+		
 	return [0, ""]	
 	
 	
@@ -269,7 +353,23 @@ def Calculate_120(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [TD, type]		
-		
+
+	elif tag == "Spellburst":				
+		if "Minor Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 20:
+				return [0, "mana"]
+			else:
+				return [10.5, "mana"]				
+			
+		else:
+			return [20.5, "mana"]
+			
 	return [0, ""]
 
 	
@@ -277,6 +377,22 @@ def Calculate_120(effect, tag, level):
 def Calculate_140(effect, tag, level):
 	if tag == "DS_All":				
 		return [100, "All DS"]
+		
+	elif tag == "Spellburst":				
+		if "Minor Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 40:
+				return [0, "mana"]
+			else:
+				return [20.5, "mana"]				
+			
+		else:
+			return [40.5, "mana"]		
 		
 	return [0, ""]
 	
@@ -299,6 +415,76 @@ def Calculate_202(effect, tag, level):
 				
 		return [bonus, "All DS"]	
 		
+	elif tag == "Spellburst":				
+		if "Major Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 2:
+				return [0, "mana"]
+			else:
+				return [1, "mana"]				
+			
+		else:
+			return [2, "mana"]		
+		
+	return [0, ""]
+	
+	
+# Manna (203) - +5 maximum Mana per seed 10 summation for Spiritual Lore, Blessing ranks
+def Calculate_203(effect, tag, level):
+	if tag == "Resource_Maximum_Mana":
+		if effect.scaling_arr["Blessings"] == "D":
+			if level > 100:
+				lore_ranks = int(globals.character.skills_list["Spiritual Lore, Blessings"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				lore_ranks += int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[100].get())	
+			else:
+				lore_ranks = int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[level].get())		
+		else:
+			lore_ranks  = int(effect.scaling_arr["Blessings"])					
+			
+		bonus = 5 * Get_Summation_Bonus(10, lore_ranks)	
+		
+		return [bonus, "Maximum Mana"]	
+
+	return [0, ""]	
+	
+	
+# Tend Lore (206) - +20 phantom First Aid ranks. +1 phantom First Aid rank per Spell Research, Ranger Base rank over 18
+def Calculate_206(effect, tag, level):	
+	if tag == "Skill_Phantom_Ranks_First_Aid":	
+		if effect.scaling_arr["Blessings"] == "D":
+			if level > 100:
+				lore_ranks = int(globals.character.skills_list["Spiritual Lore, Blessings"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				lore_ranks += int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[100].get())	
+			else:
+				lore_ranks = int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[level].get())		
+		else:
+			lore_ranks  = int(effect.scaling_arr["Blessings"])					
+			
+		bonus = 20 + Get_Summation_Bonus(1, lore_ranks)	
+		
+		return [bonus, "ranks"]
+		
+	elif tag == "Spellburst":				
+		if "Major Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 6:
+				return [0, "mana"]
+			else:
+				return [3, "mana"]				
+			
+		else:
+			return [6, "mana"]		
+			
 	return [0, ""]
 	
 	
@@ -308,6 +494,22 @@ def Calculate_211(effect, tag, level):
 		return [15, "All AS"]
 	elif tag == "UAF":				
 		return [15, "UAF"]
+		
+	elif tag == "Spellburst":				
+		if "Major Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 11:
+				return [0, "mana"]
+			else:
+				return [6, "mana"]				
+			
+		else:
+			return [11.5, "mana"]		
 
 	return [0, ""]	
 
@@ -315,8 +517,8 @@ def Calculate_211(effect, tag, level):
 # Heroism (215) - +25 AS, +25 UAF, +1 AS for every 10 Spiritual Lore, Blessing ranks		
 def Calculate_215(effect, tag, level):
 	if tag == "AS_All" or tag == "UAF":		
-		if level > 100:
-			if effect.scaling_arr["Blessings"] == "D":
+		if effect.scaling_arr["Blessings"] == "D":
+			if level > 100:
 				lore_ranks = int(globals.character.skills_list["Spiritual Lore, Blessings"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
 				lore_ranks += int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[100].get())	
 			else:
@@ -332,6 +534,22 @@ def Calculate_215(effect, tag, level):
 			type = "UAF"		
 		
 		return [bonus, type]
+		
+	elif tag == "Spellburst":				
+		if "Major Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 15:
+				return [0, "mana"]
+			else:
+				return [8, "mana"]				
+			
+		else:
+			return [15.5, "mana"]		
 		
 	else:
 		return [0, ""]		
@@ -358,6 +576,22 @@ def Calculate_219(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [TD, type]
+		
+	elif tag == "Spellburst":				
+		if "Major Spiritual" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Spiritual"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Spiritual"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 19:
+				return [0, "mana"]
+			else:
+				return [10, "mana"]				
+			
+		else:
+			return [19.5, "mana"]		
 
 	return [0, ""]
 	
@@ -413,6 +647,22 @@ def Calculate_303(effect, tag, level):
 		bonus = 10 + min(99, math.floor(max(0, lore_ranks - 3)/2))			
 				
 		return [bonus, "All DS"]	
+		
+	elif tag == "Spellburst":			
+		if "Cleric" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Cleric"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Cleric"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Cleric"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 3:
+				return [0, "mana"]
+			else:
+				return [1.5, "mana"]				
+			
+		else:
+			return [3, "mana"]		
 		
 	return [0, ""]
 	
@@ -481,7 +731,8 @@ def Calculate_310(effect, tag, level):
 		return [bonus, type]
 		
 	return [0, ""]	
-	
+
+
 # Praryer (313) - +10 Spirit TD\n+10 all DS at 35 Spell Research, Cleric ranks and increases by +1 per rank above 35 up to character level
 def Calculate_313(effect, tag, level):			
 	if tag == "DS_All" or tag == "TD_Elemental" or tag == "TD_Mental" or tag == "TD_Spiritual" or tag == "TD_Sorcerer":
@@ -513,9 +764,88 @@ def Calculate_313(effect, tag, level):
 	
 		return [bonus, type]	
 		
+	elif tag == "Spellburst":			
+		if "Cleric" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Cleric"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Cleric"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Cleric"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 13:
+				return [0, "mana"]
+			else:
+				return [7, "mana"]				
+			
+		else:
+			return [13.5, "mana"]		
+		
+	return [0, ""] 
+	
+	
+# Symbol of the Proselyte (340) - Increases Bolt AS and Spiritual CS by 5 + (Influence bonus / 2)
+def Calculate_340(effect, tag, level):			
+	if tag == "AS_Bolt" or tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":	
+		try:
+			inf = math.ceil( int(override_dict["Influence Bonus"]) / 2 ) 					
+		except:
+			inf = 0
+				
+		bonus = 5 + inf
+		
+		if tag == "AS_Bolt":
+			type = "Bolt AS"		
+		elif tag == "CS_Spiritual":
+			type = "Spiritual CS"			
+		elif tag == "CS_Elemental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Elemental CS"
+		elif tag == "CS_Mental": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Mental CS"
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.75)
+			type = "Sorcerer CS"
+	
+		return [bonus, type]	
+		
 	return [0, ""]	
 	
-
+	
+# Symbol of the Proselyte (340) 2 - Increases Bolt AS and Spiritual CS by 5 + (Influence bonus / 2) + (Wisdom bonus / 3)
+def Calculate_340_2(effect, tag, level):			
+	if tag == "AS_Bolt" or tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":	
+		try:
+			inf = math.ceil( int(override_dict["Influence Bonus"]) / 2 ) 				
+		except:
+			inf = 0
+				
+		try:
+			wis = math.ceil( int(override_dict["Wisdom Bonus"]) / 3 )				
+		except:
+			wis = 0
+			
+		bonus = 5 + inf + wis
+		
+		if tag == "AS_Bolt":
+			type = "Bolt AS"		
+		elif tag == "CS_Spiritual":
+			type = "Spiritual CS"			
+		elif tag == "CS_Elemental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Elemental CS"
+		elif tag == "CS_Mental": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Mental CS"
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.75)
+			type = "Sorcerer CS"
+	
+		return [bonus, type]	
+		
+	return [0, ""]	
+	
+	
 # Minor Elemental (400s)	
 	
 # Elemental Defense I (401) - +5 DS, +5 Elemental TD
@@ -538,6 +868,22 @@ def Calculate_401(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [bonus, type]
+		
+	elif tag == "Spellburst":			
+		if "Minor Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 1:
+				return [0, "mana"]
+			else:
+				return [0.5, "mana"]				
+			
+		else:
+			return [1, "mana"]		
 
 	return [0, ""]
 
@@ -562,6 +908,22 @@ def Calculate_406(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [bonus, type]
+		
+	elif tag == "Spellburst":			
+		if "Minor Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 6:
+				return [0, "mana"]
+			else:
+				return [3, "mana"]				
+			
+		else:
+			return [6, "mana"]		
 
 	return [0, ""]
 
@@ -587,8 +949,32 @@ def Calculate_414(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [bonus, type]
+		
+	elif tag == "Spellburst":			
+		if "Minor Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 14:
+				return [0, "mana"]
+			else:
+				return [7.5, "mana"]				
+			
+		else:
+			return [14.5, "mana"]		
 
-	return [0, ""]
+	return [0, ""]	
+	
+
+# Mana Focus (418) - +10 mana recovery	
+def Calculate_418(effect, tag, level):
+	if tag == "Resource_Recovery_Mana_Normal":
+		return [10, "Mana Recovery"]	
+
+	return [0, ""]	
 	
 	
 #Elemental Targeting (425) -  +25 AS, +25 UAF, +25 Elemental CS. +1 AS/UAF/Elemental CS per 2 Spell Research, Minor Elemental ranks above 25 up to a +50 at 75 ranks	
@@ -622,9 +1008,25 @@ def Calculate_425(effect, tag, level):
 		else:
 			type = "UAF"		
 			
-		return [bonus, type]		
+		return [bonus, type]	
+		
+	elif tag == "Spellburst":			
+		if "Minor Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 25:
+				return [0, "mana"]
+			else:
+				return [13, "mana"]				
+			
+		else:
+			return [25.5, "mana"]			
 
-	return [0, ""]			
+	return [0, ""]		
 	
 
 # Elemental Barrier (430) - +15 DS, +15 Elemental TD. +1 DS/Elemental TD per 2 Spell Research, Minor Elemental ranks above 30	
@@ -657,6 +1059,22 @@ def Calculate_430(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [bonus, type]	
+		
+	elif tag == "Spellburst":			
+		if "Minor Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 30:
+				return [0, "mana"]
+			else:
+				return [16, "mana"]				
+			
+		else:
+			return [30.5, "mana"]		
 
 	return [0, ""]			
 	
@@ -678,6 +1096,22 @@ def Calculate_503(effect, tag, level):
 		bonus = 20 + math.floor(max(0, spell_ranks - 3)/4)			
 	
 		return [bonus, "All DS"]	
+		
+	elif tag == "Spellburst":			
+		if "Major Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 3:
+				return [0, "mana"]
+			else:
+				return [1.5, "mana"]				
+			
+		else:
+			return [3, "mana"]	
 
 	return [0, ""]		
 	
@@ -696,7 +1130,23 @@ def Calculate_507(effect, tag, level):
 		
 		bonus = 20 + math.floor(max(0, spell_ranks - 7)/2)			
 	
-		return [bonus, "All DS"]	
+		return [bonus, "All DS"]		
+		
+	elif tag == "Spellburst":			
+		if "Major Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 7:
+				return [0, "mana"]
+			else:
+				return [3.5, "mana"]				
+			
+		else:
+			return [7, "mana"]	
 
 	return [0, ""]		
 
@@ -718,7 +1168,23 @@ def Calculate_508(effect, tag, level):
 			bonus = math.ceil(bonus * 0.75)
 			type = "Sorcerer TD"
 	
-		return [bonus, type]
+		return [bonus, type]	
+		
+	elif tag == "Spellburst":			
+		if "Major Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 8:
+				return [0, "mana"]
+			else:
+				return [4, "mana"]				
+			
+		else:
+			return [8, "mana"]	
 		
 	return [0, ""]
 		
@@ -742,7 +1208,23 @@ def Calculate_509(effect, tag, level):
 		elif tag == "UAF":
 			type = "UAF"		
 		
-		return [bonus, type]					
+		return [bonus, type]			
+		
+	elif tag == "Spellburst":			
+		if "Major Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 9:
+				return [0, "mana"]
+			else:
+				return [5, "mana"]				
+			
+		else:
+			return [9.5, "mana"]				
 
 	return [0, ""]		
 	
@@ -763,7 +1245,23 @@ def Calculate_513(effect, tag, level):
 			
 		bonus = 20 + min(level, math.floor(max(0, spell_ranks - 13)/2))
 		
-		return [bonus, "Bolt AS"]					
+		return [bonus, "Bolt AS"]			
+		
+	elif tag == "Spellburst":			
+		if "Major Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 13:
+				return [0, "mana"]
+			else:
+				return [7, "mana"]				
+			
+		else:
+			return [13.5, "mana"]				
 
 	return [0, ""]	
 
@@ -771,11 +1269,28 @@ def Calculate_513(effect, tag, level):
 # Temporal Revision (540) - +200 all DS	
 def Calculate_540(effect, tag, level):
 	if tag == "DS_All":				
-		return [200, "All DS"]
-
-	return [0, ""]	
+		return [200, "All DS"]	
 		
+	elif tag == "Spellburst":			
+		if "Major Elemental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Major Elemental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Major Elemental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 40:
+				return [0, "mana"]
+			else:
+				return [20.5, "mana"]				
+			
+		else:
+			return [40.5, "mana"]	
+		
+	return [0, ""]	
 
+	
+	
 # Ranger Base (600s)
 		
 # Natural Colors (601) - +10 all DS. +1 DS per seed 5 summation of Spiritual Lore, Blessings ranks	
@@ -792,7 +1307,23 @@ def Calculate_601(effect, tag, level):
 		
 		bonus = 10 + Get_Summation_Bonus(5, lore_ranks)	
 		
-		return [bonus, "All DS"]				
+		return [bonus, "All DS"]	
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 1:
+				return [0, "mana"]
+			else:
+				return [0.5, "mana"]				
+			
+		else:
+			return [1, "mana"]				
 	
 	return [0, ""]
 	
@@ -811,7 +1342,23 @@ def Calculate_602(effect, tag, level):
 		
 		bonus = 10 + Get_Summation_Bonus(5, lore_ranks)	
 		
-		return [bonus, "Bolt DS vs fire/cold/electric"]				
+		return [bonus, "Bolt DS vs fire/cold/electric"]			
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 2:
+				return [0, "mana"]
+			else:
+				return [1, "mana"]				
+			
+		else:
+			return [2, "mana"]			
 	
 	return [0, ""]
 		
@@ -822,6 +1369,22 @@ def Calculate_606(effect, tag, level):
 		return [10, "Melee AS"]
 	elif tag == "UAF":				
 		return [10, "UAF"]
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 6:
+				return [0, "mana"]
+			else:
+				return [3, "mana"]				
+			
+		else:
+			return [6, "mana"]		
 
 	return [0, ""]
 	
@@ -832,6 +1395,22 @@ def Calculate_608(effect, tag, level):
 		return [30, "All AS"]
 	elif tag == "UAF":				
 		return [30, "UAF"]
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 8:
+				return [0, "mana"]
+			else:
+				return [4, "mana"]				
+			
+		else:
+			return [8, "mana"]		
 
 	return [0, ""]		
 		
@@ -877,7 +1456,23 @@ def Calculate_613(effect, tag, level):
 			bonus = math.ceil(bonus * 0.75)
 			type = "Sorcerer TD"
 	
-		return [bonus, type]			
+		return [bonus, type]		
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 13:
+				return [0, "mana"]
+			else:
+				return [7, "mana"]				
+			
+		else:
+			return [13.5, "mana"]			
 			
 	return [0, ""]	
 	
@@ -899,6 +1494,22 @@ def Calculate_618(effect, tag, level):
 		bonus = max(level, bonus)		
 		
 		return [bonus, "ranks"]
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 18:
+				return [0, "mana"]
+			else:
+				return [9.5, "mana"]				
+			
+		else:
+			return [18.5, "mana"]		
 
 	return [0, ""]
 	
@@ -931,7 +1542,23 @@ def Calculate_625(effect, tag, level):
 			bonus = math.ceil(bonus * 0.75)
 			type = "Sorcerer TD"
 	
-		return [bonus, type]		
+		return [bonus, type]	
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 25:
+				return [0, "mana"]
+			else:
+				return [13, "mana"]				
+			
+		else:
+			return [25.5, "mana"]			
 
 	return [0, ""]
 
@@ -940,6 +1567,22 @@ def Calculate_625(effect, tag, level):
 def Calculate_640(effect, tag, level):
 	if tag == "DS_All":				
 		return [20, "All DS"]
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 40:
+				return [0, "mana"]
+			else:
+				return [20.5, "mana"]				
+			
+		else:
+			return [40.5, "mana"]		
 		
 	return [0, ""]
 		
@@ -972,7 +1615,23 @@ def Calculate_650_Bear(effect, tag, level):
 			
 		bonus = 25 + Get_Summation_Bonus(1, lore_ranks)	
 		
-		return [bonus, "maximum health"]		
+		return [bonus, "maximum health"]
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 50:
+				return [0, "mana"]
+			else:
+				return [25.5, "mana"]				
+			
+		else:
+			return [50.5, "mana"]				
 		
 	return [0, ""]	
 			
@@ -991,7 +1650,23 @@ def Calculate_650_Hawk(effect, tag, level):
 		
 		bonus = 20 + Get_Summation_Bonus(2, lore_ranks)		
 		
-		return [bonus, "skill ranks"]				
+		return [bonus, "skill ranks"]	
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 50:
+				return [0, "mana"]
+			else:
+				return [25.5, "mana"]				
+			
+		else:
+			return [50.5, "mana"]				
 
 	return [0, ""]	
 		
@@ -1010,7 +1685,23 @@ def Calculate_650_Jackal(effect, tag, level):
 		
 		bonus = 20 + Get_Summation_Bonus(2, lore_ranks)		
 		
-		return [bonus, "skill ranks"]				
+		return [bonus, "skill ranks"]		
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 50:
+				return [0, "mana"]
+			else:
+				return [25.5, "mana"]				
+			
+		else:
+			return [50.5, "mana"]			
 
 	return [0, ""]	
 	
@@ -1029,7 +1720,23 @@ def Calculate_650_Lion(effect, tag, level):
 		
 		bonus = 20 + Get_Summation_Bonus(2, lore_ranks)		
 		
-		return [bonus, "statistic increase"]				
+		return [bonus, "statistic increase"]	
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 50:
+				return [0, "mana"]
+			else:
+				return [25.5, "mana"]				
+			
+		else:
+			return [50.5, "mana"]				
 
 	return [0, ""]
 	
@@ -1048,7 +1755,23 @@ def Calculate_650_Owl(effect, tag, level):
 		
 		bonus = 20 + Get_Summation_Bonus(2, lore_ranks)		
 		
-		return [bonus, "statistic increase"]				
+		return [bonus, "statistic increase"]	
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 50:
+				return [0, "mana"]
+			else:
+				return [25.5, "mana"]				
+			
+		else:
+			return [50.5, "mana"]				
 
 	return [0, ""]
 	
@@ -1067,7 +1790,23 @@ def Calculate_650_Porcupine(effect, tag, level):
 		
 		bonus = 20 + Get_Summation_Bonus(2, lore_ranks)		
 		
-		return [bonus, "statistic increase"]				
+		return [bonus, "statistic increase"]	
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 50:
+				return [0, "mana"]
+			else:
+				return [25.5, "mana"]				
+			
+		else:
+			return [50.5, "mana"]				
 
 	return [0, ""]
 		
@@ -1086,7 +1825,23 @@ def Calculate_650_Rat(effect, tag, level):
 		
 		bonus = 20 + Get_Summation_Bonus(2, lore_ranks)		
 		
-		return [bonus, "statistic increase"]				
+		return [bonus, "statistic increase"]	
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 50:
+				return [0, "mana"]
+			else:
+				return [25.5, "mana"]				
+			
+		else:
+			return [50.5, "mana"]				
 
 	return [0, ""]		
 		
@@ -1105,7 +1860,23 @@ def Calculate_650_Wolf(effect, tag, level):
 		
 		bonus = 20 + Get_Summation_Bonus(2, lore_ranks)		
 		
-		return [bonus, "statistic increase"]				
+		return [bonus, "statistic increase"]	
+		
+	elif tag == "Spellburst":			
+		if "Ranger" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Ranger"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Ranger"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 50:
+				return [0, "mana"]
+			else:
+				return [25.5, "mana"]				
+			
+		else:
+			return [50.5, "mana"]				
 
 	return [0, ""]	
 
@@ -1148,6 +1919,22 @@ def Calculate_712(effect, tag, level):
 		
 		
 		return [bonus, type]		
+		
+	elif tag == "Spellburst":			
+		if "Sorcerer" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Sorcerer"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Sorcerer"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Sorcerer"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 12:
+				return [0, "mana"]
+			else:
+				return [6.5, "mana"]				
+			
+		else:
+			return [12.5, "mana"]	
 
 	return [0, ""]	
 
@@ -1209,7 +1996,23 @@ def Calculate_905(effect, tag, level):
 		bonus += math.floor(max(0, spell_ranks - 5)/4)	
 		bonus += Get_Summation_Bonus(5, lore_ranks)	
 				
-		return [bonus, type]				
+		return [bonus, type]	
+		
+	elif tag == "Spellburst":			
+		if "Wizard" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Wizard"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Wizard"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Wizard"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 5:
+				return [0, "mana"]
+			else:
+				return [2.5, "mana"]				
+			
+		else:
+			return [5, "mana"]				
 			
 	return [0, ""]	
 	
@@ -1229,6 +2032,22 @@ def Calculate_911(effect, tag, level):
 		bonus = 20 + Get_Summation_Bonus(1, lore_ranks)	
 		
 		return [bonus, "ranks"]
+		
+	elif tag == "Spellburst":			
+		if "Wizard" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Wizard"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Wizard"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Wizard"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 11:
+				return [0, "mana"]
+			else:
+				return [6, "mana"]				
+			
+		else:
+			return [11.5, "mana"]		
 
 	return [0, ""]
 	
@@ -1266,6 +2085,22 @@ def Calculate_913(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [bonus, type]		
+		
+	elif tag == "Spellburst":			
+		if "Wizard" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Wizard"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Wizard"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Wizard"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 13:
+				return [0, "mana"]
+			else:
+				return [7, "mana"]				
+			
+		else:
+			return [13.5, "mana"]		
 
 	return [0, ""]
 
@@ -1275,7 +2110,48 @@ def Calculate_919(effect, tag, level):
 	if tag == "DS_All":				
 		return [50, "All DS"]
 		
+	elif tag == "Spellburst":			
+		if "Wizard" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Wizard"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Wizard"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Wizard"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 19:
+				return [0, "mana"]
+			else:
+				return [10, "mana"]				
+			
+		else:
+			return [9.5, "mana"]		
+		
 	return [0, ""]
+	
+	
+# Core Tap (950) - Spells cast with Core Tap have increased Bolt AS and Elemental CS\nAS Bolt = 6 * bonus per seed 10 summation of Elemental Lore, Fire ranks\nElemental CS = 6 * 3/5 * bonus per seed 10 summation of Elemental Lore, Fire ranks
+def Calculate_950(effect, tag, level):			
+	if tag == "AS_Bolt" or tag == "CS_Elemental":	
+		if effect.scaling_arr["Fire"] == "D":
+			if level > 100:
+				lore_ranks  = int(globals.character.skills_list["Elemental Lore, Fire"].total_ranks_by_level[100].get())
+				lore_ranks += globals.character.skills_list["Elemental Lore, Fire"].Postcap_Get_Total_Ranks_Closest_To_Interval(level)
+			else:				
+				lore_ranks = int(globals.character.skills_list["Elemental Lore, Fire"].total_ranks_by_level[level].get())	
+		else:
+			lore_ranks = int(effect.scaling_arr["Fire"])						
+			
+		bonus = 6 * Get_Summation_Bonus(10, lore_ranks)		
+					
+		if tag == "AS_Bolt":
+			type = "Bolt AS"		
+		elif tag == "CS_Elemental":
+			bonus = math.ceil(bonus * 3/5)
+			type = "Elemental CS"
+	
+		return [bonus, type]	
+		
+	return [0, ""]	
 
 	
 # Bard Base (1000s)	
@@ -1371,7 +2247,7 @@ def Calculate_1035(effect, tag, level):
 			else:				
 				lore_ranks = int(globals.character.skills_list["Elemental Lore, Air"].total_ranks_by_level[level].get())	
 		else:
-			spell_ranks = int(effect.scaling_arr["Air"])		
+			lore_ranks = int(effect.scaling_arr["Air"])		
 		
 		air_arr = [1,2,3,5,8,10,14,17,21,26,31,36,42,49,55,63,70,78,87,96]		
 		bonus = 20
@@ -1430,6 +2306,22 @@ def Calculate_1109(effect, tag, level):
 			type = "Sorcerer TD"
 	
 		return [bonus, type]	
+		
+	elif tag == "Spellburst":			
+		if "Empath" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Empath"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Empath"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Empath"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 9:
+				return [0, "mana"]
+			else:
+				return [5, "mana"]				
+			
+		else:
+			return [9.5, "mana"]		
 
 	return [0, ""]
 	
@@ -1465,6 +2357,22 @@ def Calculate_1119(effect, tag, level):
 		
 		return [bonus, type]	
 		
+	elif tag == "Spellburst":			
+		if "Empath" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Empath"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Empath"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Empath"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 19:
+				return [0, "mana"]
+			else:
+				return [10, "mana"]				
+			
+		else:
+			return [19.5, "mana"]	
+		
 	return [0, ""]
 	
 
@@ -1492,6 +2400,22 @@ def Calculate_1130(effect, tag, level):
 			type = "UAF"		
 			
 		return [bonus, type]
+		
+	elif tag == "Spellburst":			
+		if "Empath" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Empath"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Empath"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Empath"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 30:
+				return [0, "mana"]
+			else:
+				return [15.5, "mana"]				
+			
+		else:
+			return [30.5, "mana"]	
 
 	return [0, ""]
 
@@ -1504,6 +2428,22 @@ def Calculate_1204(effect, tag, level):
 		return [10, "Melee DS"]
 	elif tag == "DS_Ranged":				
 		return [10, "Ranged DS"]
+		
+	elif tag == "Spellburst":			
+		if "Minor Mental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Mental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Mental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Mental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 4:
+				return [0, "mana"]
+			else:
+				return [2, "mana"]				
+			
+		else:
+			return [4, "mana"]	
 		
 	return [0, ""]
 
@@ -1537,6 +2477,22 @@ def Calculate_1208(effect, tag, level):
 	
 		return [bonus, type]	
 		
+	elif tag == "Spellburst":			
+		if "Minor Mental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Mental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Mental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Mental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 8:
+				return [0, "mana"]
+			else:
+				return [4, "mana"]				
+			
+		else:
+			return [8, "mana"]	
+		
 	return [0, ""]
 
 	
@@ -1556,6 +2512,22 @@ def Calculate_1209(effect, tag, level):
 		
 		return [bonus, "UAF"]
 		
+	elif tag == "Spellburst":			
+		if "Minor Mental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Mental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Mental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Mental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 9:
+				return [0, "mana"]
+			else:
+				return [5, "mana"]				
+			
+		else:
+			return [9.5, "mana"]	
+		
 	return [0, ""]
 
 
@@ -1565,6 +2537,7 @@ def Calculate_1216(effect, tag, level):
 		return [30, "All DS"]
 		
 	return [0, ""]
+	
 	
 # Premonition (1220) - +20 DS. +1 all DS per 2 Spell Research, Minor Mental ranks above 20	
 def Calculate_1220(effect, tag, level):
@@ -1583,6 +2556,22 @@ def Calculate_1220(effect, tag, level):
 		bonus = min(level, 20 + bonus)
 		
 		return [bonus, "All DS"]
+		
+	elif tag == "Spellburst":			
+		if "Minor Mental" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Minor Mental"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Minor Mental"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Minor Mental"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 20:
+				return [0, "mana"]
+			else:
+				return [10.5, "mana"]				
+			
+		else:
+			return [20.5, "mana"]	
 		
 	return [0, ""]
 
@@ -1619,6 +2608,22 @@ def Calculate_1601(effect, tag, level):
 		
 		return [bonus, type]	
 		
+	elif tag == "Spellburst":			
+		if "Paladin" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 1:
+				return [0, "mana"]
+			else:
+				return [0.5, "mana"]				
+			
+		else:
+			return [1, "mana"]	
+		
 	return [0, ""]	
 	
 	
@@ -1628,6 +2633,22 @@ def Calculate_1606(effect, tag, level):
 		return [10, "Melee AS"]
 	elif tag == "UAF":				
 		return [10, "UAF"]
+		
+	elif tag == "Spellburst":			
+		if "Paladin" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 6:
+				return [0, "mana"]
+			else:
+				return [3, "mana"]				
+			
+		else:
+			return [6, "mana"]	
 
 	return [0, ""]
 	
@@ -1647,6 +2668,22 @@ def Calculate_1608(effect, tag, level):
 		bonus = Get_Summation_Bonus(10, lore_ranks)			
 			
 		return [1 + bonus, "Enemies Ignored"]
+		
+	elif tag == "Spellburst":			
+		if "Paladin" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 8:
+				return [0, "mana"]
+			else:
+				return [4, "mana"]				
+			
+		else:
+			return [8, "mana"]	
 	
 	return [0, ""]
 		
@@ -1679,6 +2716,22 @@ def Calculate_1610(effect, tag, level):
 		
 		return [bonus, "All DS"]
 		
+	elif tag == "Spellburst":			
+		if "Paladin" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 10:
+				return [0, "mana"]
+			else:
+				return [5.5, "mana"]				
+			
+		else:
+			return [10.5, "mana"]	
+		
 	return [0, ""]
 	
 
@@ -1708,6 +2761,22 @@ def Calculate_1611(effect, tag, level):
 		bonus += math.floor(0.75 * max(0, spell_ranks-11))
 		
 		return [bonus, "ranks"]
+		
+	elif tag == "Spellburst":			
+		if "Paladin" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 11:
+				return [0, "mana"]
+			else:
+				return [6, "mana"]				
+			
+		else:
+			return [11.5, "mana"]	
 
 	return [0, ""]
 	
@@ -1740,6 +2809,22 @@ def Calculate_1612(effect, tag, level):
 			type = "Sorcerer CS"
 	
 		return [bonus, type]
+		
+	elif tag == "Spellburst":			
+		if "Paladin" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 12:
+				return [0, "mana"]
+			else:
+				return [6.5, "mana"]				
+			
+		else:
+			return [12.5, "mana"]	
 
 	return [0, ""]
 
@@ -1780,6 +2865,53 @@ def Calculate_1613_Self(effect, tag, level):
 		bonus = min(20, 15 + bonus)
 		
 		return [bonus, "Melee DS"]
+		
+	return [0, ""]
+
+	
+# Vigor (1616) - +4 Constitution statistic and +8 maximum health. +1 Constitution statistic and +2 maximum health per 4 Spell Research, Paladin Base rank above 16 to a maximum of +20 and +40 at 40 ranks. Additional maximum health equal to square root of 2 * Spiritual Lore, Blessings bonus
+def Calculate_1616(effect, tag, level):
+	if tag == "Statistic_Constitution":				
+		if effect.scaling_arr["Paladin"] == "D":
+			if level > 100:			
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())
+				spell_ranks += globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level)
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())
+		else:
+			spell_ranks = int(effect.scaling_arr["Paladin"])
+
+		bonus = math.floor(spell_ranks / 4)
+		bonus = min(10, 4 + bonus)
+		
+		return [bonus, "Statistic increase"]		
+		
+	elif tag == "Resource_Maximum_Health":				
+		if effect.scaling_arr["Paladin"] == "D":
+			if level > 100:			
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())
+				spell_ranks += globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level)
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())
+		else:
+			spell_ranks = int(effect.scaling_arr["Paladin"])
+
+		bonus = math.floor(spell_ranks / 4)
+		bonus = min(20, 8 + 2 * bonus)
+
+		
+		if effect.scaling_arr["Blessings"] == "D":
+			if level > 100:
+				lore_ranks  = int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[100].get())
+				lore_ranks += globals.character.skills_list["Spiritual Lore, Blessings"].Postcap_Get_Total_Ranks_Closest_To_Interval(level)
+			else:				
+				lore_ranks = int(globals.character.skills_list["Spiritual Lore, Blessings"].total_ranks_by_level[level].get())		
+		else:
+			lore_ranks = int(effect.scaling_arr["Blessings"])	
+
+		bonus += math.floor(math.sqrt(2 * lore_ranks))			
+		
+		return [bonus, "Maximum Health"]
 		
 	return [0, ""]
 	
@@ -1835,6 +2967,22 @@ def Calculate_1619(effect, tag, level):
 			type = "Sorcerer TD"		
 		
 		return [bonus, type]	
+		
+	elif tag == "Spellburst":			
+		if "Paladin" in globals.character.profession.spell_circles:
+			if level > 100:
+				spell_ranks  = int(globals.character.skills_list["Spell Research, Paladin"].Postcap_Get_Total_Ranks_Closest_To_Interval(level))	
+				spell_ranks += int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[100].get())	
+			else:
+				spell_ranks = int(globals.character.skills_list["Spell Research, Paladin"].total_ranks_by_level[level].get())	
+			
+			if spell_ranks >= 19:
+				return [0, "mana"]
+			else:
+				return [10, "mana"]				
+			
+		else:
+			return [19.5, "mana"]	
 
 		
 # Arcane (1700s)		
@@ -1864,10 +3012,66 @@ def Calculate_1718(effect, tag, level):
 	
 	
 # Combat Maneuvers, Shield Maneuvers, or Armor Specialization		
-	
-# Armor Evasion	-  Reduces Armor Action Penalty by [Rank * (7 - Armor Group)] / 2. 
-def Calculate_Armor_Evasion(effect, tag, level):
 
+
+# Armor Blessing -  Increases bolt AS, all CS for one cast after spell failure by (3 * AG * Blessing Rank) = AS bonus or ((3* AG * Blessing Rank) * 3/5) = CS bonus
+def Calculate_Armor_Blessing(effect, tag, level):
+	if tag == "AS_Bolt" or tag == "CS_All":	
+		if effect.scaling_arr["Maneuver ranks"] == "D" and "Armor Blessing" in globals.character.armor_maneuvers_list:
+			man = globals.character.armor_maneuvers_list["Armor Blessing"]		
+			
+			if level > 100:			
+				ranks = int(man.total_ranks_by_level[100].get())
+				ranks += int(man.Postcap_Get_Total_Ranks_Closest_To_Interval(level))
+			else:		
+				ranks = int(man.total_ranks_by_level[level].get())
+		else:			
+			ranks = int(effect.scaling_arr["Maneuver ranks"])
+
+		try:
+			AG = int(override_dict["Armor Group"])						
+				
+		except:
+			AG = 1
+			
+		if AG == 1:
+			return [0, ""]				
+				
+		if tag == "AS_Bolt":
+			bonus = 3 * AG * ranks
+			type = "Bolt AS"
+		elif tag == "CS_All":
+			bonus = math.floor(3 * AG * ranks * 3/5)
+			type = "Non-Bard CS"
+				
+		return [bonus, type]			
+
+	return [0, ""]
+	
+	
+# Armored Evasion -  Reduces Armor Action Penalty by [Rank * (7 - Armor Group)] / 2. 
+def Calculate_Armored_Evasion(effect, tag, level):
+	if tag == "Action_Penalty":	
+		if effect.scaling_arr["Maneuver ranks"] == "D" and "Armored Evasion" in globals.character.armor_maneuvers_list:
+			man = globals.character.armor_maneuvers_list["Armored Evasion"]		
+			
+			if level > 100:			
+				ranks = int(man.total_ranks_by_level[100].get())
+				ranks += int(man.Postcap_Get_Total_Ranks_Closest_To_Interval(level))
+			else:		
+				ranks = int(man.total_ranks_by_level[level].get())
+		else:			
+			ranks = int(effect.scaling_arr["Maneuver ranks"])
+
+		try:
+			AG = int(override_dict["Armor Group"])				
+		except:
+			AG = 7
+			
+		bonus = math.floor(ranks * (7 - AG) / 2)
+			
+		return [bonus, "bonus"]	
+		
 	return [0, ""]
 	
 	
@@ -1970,10 +3174,33 @@ def Calculate_Combat_Movement(effect, tag, level):
 	return [0, ""]	
 	
 	
+# Combat Toughness - +5 bonus to maximum health. +10 additional maximum health per rank
+def Calculate_Combat_Toughness(effect, tag, level):
+	if tag == "Resource_Maximum_Health":	
+		if effect.scaling_arr["Maneuver ranks"] == "D" and "Combat Toughness" in globals.character.combat_maneuvers_list:
+			man = globals.character.combat_maneuvers_list["Combat Toughness"]		
+			
+			if level > 100:			
+				ranks = int(man.total_ranks_by_level[100].get())
+				ranks += int(man.Postcap_Get_Total_Ranks_Closest_To_Interval(level))
+			else:		
+				ranks = int(man.total_ranks_by_level[level].get())
+		else:			
+			ranks = int(effect.scaling_arr["Maneuver ranks"])			
+					
+		bonus = 10 * ranks
+		if bonus > 0:
+			bonus += 5
+			
+		return [bonus, "Maximum Health"]
+			
+	return [0, ""]
+	
+	
 # Coup de Grace (Buff) - +10 to +40 AS	
 def Calculate_Coup_de_Grace_Buff(effect, tag, level):
 	if tag == "AS_All":
-		return [int(effect.scaling_arr["All AS Bonus"]), "All AS"]	
+		return [int(effect.scaling_arr["All AS bonus"]), "All AS"]	
 
 	return [0, ""]	
 
@@ -1993,6 +3220,26 @@ def Calculate_Perfect_Self(effect, tag, level):
 			ranks = int(effect.scaling_arr["Maneuver ranks"])			
 		
 		return [2 * ranks, "Perfect Self"]
+			
+	return [0, ""]
+
+
+# Shield Forward - +10 enhancive Shield Use ranks to per maneuver rank	
+def Calculate_Shield_Forward(effect, tag, level):
+	if tag == "Skill_Ranks_Shield_Use":	
+		if effect.scaling_arr["Maneuver ranks"] == "D" and "Shield Forward" in globals.character.shield_maneuvers_list:
+			man = globals.character.shield_maneuvers_list["Shield Forward"]		
+			
+			if level > 100:			
+				ranks = int(man.total_ranks_by_level[100].get())
+				ranks += int(man.Postcap_Get_Total_Ranks_Closest_To_Interval(level))
+			else:		
+				ranks = int(man.total_ranks_by_level[level].get())
+		else:			
+			ranks = int(effect.scaling_arr["Maneuver ranks"])			
+					
+			
+		return [10 * ranks, "ranks"]
 			
 	return [0, ""]
 	
@@ -2186,6 +3433,14 @@ def Calculate_Weapon_Bonding(effect, tag, level):
 
 
 # Society Powers
+
+# Sigil of Concentration - +5 mana recovery	
+def Calculate_Sigil_of_Concentration(effect, tag, level):
+	if tag == "Resource_Recovery_Mana_Normal":				
+		return [5, "Mana Recovery"]
+
+	return [0, ""]	
+	
 	
 # Sigil of Defense - +1  DS per GoS rank	
 def Calculate_Sigil_of_Defense(effect, tag, level):
@@ -2199,6 +3454,22 @@ def Calculate_Sigil_of_Defense(effect, tag, level):
 			bonus = int(effect.scaling_arr["GoS rank"])
 			
 		return [bonus, "All DS"]
+
+	return [0, ""]
+	
+	
+# Sigil of Focus - +1 TD per GoS rank		
+def Calculate_Sigil_of_Focus(effect, tag, level):
+	if tag == "TD_All":	
+		if effect.scaling_arr["GoS rank"] == "D":
+			if globals.character.society.get() == "Guardians of Sunfist":
+				bonus = int(globals.character.society_rank.get())
+			else:
+				bonus = 0
+		else:			
+			bonus = int(effect.scaling_arr["GoS rank"])
+			
+		return [bonus, "All TD"]
 
 	return [0, ""]
 	
@@ -2224,22 +3495,6 @@ def Calculate_Sigil_of_Offense(effect, tag, level):
 	return [0, ""]
 	
 	
-# Sigil of Focus - +1 TD per GoS rank		
-def Calculate_Sigil_of_Focus(effect, tag, level):
-	if tag == "TD_All":	
-		if effect.scaling_arr["GoS rank"] == "D":
-			if globals.character.society.get() == "Guardians of Sunfist":
-				bonus = int(globals.character.society_rank.get())
-			else:
-				bonus = 0
-		else:			
-			bonus = int(effect.scaling_arr["GoS rank"])
-			
-		return [bonus, "All TD"]
-
-	return [0, ""]
-	
-	
 # Sigil of Major Bane - +10 AS/UAF	
 def Calculate_Sigil_of_Major_Bane(effect, tag, level):
 	if tag == "AS_All":				
@@ -2256,6 +3511,14 @@ def Calculate_Sigil_of_Major_Protection(effect, tag, level):
 		return [10, "All DS"]
 
 	return [0, ""]
+	
+	
+# Sigil of Mending - +15 mana recovery	
+def Calculate_Sigil_of_Mending(effect, tag, level):
+	if tag == "Resource_Recovery_Health":				
+		return [15, "Health Recovery"]
+
+	return [0, ""]	
 		
 	
 # Sigil of Minor Bane - +5 AS/UAF	
@@ -2420,10 +3683,111 @@ def Calculate_Symbol_of_Supremecy(effect, tag, level):
 			return [bonus, "UAF vs Undead"]
 
 	return [0, ""]
+	
+	
+# Special Abilities		
+	
+# Meditate (Mana) - Mana recovery increased by (Discipline bonus + Wisdom bonus) / 2
+def Calculate_Meditate_Mana(effect, tag, level):			
+	if tag == "Resource_Recovery_Mana_Normal":	
+		try:
+			dis = int(override_dict["Discipline Bonus"])			
+		except:
+			dis = 0
+				
+		try:
+			wis = int(override_dict["Wisdom Bonus"])				
+		except:
+			wis = 0
+			
+		bonus = math.floor((dis + wis) / 2)
+			
+		return [bonus, "Mana Recovery"]	
+		
+	return [0, ""]	
+	
+	
+# Stamina Burst - +15% stamina recovery	
+def Calculate_Stamina_Burst(effect, tag, level):
+	if tag == "Resource_Recovery_Stamina":				
+		return [15, "Stamina Recovery"]
+
+	return [0, ""]	
+	
+	
+# Stamina Burst (Cooldown) - -15% stamina recovery	
+def Calculate_Stamina_Burst_Cooldown(effect, tag, level):
+	if tag == "Resource_Recovery_Stamina":				
+		return [-15, "Stamina Recovery"]
+
+	return [0, ""]	
+	
+
+	
+
+	
+# Resource Enhancives
+
+
+def Calculate_Enhancive_Resource_Recovery_Health(effect, tag, level):
+	if tag == "Resource_Recovery_Health":
+		return [int(effect.scaling_arr["Health recovery"]), "Health Recovery"]	
+
+	return [0, ""]	
+	
+	
+def Calculate_Enhancive_Resource_Maximum_Health(effect, tag, level):
+	if tag == "Resource_Maximum_Health":
+		return [int(effect.scaling_arr["Maximum health"]), "Maximum Health"]	
+
+	return [0, ""]	
+
+
+def Calculate_Enhancive_Resource_Recovery_Mana(effect, tag, level):
+	if tag == "Resource_Recovery_Mana":
+		return [int(effect.scaling_arr["Mana recovery"]), "Mana Recovery"]	
+
+	return [0, ""]	
+	
+	
+def Calculate_Enhancive_Resource_Maximum_Mana(effect, tag, level):
+	if tag == "Resource_Maximum_Mana":
+		return [int(effect.scaling_arr["Maximum mana"]), "Maximum Mana"]	
+
+	return [0, ""]	
+
+
+def Calculate_Enhancive_Resource_Recovery_Stamina(effect, tag, level):
+	if tag == "Resource_Recovery_Stamina":
+		return [int(effect.scaling_arr["Stamina recovery"]), "Stamina Recovery"]	
+
+	return [0, ""]	
+	
+	
+def Calculate_Enhancive_Resource_Maximum_Stamina(effect, tag, level):
+	if tag == "Resource_Maximum_Stamina":
+		return [int(effect.scaling_arr["Maximum stam"]), "Maximum Stamina"]	
+
+	return [0, ""]	
+
+
+def Calculate_Enhancive_Resource_Recovery_Spirit(effect, tag, level):
+	if tag == "Resource_Recovery_Spirit":
+		return [int(effect.scaling_arr["Spirit recovery"]), "Spirit Recovery"]	
+
+	return [0, ""]	
+	
+	
+def Calculate_Enhancive_Resource_Maximum_Spirit(effect, tag, level):
+	if tag == "Resource_Maximum_Spirit":
+		return [int(effect.scaling_arr["Maximum spirit"]), "Maximum Spirit"]	
+
+	return [0, ""]	
 
 	
 	
-# Skill Enhansives
+	
+# Skill Enhancives
 
 	
 def Calculate_Enhancive_Two_Weapon_Combat(effect, tag, level):
@@ -2923,24 +4287,210 @@ def Calculate_Enhancive_Influence(effect, tag, level):
 	return [0, ""]	
 	
 	
+	
+# Generic Bonus Effects
+
+
+# All AS Bonus - +1 to +100 all AS	
+def Calculate_Generic_All_AS(effect, tag, level):
+	if tag == "AS_All":
+		return [int(effect.scaling_arr["All AS bonus"]), "All AS"]
+	elif tag == "UAF":
+		return [int(effect.scaling_arr["All AS bonus"]), "UAF"]
+
+	return [0, ""]		
+	
+	
+# Melee AS Bonus - +1 to +100 melee AS	
+def Calculate_Generic_Melee_AS(effect, tag, level):
+	if tag == "AS_Melee":
+		return [int(effect.scaling_arr["Melee AS bonus"]), "Melee AS"]
+
+	return [0, ""]			
+	
+	
+# Ranged AS Bonus - +1 to +100 ranged AS	
+def Calculate_Generic_Ranged_AS(effect, tag, level):
+	if tag == "AS_Ranged":
+		return [int(effect.scaling_arr["Ranged AS bonus"]), "Ranged AS"]
+
+	return [0, ""]			
+	
+	
+# Bolt AS Bonus - +1 to +100 bolt AS	
+def Calculate_Generic_Bolt_AS(effect, tag, level):
+	if tag == "AS_Bolt":
+		return [int(effect.scaling_arr["Bolt AS bonus"]), "Bolt AS"]
+
+	return [0, ""]			
+	
+	
+# UAF Bonus - +1 to +100 UAF
+def Calculate_Generic_UAF(effect, tag, level):
+	if tag == "UAF":
+		return [int(effect.scaling_arr["UAF bonus"]), "UAF"]
+
+	return [0, ""]		
+	
+
+# All DS Bonus - +1 to +100 all DS	
+def Calculate_Generic_All_DS(effect, tag, level):
+	if tag == "DS_All":
+		return [int(effect.scaling_arr["All DS bonus"]), "All DS"]
+
+	return [0, ""]		
+	
+	
+# Melee DS Bonus - +1 to +100 melee DS	
+def Calculate_Generic_Melee_DS(effect, tag, level):
+	if tag == "DS_Melee":
+		return [int(effect.scaling_arr["Melee DS bonus"]), "Melee DS"]
+
+	return [0, ""]			
+	
+	
+# Ranged DS Bonus - +1 to +100 ranged DS	
+def Calculate_Generic_Ranged_DS(effect, tag, level):
+	if tag == "DS_Ranged":
+		return [int(effect.scaling_arr["Ranged DS bonus"]), "Ranged DS"]
+
+	return [0, ""]			
+	
+	
+# Bolt DS Bonus - +1 to +100 bolt DS	
+def Calculate_Generic_Bolt_DS(effect, tag, level):
+	if tag == "DS_Bolt":
+		return [int(effect.scaling_arr["Bolt DS bonus"]), "Bolt DS"]
+
+	return [0, ""]				
+	
+	
+# All CS Bonus - +1 to +100 all CS	
+def Calculate_Generic_All_CS(effect, tag, level):
+	if tag == "CS_All":
+		return [int(effect.scaling_arr["All CS bonus"]), "All CS"]
+
+	return [0, ""]	
+	
+	
+# Elemental CS Bonus - +1 to +100 elemental CS
+def Calculate_Generic_Elemental_CS(effect, tag, level):
+	if tag == "CS_Elemental":
+		return [int(effect.scaling_arr["Ele CS bonus"]), "Elemental CS"]
+
+	return [0, ""]		
+	
+	
+# Mental CS Bonus - +1 to +100 mental CS	
+def Calculate_Generic_Mental_CS(effect, tag, level):
+	if tag == "CS_Mental":
+		return [int(effect.scaling_arr["Mental CS bonus"]), "Mental CS"]
+
+	return [0, ""]			
+	
+	
+# Spiritual CS Bonus - +1 to +100 spiritual CS	
+def Calculate_Generic_Spiritual_CS(effect, tag, level):
+	if tag == "CS_Spiritual":
+		return [int(effect.scaling_arr["Spirit CS bonus"]), "Spiritual CS"]
+
+	return [0, ""]			
+	
+	
+# Sorcerer CS Bonus - +1 to +100 sorcerer CS	
+def Calculate_Generic_Sorcerer_CS(effect, tag, level):
+	if tag == "CS_Sorcerer":
+		return [int(effect.scaling_arr["Sorc CS bonus"]), "Sorcerer CS"]
+
+	return [0, ""]			
+	
+	
+# All TD Bonus - +1 to +100 all TD	
+def Calculate_Generic_All_TD(effect, tag, level):
+	if tag == "TD_All":
+		return [int(effect.scaling_arr["All TD bonus"]), "All TD"]
+
+	return [0, ""]	
+	
+	
+# Elemental TD Bonus - +1 to +100 elemental TD
+def Calculate_Generic_Elemental_TD(effect, tag, level):
+	if tag == "TD_Elemental":
+		return [int(effect.scaling_arr["Ele TD bonus"]), "Elemental TD"]
+
+	return [0, ""]		
+	
+	
+# Mental TD Bonus - +1 to +100 mental TD	
+def Calculate_Generic_Mental_TD(effect, tag, level):
+	if tag == "TD_Mental":
+		return [int(effect.scaling_arr["Mental TD bonus"]), "Mental TD"]
+
+	return [0, ""]			
+	
+	
+# Spiritual TD Bonus - +1 to +100 spiritual TD	
+def Calculate_Generic_Spiritual_TD(effect, tag, level):
+	if tag == "TD_Spiritual":
+		return [int(effect.scaling_arr["Spirit TD bonus"]), "Spiritual TD"]
+
+	return [0, ""]			
+	
+	
+# Sorcerer TD Bonus - +1 to +100 sorcerer TD	
+def Calculate_Generic_Sorcerer_TD(effect, tag, level):
+	if tag == "TD_Sorcerer":
+		return [int(effect.scaling_arr["Sorc TD bonus"]), "Sorcerer TD"]
+
+	return [0, ""]	
+	
+	
+	
+	
 # Status Effects	
 	
-# Kneeling - -50 all AS and DS, +30 ranged AS if using a crossbow
+# Kneeling - -50 melee, ranged, bolt AS and DS, +30 ranged AS if using a crossbow
 def Calculate_Kneeling(effect, tag, level):
-	if tag == "AS_All":				
-		return [-50, "All AS"]
+	if tag == "AS_Ranged":				
+		try:
+			if override_dict["Main Weapon"] == "Heavy Crossbow" or override_dict["Main Weapon"] == "Light Crossbow":
+				return [30, "Crossbow Ranged AS"]			
+		except:
+			pass
+			
+		return [-50, "Ranged AS"]	
+		
+	elif tag == "AS_Melee":				
+		return [-50, "Melee AS"]
+	elif tag == "AS_Bolt":				
+		return [-50, "Bolt AS"]
 	elif tag == "DS_All":				
 		return [-50, "All DS"]
-
+	elif tag == "Resource_Recovery_Stamina_Normal":
+		return [5, "Stamina Recovery"]		
+		
 	return [0, ""]
 
 	
-# Lying_Down - -50 AS and DS
+# Lying_Down - -50 melee, ranged, bolt AS and DS, +30 ranged AS if using a crossbow
 def Calculate_Lying_Down(effect, tag, level):
-	if tag == "AS_All":				
-		return [-50, "All AS"]
+	if tag == "AS_Ranged":				
+		try:
+			if override_dict["Main Weapon"] == "Heavy Crossbow" or override_dict["Main Weapon"] == "Light Crossbow":
+				return [30, "Crossbow Ranged AS"]			
+		except:
+			pass
+			
+		return [-50, "Ranged AS"]	
+		
+	elif tag == "AS_Melee":				
+		return [-50, "Melee AS"]
+	elif tag == "AS_Bolt":				
+		return [-50, "Bolt AS"]
 	elif tag == "DS_All":				
 		return [-50, "All DS"]
+	elif tag == "Resource_Recovery_Stamina_Normal":
+		return [5, "Stamina Recovery"]
 
 	return [0, ""]
 	
@@ -2980,7 +4530,7 @@ def Calculate_Stunned(effect, tag, level):
 # Acuity AS Flare - +5 bonus to bolt AS on next spell cast per tier
 def Calculate_Acuity_AS_Flare(effect, tag, level):
 	if tag == "AS_Bolt":
-		return [5 * int(effect.scaling_arr["Acuity tier"]), "Bolt AS"]	
+		return [5 * int(effect.scaling_arr["Tier"]), "Bolt AS"]	
 		
 	return [0, ""]	
 	
@@ -2988,7 +4538,7 @@ def Calculate_Acuity_AS_Flare(effect, tag, level):
 # Acuity CS Flare - +3 bonus to all CS on next cast per tier
 def Calculate_Acuity_CS_Flare(effect, tag, level):
 	if tag == "CS_All":
-		return [3 * int(effect.scaling_arr["Acuity tier"]), "All CS"]	
+		return [3 * int(effect.scaling_arr["Tier"]), "All CS"]	
 		
 	return [0, ""]			
 	
@@ -2996,9 +4546,9 @@ def Calculate_Acuity_CS_Flare(effect, tag, level):
 # Ensorcell AS Flare - +5/+10/+15/+20/+25 bonus to AS on next melee, ranged, UAF attack	
 def Calculate_Ensorcell_AS_Flare(effect, tag, level):
 	if tag == "AS_All":
-		return [5 * int(effect.scaling_arr["Ensorcell tier"]), "All AS"]	
+		return [5 * int(effect.scaling_arr["Tier"]), "All AS"]	
 	if tag == "UAF":
-		return [5 * int(effect.scaling_arr["Ensorcell tier"]), "UAF"]	
+		return [5 * int(effect.scaling_arr["Tier"]), "UAF"]	
 		
 	return [0, ""]	
 	
@@ -3006,7 +4556,7 @@ def Calculate_Ensorcell_AS_Flare(effect, tag, level):
 # Ensorcell CS Flare - +5/+10/+15/+20/+25 bonus to CS	
 def Calculate_Ensorcell_CS_Flare(effect, tag, level):
 	if tag == "CS_All":
-		return [5 * int(effect.scaling_arr["Ensorcell tier"]), "All CS"]	
+		return [5 * int(effect.scaling_arr["Tier"]), "All CS"]	
 		
 	return [0, ""]	
 	
@@ -3110,11 +4660,467 @@ def Calculate_715_Flare(effect, tag, level):
 		return [bonus, "Bolt AS"]
 
 	return [0, ""]		
+	
 
 	
-# Other Effects	
+# Items
+	
+def Calculate_Item_Defense_Bonus(effect, tag, level):
+	if tag == "DS_All":			
+		bonus = 5 * int(effect.scaling_arr["Tier"])
+		return [bonus, "All DS"]
 
-# Room - Bright - -10 DS	
+	return [0, ""]		
+	
+	
+def Calculate_Item_Strength_Crystal_Greater(effect, tag, level):
+	if tag == "Statistic_Bonus_Strength":			
+		return [10, "Strength Crystal, Greater"]
+
+	return [0, ""]			
+	
+	
+def Calculate_Item_Strength_Crystal_Lesser(effect, tag, level):
+	if tag == "Statistic_Bonus_Strength":			
+		return [5, "Strength Crystal, Lesser"]
+
+	return [0, ""]		
+	
+	
+def Calculate_Item_Constitution_Crystal_Greater(effect, tag, level):
+	if tag == "Statistic_Bonus_Constitution":			
+		return [10, "Constitution Crystal, Greater"]
+
+	return [0, ""]			
+	
+	
+def Calculate_Item_Constitution_Crystal_Lesser(effect, tag, level):
+	if tag == "Statistic_Bonus_Constitution":			
+		return [5, "Constitution Crystal, Lesser"]
+
+	return [0, ""]		
+	
+	
+def Calculate_Item_Aura_Crystal_Greater(effect, tag, level):
+	if tag == "Statistic_Bonus_Aura":			
+		return [10, "Aura Crystal, Greater"]
+
+	return [0, ""]			
+	
+	
+def Calculate_Item_Aura_Crystal_Lesser(effect, tag, level):
+	if tag == "Statistic_Bonus_Aura":			
+		return [5, "Aura Crystal, Lesser"]
+
+	return [0, ""]	
+	
+	
+def Calculate_Item_Logic_Potion_Greater(effect, tag, level):
+	if tag == "Statistic_Bonus_Logic":			
+		return [10, "Logic Potion, Greater"]
+
+	return [0, ""]			
+	
+	
+def Calculate_Item_Logic_Potion_Lesser(effect, tag, level):
+	if tag == "Statistic_Bonus_Logic":			
+		return [5, "Logic Potion, Lesser"]
+
+	return [0, ""]			
+	
+	
+def Calculate_Item_Intuition_Crystal_Greater(effect, tag, level):
+	if tag == "Statistic_Bonus_Intuition":			
+		return [10, "Intuition Crystal, Greater"]
+
+	return [0, ""]			
+	
+	
+def Calculate_Item_Intuition_Crystal_Lesser(effect, tag, level):
+	if tag == "Statistic_Bonus_Intuition":			
+		return [5, "Intuition Crystal, Lesser"]
+
+	return [0, ""]	
+	
+	
+def Calculate_Item_Wisdom_Potion_Greater(effect, tag, level):
+	if tag == "Statistic_Bonus_Wisdom":			
+		return [10, "Wisdom Potion, Greater"]
+
+	return [0, ""]			
+	
+	
+def Calculate_Item_Wisdom_Potion_Lesser(effect, tag, level):
+	if tag == "Statistic_Bonus_Wisdom":			
+		return [5, "Wisdom Potion, Greater"]
+
+	return [0, ""]					
+		
+
+# Mana Regeneration Potion, Minor - +3 mana recovery	
+def Calculate_Item_Mana_Regeneration_Potion_Minor(effect, tag, level):
+	if tag == "Resource_Recovery_Mana":				
+		return [3, "Mana Recovery"]
+
+	return [0, ""]	
+		
+
+# Mana Regeneration Potion, Lesser - +8 mana recovery	
+def Calculate_Item_Mana_Regeneration_Potion_Lesser(effect, tag, level):
+	if tag == "Resource_Recovery_Mana":				
+		return [8, "Mana Recovery"]
+
+	return [0, ""]	
+		
+
+# Mana Regeneration Potion, Greater - +13 mana recovery	
+def Calculate_Item_Mana_Regeneration_Potion_Greater(effect, tag, level):
+	if tag == "Resource_Recovery_Mana":				
+		return [13, "Mana Recovery"]
+
+	return [0, ""]	
+		
+
+# Spirit Regeneration Crystal, Minor - +1 spirit recovery	
+def Calculate_Item_Spirit_Regeneration_Crystal_Minor(effect, tag, level):
+	if tag == "Resource_Recovery_Spirit":				
+		return [1, "Mana Recovery"]
+
+	return [0, ""]	
+		
+
+# Spirit Regeneration Crystal, Lesser - +2 spirit recovery	
+def Calculate_Item_Spirit_Regeneration_Crystal_Lesser(effect, tag, level):
+	if tag == "Resource_Recovery_Spirit":				
+		return [2, "Spirit Recovery"]
+
+	return [0, ""]	
+		
+
+# Spirit Regeneration Crystal, Greater - +3 spirit recovery	
+def Calculate_Item_Spirit_Regeneration_Crystal_Greater(effect, tag, level):
+	if tag == "Resource_Recovery_Spirit":				
+		return [3, "Spirit Recovery"]
+
+	return [0, ""]	
+		
+
+# Stamina Regeneration Crystal, Minor - +10 stamina recovery	
+def Calculate_Item_Stamina_Regeneration_Crystal_Minor(effect, tag, level):
+	if tag == "Resource_Recovery_Spirit":				
+		return [1, "Spirit Recovery"]
+
+	return [0, ""]	
+		
+
+# Stamina Regeneration Crystal, Lesser - +20 stamina recovery	
+def Calculate_Item_Stamina_Regeneration_Crystal_Lesser(effect, tag, level):
+	if tag == "Resource_Recovery_Spirit":				
+		return [2, "Stamina Recovery"]
+
+	return [0, ""]	
+		
+
+# Stamina Regeneration Crystal, Greater - +30 stamina recovery	
+def Calculate_Item_Stamina_Regeneration_Crystal_Greater(effect, tag, level):
+	if tag == "Resource_Recovery_Spirit":				
+		return [3, "Stamina Recovery"]
+
+	return [0, ""]	
+		
+
+# Health-well Potion, Minor - +10 maximum health	
+def Calculate_Item_Health_Well_Potion_Minor(effect, tag, level):
+	if tag == "Resource_Maximum_Health":				
+		return [10, "Maximum Health"]
+
+	return [0, ""]	
+		
+
+# Health-well Potion, Lesser - +25 maximum health	
+def Calculate_Item_Health_Well_Potion_Lesser(effect, tag, level):
+	if tag == "Resource_Maximum_Health":				
+		return [25, "Maximum Health"]
+
+	return [0, ""]	
+		
+
+# Health-well Potion, Greater - +50 maximum health
+def Calculate_Item_Health_Well_Potion_Greater(effect, tag, level):
+	if tag == "Resource_Maximum_Health":				
+		return [50, "Maximum Health"]
+		
+
+# Mana-well Potion, Minor - +10 maximum mana	
+def Calculate_Item_Mana_Well_Potion_Minor(effect, tag, level):
+	if tag == "Resource_Maximum_Mana":				
+		return [10, "Maximum Mana"]
+
+	return [0, ""]	
+		
+
+# Mana-well Potion, Lesser - +25 maximum mana	
+def Calculate_Item_Mana_Well_Potion_Lesser(effect, tag, level):
+	if tag == "Resource_Maximum_Mana":				
+		return [25, "Maximum Mana"]
+
+	return [0, ""]	
+		
+
+# Mana-well Potion, Greater - +50 maximum mana
+def Calculate_Item_Mana_Well_Potion_Greater(effect, tag, level):
+	if tag == "Resource_Maximum_Mana":				
+		return [50, "Maximum Mana"]
+		
+
+# Spirit-well Potion, Minor - +10 maximum spirit	
+def Calculate_Item_Spirit_Well_Potion_Minor(effect, tag, level):
+	if tag == "Resource_Maximum_Spirit":				
+		return [1, "Maximum Spirit"]
+
+	return [0, ""]	
+		
+
+# Spirit-well Potion, Lesser - +25 maximum spirit	
+def Calculate_Item_Spirit_Well_Potion_Lesser(effect, tag, level):
+	if tag == "Resource_Maximum_Spirit":				
+		return [2, "Maximum Spirit"]
+
+	return [0, ""]	
+		
+
+# Spirit-well Potion, Greater - +50 maximum spirit
+def Calculate_Item_Spirit_Well_Potion_Greater(effect, tag, level):
+	if tag == "Resource_Maximum_Spirit":				
+		return [3, "Maximum Spirit"]
+		
+		
+# Elemental Focus Crystal, Minor - +10 elemental CS
+def Calculate_Item_Elemental_Focus_Crystal_Minor(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 10
+		
+		if tag == "CS_Elemental":
+			type = "Elemental CS"
+		elif tag == "CS_Mental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Mental CS"
+		elif tag == "CS_Spiritual": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Spiritual CS"	
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.75)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]
+
+	return [0, ""]				
+		
+		
+# Elemental Focus Crystal, Lesser - +15 elemental CS
+def Calculate_Item_Elemental_Focus_Crystal_Lesser(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 15
+		
+		if tag == "CS_Elemental":
+			type = "Elemental CS"
+		elif tag == "CS_Mental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Mental CS"
+		elif tag == "CS_Spiritual": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Spiritual CS"	
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.75)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]
+
+	return [0, ""]				
+		
+		
+# Elemental Focus Crystal, Greater - +25 elemental CS
+def Calculate_Item_Elemental_Focus_Crystal_Greater(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 25
+		
+		if tag == "CS_Elemental":
+			type = "Elemental CS"
+		elif tag == "CS_Mental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Mental CS"
+		elif tag == "CS_Spiritual": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Spiritual CS"	
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.75)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]
+
+	return [0, ""]			
+		
+		
+# Mental Focus Crystal, Minor - +10 mental CS
+def Calculate_Item_Mental_Focus_Crystal_Minor(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 10
+		
+		if tag == "CS_Mental":
+			type = "Mental CS"
+		elif tag == "CS_Elemental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Elemental CS"
+		elif tag == "CS_Spiritual": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Spiritual CS"	
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]	
+
+	return [0, ""]				
+		
+		
+# Mental Focus Crystal, Lesser - +15 mental CS
+def Calculate_Item_Mental_Focus_Crystal_Lesser(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 15
+		
+		if tag == "CS_Mental":
+			type = "Mental CS"
+		elif tag == "CS_Elemental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Elemental CS"
+		elif tag == "CS_Spiritual": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Spiritual CS"	
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]	
+
+	return [0, ""]				
+		
+		
+# Mental Focus Crystal, Greater - +25 mental CS
+def Calculate_Item_Mental_Focus_Crystal_Greater(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 25
+		
+		if tag == "CS_Mental":
+			type = "Mental CS"
+		elif tag == "CS_Elemental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Elemental CS"
+		elif tag == "CS_Spiritual": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Spiritual CS"	
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]	
+
+	return [0, ""]		
+		
+		
+# Spiritual Focus Crystal, Minor - +10 spiritual CS
+def Calculate_Item_Spiritual_Focus_Crystal_Minor(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 10
+		
+		if tag == "CS_Spiritual":
+			type = "Spiritual CS"	
+		elif tag == "CS_Mental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Mental CS"
+		elif tag == "CS_Elemental": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Elemental CS"
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.75)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]
+
+	return [0, ""]				
+		
+		
+# Spiritual Focus Crystal, Lesser - +15 spiritual CS
+def Calculate_Item_Spiritual_Focus_Crystal_Lesser(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 15
+		
+		if tag == "CS_Spiritual":
+			type = "Spiritual CS"	
+		elif tag == "CS_Mental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Mental CS"
+		elif tag == "CS_Elemental": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Elemental CS"
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.75)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]
+
+	return [0, ""]				
+		
+		
+# Spiritual Focus Crystal, Greater - +25 spiritual CS
+def Calculate_Item_Spiritual_Focus_Crystal_Greater(effect, tag, level):
+	if tag == "CS_Elemental" or tag == "CS_Mental" or tag == "CS_Spiritual" or tag == "CS_Sorcerer":
+		bonus = 25
+		
+		if tag == "CS_Spiritual":
+			type = "Spiritual CS"	
+		elif tag == "CS_Mental":
+			bonus = math.ceil(bonus * 0.5)
+			type = "Mental CS"
+		elif tag == "CS_Elemental": 
+			bonus = math.ceil(bonus * 0.5)
+			type = "Elemental CS"
+		elif tag == "CS_Sorcerer": 
+			bonus = math.ceil(bonus * 0.75)
+			type = "Sorcerer CS"
+			
+		return [bonus, type]
+
+	return [0, ""]	
+		
+
+# Repelling Oil, Minor - +10 DS vs undead
+def Calculate_Item_Repelling_Oil_Minor(effect, tag, level):
+	if tag == "DS_All":				
+		return [10, "All DS vs undead"]
+		
+		
+# Repelling Oil, Greater - +30 DS vs undead
+def Calculate_Item_Repelling_Oil_Greater(effect, tag, level):
+	if tag == "DS_All":				
+		return [30, "All DS vs undead"]
+		
+
+# Exorcism Oil, Minor - +10 AS vs undead
+def Calculate_Item_Exorcism_Oil_Minor(effect, tag, level):
+	if tag == "AS_All":				
+		return [10, "All AS vs undead"]
+		
+		
+# Exorcism Oil, Greater - +30 AS vs undead
+def Calculate_Item_Exorcism_Oil_Greater(effect, tag, level):
+	if tag == "AS_All":				
+		return [30, "All AS vs undead"]
+		
+		
+	
+# Room Effects
+
+# Bright - -10 DS	
 def Calculate_Room_Bright(effect, tag, level):
 	if tag == "DS_All":				
 		return [-10, "All DS"]
@@ -3122,7 +5128,7 @@ def Calculate_Room_Bright(effect, tag, level):
 	return [0, ""]	
 
 	
-# Room - Bright - +20 DS		
+# Dark - +20 DS		
 def Calculate_Room_Dark(effect, tag, level):
 	if tag == "DS_All":				
 		return [20, "All DS"]
@@ -3130,10 +5136,19 @@ def Calculate_Room_Dark(effect, tag, level):
 	return [0, ""]	
 
 	
-# Room - Foggy - +30 DS		
+# Foggy - +30 DS		
 def Calculate_Room_Foggy(effect, tag, level):
 	if tag == "DS_All":				
 		return [30, "All DS"]
 
 	return [0, ""]	
+	
+	
+# Node - Base Mana Recovery is 25% instead of 15% (This is handled in the actual formula, not here)	
+def Calculate_Room_Node(effect, tag, level):
+	return [0, ""]	
+	
+	
+# Other Effects	
+
 	
