@@ -175,7 +175,7 @@ class Planner:
 # Start of the program. Unless the SQLite database exist it will exit. Otherwise, setup the database and create the Planner.			
 if __name__ == "__main__":	
 	if not os.path.isfile(globals.db_file):	
-		globals.root.title("Well, it seems you have died my friend...")
+		globals.root.title("It seems you have died, my friend.")
 		tkinter.messagebox.showerror("Error","GS4_Planner.db file not found.\nPlease make sure GS4_Planner.db is in the same directory as Planner.exe")		
 	else:
 		globals.db_con = sqlite3.connect(globals.db_file)
