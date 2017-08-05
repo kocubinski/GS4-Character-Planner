@@ -713,7 +713,7 @@ class Skills_Panel:
 				
 				# Error checking
 				if ranks_taken < bskill.adjusted_training_rate[lvl] and lvl >= int(bskill.tlvl.get()):
-					error_text += "Failed to meet training goal %s ranks by target level %s for %s. Aborting calculation." % (bskill.goal.get(), lvl, row.name)															
+					error_text = "Failed to meet training goal %s ranks by target level %s for %s. Aborting calculation.\n\n" % (bskill.goal.get(), lvl, row.name) + error_text
 					abort_loops = 1
 					break
 					
