@@ -26,7 +26,7 @@ class Loadout_Panel
 	def Scroll_Effect_Dialog_Box_Scaling_Frame(self, event):	
 	
 class Effect_Dialog_Scaling_Row:
-	def __init__(self, parent, name, min_max_value, options):	
+	def __init__(self, parent, name, min_max_value):	
 	def Entrybox_Validate(self, d, S, s, P):	
 '''
 
@@ -735,8 +735,8 @@ class Loadout_Panel:
 			parts = data["scaling_tags"].split("|")
 			for part in parts:			
 				pieces = part.split(":")
-				effect = Effect_Dialog_Scaling_Row(self.dialog_effect_scaling_frame.interior(), pieces[0], pieces[1], data["override_options"])
-				effect.row.grid(row=i, column=0)
+				effect = Effect_Dialog_Scaling_Row(self.dialog_effect_scaling_frame.interior(), pieces[0], pieces[1])
+				effect.row.grid(row=i, column=0, sticky="w")
 				self.effects_dialog_scaling_rows.append(effect)
 				i += 1		
 	
@@ -886,9 +886,9 @@ class Loadout_Panel:
 		
 # In order to account for a varying and possiblely large amount of ways to scale an effect, the effect dialog box will generate as many 
 # Effect_Dialog_Scaling_Row objects as needed to store the information.
-# This element will track the name, min value, max value, and any special override options.
+# This element will track the name, min value, and max value.
 class Effect_Dialog_Scaling_Row:
-	def __init__(self, parent, name, min_max_value, options):		
+	def __init__(self, parent, name, min_max_value):		
 		self.parent = parent
 		self.row = tkinter.Frame(parent)				
 		self.scaling_name = tkinter.StringVar()
@@ -900,7 +900,7 @@ class Effect_Dialog_Scaling_Row:
 		self.scaling_name.set(name)
 		self.static_value.set(0)	
 		self.dynamic_scaling.set(0)	
-		effect_options = options.split("|")
+		name_parts = name.split(" ")
 		
 		# a dash indicates that this scaling row has a specific range. Meaing a min and a max value
 		# otherwise it has only a max value and the min value is set to 0
@@ -915,21 +915,19 @@ class Effect_Dialog_Scaling_Row:
 		# Create the row frame and children		
 		self.row.bindtags("LdP_effect_dialog_scaling")	
 		E1 = tkinter.Label(self.row, width="30", bg="lightgray", anchor="w", textvar=self.scaling_name)
-		E1.grid(row=0, column=0, padx="1", pady="1")
+		E1.grid(row=0, column=0, padx="1", pady="1", sticky="w")
 		E1.bindtags("LdP_effect_dialog_scaling")	
 		E2 = tkinter.Entry(self.row, width="6", justify="center", validate="key", validatecommand=mycmd, textvariable=self.static_value)
 		E2.grid(row=0, column=1, padx="1", pady="1")	
 		
-		# If the options contain "no_dynamic_scaling" then skip this part
-		# Otherwise, add an "or" label with the dynamic checkbox
-		if "no_dynamic_scaling" not in effect_options:
+		# Determine if the scaling needs a dynamic checkbox. This is done based on it's name. 
+		if name != 'Skill ranks' and name != 'Statistic increase' and name_parts[-1] != 'Tier' and name_parts[-1] != 'bonus':
 			E3 = tkinter.Label(self.row, width="1",anchor="w", text="or")
-			E3.grid(row=0, column=3, padx="1", pady="1")		
+			E3.grid(row=0, column=2, padx="1", pady="1")		
 			E3.bindtags("LdP_effect_dialog_scaling")	
 			E4 = tkinter.Checkbutton(self.row, command="", text="Dynamic", variable=self.dynamic_scaling)
-			E4.grid(row=0, column=4, sticky="w")												
-		
-		
+			E4.grid(row=0, column=3, sticky="w")				
+			
 	# The entry box will only allow a value between the minimum and maximum set for this scaling effect row.
 	# This check is strong enought that another check in Effects_Dialog_Box_Onclick is unneed.
 	def Entrybox_Validate(self, d, S, s, P):		
