@@ -528,8 +528,8 @@ class Character:
 		loadout_panel.gear_menu_size = i+1
 		if loadout_panel.gear_menu_size > 1:
 			for j in range(2, loadout_panel.gear_menu_size+1):
-				if j > 2:
-					loadout_panel.dialog_gear_edit_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: loadout_panel.vars_dialog_order.set(v))	
+				if j < loadout_panel.gear_menu_size+1:						
+					loadout_panel.dialog_gear_edit_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: loadout_panel.vars_dialog_order.set(v))				
 				loadout_panel.dialog_gear_add_order_menu["menu"].insert_command("end", label=j, command=lambda v=j: loadout_panel.vars_dialog_order.set(v))	
 		
 		i = 0 
@@ -541,7 +541,7 @@ class Character:
 		loadout_panel.effects_menu_size = i+1
 		if loadout_panel.effects_menu_size > 1:
 			for j in range(2, loadout_panel.effects_menu_size+1):
-				if j > 2:
+				if j < loadout_panel.effects_menu_size+1:				
 					loadout_panel.dialog_effect_edit_order_menu["menu"].insert_command("end", label=j-1, command=lambda v=j-1: loadout_panel.vars_dialog_order.set(v))	
 				loadout_panel.dialog_effect_add_order_menu["menu"].insert_command("end", label=j, command=lambda v=j: loadout_panel.vars_dialog_order.set(v))				
 		
@@ -873,12 +873,12 @@ class Character:
 		prev_triple_train = max(0, prev_tranks - 2 * (level))
 		prev_double_train = max(0, prev_tranks - prev_triple_train - (level))
 		prev_single_train = max(0, prev_tranks - prev_triple_train - prev_double_train)		
-				
+						
 		pcost = skill_ptp * single_train  +  2 * skill_ptp * double_train  +  4 * skill_ptp * triple_train
 		mcost = skill_mtp * single_train  +  2 * skill_mtp * double_train  +  4 * skill_mtp * triple_train	
 		prev_pcost = skill_ptp * prev_single_train  +  2 * skill_ptp * prev_double_train  +  4 * skill_ptp * prev_triple_train
 		prev_mcost = skill_mtp * prev_single_train  +  2 * skill_mtp * prev_double_train  +  4 * skill_mtp * prev_triple_train	
-		
+				
 		return ( max(0, prev_pcost - pcost), max(0, prev_mcost - mcost) )
 			
 	
@@ -1183,7 +1183,7 @@ class Race:
 		self.health_gain_rate = arr['health_gain_rate']
 		self.spirit_regen_tier = arr['spirit_regen_tier']
 		self.decay_timer = arr['decay_timer']
-		self.encumberance_factor = arr['encumberance_factor']
+		self.encumbrance_factor = arr['encumbrance_factor']
 		self.weight_factor = arr['weight_factor']
 		self.elemental_td = arr['elemental_td']
 		self.spiritual_td = arr['spiritual_td']
@@ -1982,7 +1982,7 @@ class Gear:
 		self.dialog_type = type
 		self.skills = skill_names
 		self.enchantment = enchantment
-		self.weight = weight		
+		self.weight = int(weight)
 		self.ProgP_display_name = ""
 		
 		self.gear_traits = {}  	# Gear is a generic class that needs to hold any item of equipment, this dictionary will hold it's values. I.e armor hindrance or weapon base speed		
@@ -2026,7 +2026,7 @@ class Gear:
 		self.gear_traits = {}
 		if self.dialog_type == "Armor":
 			table = "Armor"
-			fields = "roundtime, action_penalty, minor_spiritual_spell_hindrance, major_spiritual_spell_hindrance, cleric_spell_hindrance, minor_elemental_spell_hindrance, minor_mental_spell_hindrance, major_elemental_spell_hindrance, major_mental_spell_hindrance, savant_spell_hindrance, ranger_spell_hindrance, sorcerer_spell_hindrance, wizard_spell_hindrance, bard_spell_hindrance, empath_spell_hindrance, paladin_spell_hindrance, max_spell_hindrance, roundtime_train_off_ranks, AG"	
+			fields = "roundtime, action_penalty, base_weight, minor_spiritual_spell_hindrance, major_spiritual_spell_hindrance, cleric_spell_hindrance, minor_elemental_spell_hindrance, minor_mental_spell_hindrance, major_elemental_spell_hindrance, major_mental_spell_hindrance, savant_spell_hindrance, ranger_spell_hindrance, sorcerer_spell_hindrance, wizard_spell_hindrance, bard_spell_hindrance, empath_spell_hindrance, paladin_spell_hindrance, max_spell_hindrance, roundtime_train_off_ranks, AG"	
 		elif self.dialog_type == "Shields":
 			table = "Shields"
 			fields = "size, melee_size_modifer, ranged_size_modifer, ranged_size_bonus, dodging_shield_factor, dodging_size_penalty"	
@@ -2251,7 +2251,7 @@ class Information_Dialog:
 	
 #Planner globals	
 title = "Hymore Character Planner"
-version = "v2.6.2"
+version = "v2.6.3"
 char_name = "New Character"	
 root = tkinter.Tk()
 root.geometry("1140x600")
@@ -2380,5 +2380,5 @@ summation_bonuses =[ [0],
 					]					  
 					  
 
-# Character global needs to be declared last since it uses the above globals
+# Character global needs to be declared last since it uses all the globals decalared above
 character = Character();
