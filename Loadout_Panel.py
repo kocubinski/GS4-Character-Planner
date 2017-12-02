@@ -90,20 +90,14 @@ class Loadout_Panel:
 		
 		# Intitialize the effects lists
 		self.dialog_effect_types = globals.LdP_effect_display_types.keys()
-		'''
-		self.dialog_effect_types = ['Minor Spiritual (100s)', 'Major Spiritual (200s)', 'Cleric Base (300s)',  'Minor Elemental (400s)',  'Major Elemental (500s)', 'Ranger Base (600s)',
-									'Sorcerer Base (700s)', 'Wizard Base (900s)', 'Bard Base (1000s)', 'Empath Base (1100s)', 'Minor Mental (1200s)', 
-# 		 							'Major Mental (1300s)', 'Savant Base (1400s)', 
-									'Paladin Base (1600s)', 'Arcane (1700s)', 				
-#									'Maneuvers', 'Society Powers', 'Enhancives (Resources)', 'Enhancives (Skills)', 'Enhancives (Statistics)', 'Generic Effects', 'Flares', 'Special Abilities', 'Status Effects', 'Items', 'Other']
-									'Maneuvers', 'Society Powers', 'Enhancives (Skills)', 'Enhancives (Statistics)', 'Status Effects', 'Flares', 'Room']
-		'''
+
 		self.dialog_effect_names = ['temp']			
 		self.dialog_effect_scaling_frame = ""			
 		
 		# Create the Gear dialog box and the Effect dialog box
 		self.gear_dialog_box = self.Create_Gear_Dialog_Box(panel, "Add Gear", ("Add Gear,Cancel"))
 		self.effect_dialog_box = self.Create_Effect_Dialog_Box(panel, "Add Effect", ("Add Effect,Cancel"))	
+		
 
 		#Create all the sub-frames of the panel
 		self.Gear_Header_Frame = self.Create_Gear_Header_Frame(panel)
@@ -126,6 +120,8 @@ class Loadout_Panel:
 		self.Gear_Dialog_Box_Type_Onchange('Brawling')
 		self.vars_dialog_effect_type.set('Minor Spiritual (100s)')
 		self.Effects_Dialog_Box_Type_Onchange('Minor Spiritual (100s)')
+		self.dialog_gear_add_order_menu["menu"].insert_command("end", label=self.gear_menu_size, command=lambda v=self.gear_menu_size: self.vars_dialog_order.set(v))
+		self.dialog_effect_add_order_menu["menu"].insert_command("end", label=self.effects_menu_size, command=lambda v=self.effects_menu_size: self.vars_dialog_order.set(v))	
 		self.gear_dialog_box.withdraw()	
 		self.effect_dialog_box.withdraw()			
 		
@@ -331,8 +327,9 @@ class Loadout_Panel:
 		# Fun fact, if you try to do delete(1, end)	on an option menue that only has no objects in it, it throws a python error. So this check is needed.
 		if self.gear_menu_size > 1:
 			self.dialog_gear_add_order_menu['menu'].delete(1, "end")
-			menu = [1]
-			self.dialog_gear_edit_order_menu.set_menu(1, *menu)
+#			menu = [1]
+#			self.dialog_gear_edit_order_menu.set_menu(1, *menu)
+			self.dialog_gear_edit_order_menu['menu'].delete(0, "end")
 			self.gear_menu_size = 1
 		
 		# A change is being made to the gear list. Set the global value to 1 so the Progression Panel knows to reset the loadout list
@@ -381,7 +378,8 @@ class Loadout_Panel:
 		else:
 			self.dialog_gear_skills = data[0][2]
 			self.dialog_gear_display_type = globals.LdP_gear_display_types[data[0][2]]
-		
+
+			
 	# When a new gear name is picked from the gear dialog menu, this method is called
 	def Gear_Dialog_Box_Name_Onchange(self, result):	
 		what = "base_weight"
@@ -477,7 +475,7 @@ class Loadout_Panel:
 		# Make the new gear object's LdP row visible
 		if result == "Add Gear":		
 			self.gear_menu_size = self.gear_menu_size + 1
-				
+			
 			globals.character.loadout_gear_build_list.insert(int(self.vars_dialog_order.get())-1, globals.Gear(int(self.vars_dialog_order.get())-1, self.vars_dialog_gear_name.get(), enchantment, weight, self.dialog_gear_skills, self.vars_dialog_gear_type.get()) )
 						
 			# Make the new Gear object's row visible
@@ -490,7 +488,7 @@ class Loadout_Panel:
 			globals.character.loadout_gear_build_list[int(self.vars_dialog_order.get())-1].Set_Gear_Traits("")
 			
 			# Update the size menu
-			if self.gear_menu_size-1 > 1:
+			if self.gear_menu_size > 1:
 				self.dialog_gear_edit_order_menu["menu"].insert_command("end", label=self.gear_menu_size-1, command=lambda v=self.gear_menu_size-1: self.vars_dialog_order.set(v))	
 			self.dialog_gear_add_order_menu["menu"].insert_command("end", label=self.gear_menu_size, command=lambda v=self.gear_menu_size: self.vars_dialog_order.set(v))	
 						
@@ -509,9 +507,18 @@ class Loadout_Panel:
 		# The new information for the gear is take from the Dialog box and can change every attribute of the entry
 		elif result == "Update Gear":
 			gear = globals.character.loadout_gear_build_list.pop(self.vars_dialog_edit_location.get())
-			gear.name.set(self.vars_dialog_gear_name.get())
+			name = self.vars_dialog_gear_name.get()
+			gear.name.set(name)
 			gear.dialog_type = self.vars_dialog_gear_type.get()
-			gear.display_type.set(globals.LdP_gear_display_types[self.dialog_gear_skills])
+			
+			# Katar and Katana, One-Handed need an override for display type
+			if name == "Katar":
+				gear.display_type.set("OHE/BRW")
+			elif name == "Katana, One-Handed":
+				gear.display_type.set("OHE/THW")
+			else:
+				gear.display_type.set(globals.LdP_gear_display_types[self.dialog_gear_skills])
+				
 			gear.order.set(self.vars_dialog_order.get())
 			gear.enchantment = enchantment
 			gear.weight = weight
@@ -536,9 +543,12 @@ class Loadout_Panel:
 		# Current selected entry in the gear list is removed, the gear list is updated with the correct entry order, and the build frame is updated to reflect the removal.
 		elif result == "Remove Gear":
 			globals.character.loadout_gear_build_list.pop(self.vars_dialog_edit_location.get()).LdP_Row.grid_remove()
-			self.dialog_gear_add_order_menu['menu'].delete("end", "end")
-			self.dialog_gear_edit_order_menu['menu'].delete("end", "end")
 			self.gear_menu_size -= 1
+			if self.gear_menu_size > 0:
+				self.dialog_gear_add_order_menu['menu'].delete("end", "end")
+			else:
+				self.gear_menu_size = 1
+			self.dialog_gear_edit_order_menu['menu'].delete("end", "end")
 			for gear in globals.character.loadout_gear_build_list:
 				gear.order.set(i+1)
 				gear.Update_Progression_Name()
@@ -547,7 +557,6 @@ class Loadout_Panel:
 				i += 1	
 			self.gear_dialog_box.withdraw()	
 			self.gear_dialog_box.grab_release()
-
 
 
 	# The effect dialog box allows you to add/edit a Effect object
@@ -682,10 +691,12 @@ class Loadout_Panel:
 		# Fun fact, if you try to do delete(1, end)	on an option menue that only has 1 object in it, it throws a python error. So this check is needed.
 		if self.effects_menu_size > 1:
 			self.dialog_effect_add_order_menu['menu'].delete(1, "end")
-			menu = [1]
-			self.dialog_gear_edit_order_menu.set_menu(1, *menu)
+#			menu = [1]
+#			self.dialog_effect_edit_order_menu.set_menu(1, *menu)
+			self.dialog_effect_edit_order_menu['menu'].delete(0, "end")
 			self.effects_menu_size = 1
-		
+
+			
 		# A change is being made to the effects list. Set the global value to 1 so the Progression Panel knows to reset the loadout list
 		globals.LdP_Effects_List_Updated = 1
 		globals.character.loadout_effects_build_list = []			
@@ -758,6 +769,7 @@ class Loadout_Panel:
 		
 		# Create a new Effect using the parameters from the Effect dialog box 
 		if result == "Add Effect":		
+			self.effects_menu_size = self.effects_menu_size + 1
 			order = int(self.vars_dialog_order.get())-1
 			scaling_arr = collections.OrderedDict()
 			
@@ -782,9 +794,8 @@ class Loadout_Panel:
 			globals.character.loadout_effects_build_list[order].LdP_Edit_Button.config(command=lambda v=int(self.vars_dialog_order.get())-1: self.Effects_Add_Edit_Button_Onclick(v))			
 			# Update the list size			
 			if self.effects_menu_size > 1:
-				self.dialog_effect_edit_order_menu["menu"].insert_command("end", label=self.effects_menu_size, command=lambda v=self.effects_menu_size: self.vars_dialog_order.set(v))	
-			self.dialog_effect_add_order_menu["menu"].insert_command("end", label=self.effects_menu_size+1, command=lambda v=self.effects_menu_size+1: self.vars_dialog_order.set(v))	
-			self.effects_menu_size = self.effects_menu_size + 1
+				self.dialog_effect_edit_order_menu["menu"].insert_command("end", label=self.effects_menu_size-1, command=lambda v=self.effects_menu_size-1: self.vars_dialog_order.set(v))	
+			self.dialog_effect_add_order_menu["menu"].insert_command("end", label=self.effects_menu_size, command=lambda v=self.effects_menu_size: self.vars_dialog_order.set(v))	
 						
 			for effect in globals.character.loadout_effects_build_list:
 				effect.order.set(i+1)
@@ -830,8 +841,10 @@ class Loadout_Panel:
 			effect.scaling.set(self.vars_dialog_scaling_tags.get())
 			effect.details.set(self.vars_dialog_effect_details.get())
 			effect.effect_tags = self.vars_dialog_effect_effect_tags
+			effect.options = self.vars_dialog_effect_overrides
 			effect.function = self.vars_dialog_effect_function
 			effect.scaling.set(scaling)			
+			effect.hide.set('0')
 			
 			effect.Update_Row_Heights()
 			
@@ -852,9 +865,12 @@ class Loadout_Panel:
 			effect.LdP_Build_Row.grid_remove()
 			if effect.ProgP_Build_Row != "":
 				effect.ProgP_Build_Row.grid_remove()
-			self.dialog_effect_add_order_menu['menu'].delete("end", "end")
-			self.dialog_effect_edit_order_menu['menu'].delete("end", "end")
 			self.effects_menu_size -= 1
+			if self.effects_menu_size > 0:
+				self.dialog_effect_add_order_menu['menu'].delete("end", "end")
+			else:
+				self.effects_menu_size = 1
+			self.dialog_effect_edit_order_menu['menu'].delete("end", "end")		
 			for effect in globals.character.loadout_effects_build_list:
 				effect.order.set(i+1)
 				effect.LdP_Edit_Button.config(command=lambda v=i: self.Effects_Add_Edit_Button_Onclick(v))
