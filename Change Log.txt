@@ -1,3 +1,50 @@
+-Version 2.6.3- (Date: 1/12/2017)
+SKILLS PANEL
+-Fixed a bug that was preventing converted training points from unconverting
+
+MANEUVERS PANEL
+-Added the Quickstrike maneuver back to the maneuver list. I didn't realize it was still in the game!
+
+POSTCAP PANEL
+-Fixed a bug that was preventing converted training points from unconverting
+
+LOADOUT PANEL
+-Fixed a bug that prevented existing effects from updating correctly
+-Fixed a bug that would cause the "Type" field to change to the wrong value when updating a "Katar" or "Katana, (One-handed)" gear
+-Fixed several bugs that were messing up the gear and efffects ordering menus
+-Added new effects: Disease Resistance (104), Poison Resistance (105), Faith's Clarity (1603), Rejuvenation (1607), Encumbrance Potion, Encumbrance Charm
+-In co-ordination with Arcane Symbols and Magic Item Use giving bonus CS when using items, I've added "Casting Strength (Arcane Symbols)" and "Casting Strength (Magic Item Use)" effects to the Special Abilities category and added two versions of the "Mystic Focus (1711)" effect: "Mystic Focus (1711) Arcane Symbols" and "Mystic Focus (1711) Magic Item Use".
+-Added the following effects for use as part of Spellburst calculations. They do not have any other function at this time:
+--Water Walking (112), Fasthr's Reward (115)
+--Unpresence (204), Purify Air (207)
+--Relieve Burden (314), Soul Ward (319)
+--Presence (402), Lock Pick Enhancement (403), Disarm Enhancement (404)
+--Foraging (603), Skinning (604), Whispering Willow (605), Sneaking (617)
+--Invisiblity (916)
+--Iron Skin (1202), Blink (1214)
+--Arm of the Arkati (1605)
+
+PROGRESSION PANEL
+-Removed redudant code from multiple formulas to save space.
+-Spell effect with lore benefits now take profession into account when calculating bonuses and will only use 1/2 lore ranks for non-native major spell circles and 1/3 lore ranks for non-native profession spell circles
+-Vigor (1616) now counts toward spellburst
+-Fixed a bug that prevented Armor Blessing from working with the Bolt AS calculation
+-Added new formulas:
+--Roundtime & Qstrike Stamina Cost
+--Armor Use - Action & Roundtime Penalties
+--Armor Use - Spell Hindrance
+--Arcane Symbols - CS, Max Spell, Duration
+--Magic Item Use - CS, Max Spell, Duration
+--Lore Summations
+--Bard Spellsong Duration
+--Empath Imprint Chance & Max
+--Encumbrance
+
+DATABASE
+-Added Summation table. This table tracks all the bonuses given from every Lore skill.
+
+
+
 -Version 2.6.2- (Date: 8/5/2017)
 STATISTICS PANEL
 -Health resource calculation now uses the proper formula for health gain instead of increasing health by 5 per Physical Fitness rank.
@@ -8,7 +55,7 @@ MANEUVERS PANEL
 LOADOUT PANEL
 -Fixed a formating problem with the effect scaling rows in the effect dialog box
 -4 new effect Categories:
---Special Abilities: For effects that are gained through skills ranks (Stamina Burst) or as something or certain professions can do (Meditate). 3 Effects 
+--Special Abilities: For effects that are gained through skills ranks (Stamina Burst) or as something certain professions can do (Meditate). 3 Effects 
 --Generic Bonus: This set of 19 effects allows you to add from a +1 to a +100 bonus to any type of AS, DS, CS, or TD. These are meant to represent non-standard bonuses that come from unique or rare items and other sources.
 --Enhancive (Resources): These effects allow you to enhance the maximum and recovery bonus for health, mana, stamina, and spirit. 8 effects total.
 --Items: The 43 effects in this category are based of the enhancive items created through alchemy. Other items that don't fit into other categories are here too such as Defense Bonus Item.
