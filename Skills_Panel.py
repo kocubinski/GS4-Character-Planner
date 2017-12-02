@@ -573,8 +573,8 @@ class Skills_Panel:
 				prev_pleftover += self.total_leftover_ptp_by_level[lvl-1].get()	
 				prev_mleftover += self.total_leftover_mtp_by_level[lvl-1].get()			
 				prev_pconverted += self.total_converted_ptp_by_level[lvl-1].get()	
-				prev_mconverted += self.total_converted_mtp_by_level[lvl-1].get()	
-			
+				prev_mconverted += self.total_converted_mtp_by_level[lvl-1].get()					
+	
 			# Calculating the regained TP needs to be done for each skill at each level to get an accurate count of the TP. We need ALL the TP before we can determine if the skills cost can be meet
 			for row in globals.character.build_skills_list:
 				if lvl == 0:
@@ -583,10 +583,10 @@ class Skills_Panel:
 				sskill = globals.character.skills_list[row.name.get()]
 					
 				if sskill.subskill_group != "NONE":
-					if not sskill.subskill_group in subskills_calculated:					
+					if not sskill.subskill_group in subskills_calculated:		
 						(ss_ptp_regain, ss_mtp_regain) = globals.character.Calculate_Subskill_Regained_TP(lvl, sskill.subskill_group)
 						ptp_regained += ss_ptp_regain
-						mtp_regained += ss_mtp_regain
+						mtp_regained += ss_mtp_regain	
 						subskills_calculated.append(sskill.subskill_group)
 				else:
 					sskill.Calculate_TP_Regain(lvl, lvl)
@@ -594,22 +594,24 @@ class Skills_Panel:
 #						print("%s %s: %s %s" % (lvl, key, sskill.ptp_regained_at_level[lvl].get(), sskill.mtp_regained_at_level[lvl].get()) )
 					ptp_regained += sskill.ptp_regained_at_level[lvl].get()
 					mtp_regained += sskill.mtp_regained_at_level[lvl].get()			
-					
+
 			ptp_regained -= prev_pconverted 
 			mtp_regained -= prev_mconverted 
 						
-			# In some cases, there isn't enough TP earned from leveling up to unconvert all the points. 
-			# So take back enough TP to set the convert-from TP to 0. Remember ptp_regained/mtp_regained is negative, so += is fine for subtraction.
-			if ptp_regained < 0:
-				mtp_regained += ptp_regained * 2
-				ptp_regained = 0
-			elif mtp_regained < 0:
-				ptp_regained += mtp_regained * 2
-				mtp_regained = 0
-			
+	
 			# Calculate how many TP we have to work with.
 			total_ptp_available = ptp_earned + prev_pleftover + ptp_regained
-			total_mtp_available = mtp_earned + prev_mleftover + mtp_regained
+			total_mtp_available = mtp_earned + prev_mleftover + mtp_regained 				
+						
+			# In some cases, there isn't enough TP earned from leveling up to unconvert all the points. 
+			# So only convert back enough TP to set the converted from TP to 0.			
+			if total_ptp_available < 0:
+				ptp_converted_at_level = total_ptp_available * -1
+				mtp_converted_at_level = total_ptp_available * 2					
+			elif total_mtp_available < 0:
+				mtp_converted_at_level = total_mtp_available * -1
+				ptp_converted_at_level = total_mtp_available * 2		
+			
 			
 			# Go through each skill in the build list. The order of skills denotes what will be trained first. 			
 			for bskill in globals.character.build_skills_list:	
