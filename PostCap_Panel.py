@@ -1167,8 +1167,17 @@ class PostCap_Panel:
 							continue							
 								
 						needed_exp += 2500
-						current_ptp += 1
-						current_mtp += 1
+						if converted_MTP2PTP < 0:
+							current_mtp += 2
+							converted_PTP2MTP += 2
+						else:
+							current_ptp += 1
+							
+						if converted_PTP2MTP < 0:
+							current_ptp += 2
+							converted_PTP2MTP += 2
+						else:
+							current_mtp += 1
 					
 					# Break the loop if an error was encountered	
 					if abort_loops == 1:
