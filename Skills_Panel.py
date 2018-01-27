@@ -367,7 +367,7 @@ class Skills_Panel:
 			globals.character.build_skills_list.insert(int(self.vars_dialog_order.get())-1, Build_List_Skill(self.ML_Frame.interior(), self.vars_dialog_skill.get(), hide, self.vars_dialog_order.get(), 
 			"%s / %s (%s)" % (skill.ptp_cost,skill.mtp_cost, skill.max_ranks), self.vars_dialog_slevel.get(), self.vars_dialog_tlevel.get(), self.vars_dialog_goal.get()))						
 			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].SkP_Edit_Button.config(command=lambda v=int(self.vars_dialog_order.get())-1: self.Add_Edit_Button_Onclick(v))
-			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].Set_Training_Rate()
+			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].Set_Training_Rate(skill.max_ranks)
 			
 			if self.menu_size-1 > 1:
 				self.edit_order_menu["menu"].insert_command("end", label=self.menu_size-1, command=lambda v=self.menu_size-1: self.vars_dialog_order.set(v))				
@@ -399,7 +399,7 @@ class Skills_Panel:
 				skill.hide.set("")			
 			
 			globals.character.build_skills_list.insert(int(self.vars_dialog_order.get())-1, skill)
-			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].Set_Training_Rate()
+			globals.character.build_skills_list[int(self.vars_dialog_order.get())-1].Set_Training_Rate(globals.character.skills_list[skill.name.get()].max_ranks)
 			for skill in globals.character.build_skills_list:	
 				skill.order.set(i+1)
 				skill.SkP_Edit_Button.config(command=lambda v=i: self.Add_Edit_Button_Onclick(v))
@@ -568,7 +568,7 @@ class Skills_Panel:
 			
 			push_back = 0	
 			
-			# Get the convered TP and leftover TP from the previous level
+			# Get the converted TP and leftover TP from the previous level
 			if lvl > 0:
 				prev_pleftover += self.total_leftover_ptp_by_level[lvl-1].get()	
 				prev_mleftover += self.total_leftover_mtp_by_level[lvl-1].get()			
@@ -591,7 +591,7 @@ class Skills_Panel:
 				else:
 					sskill.Calculate_TP_Regain(lvl, lvl)
 #					if sskill.ptp_regained_at_level[lvl].get() > 0 or sskill.mtp_regained_at_level[lvl].get() > 0:
-#						print("%s %s: %s %s" % (lvl, key, sskill.ptp_regained_at_level[lvl].get(), sskill.mtp_regained_at_level[lvl].get()) )
+#						print("%s %s: %s %s" % (lvl, row.name.get(), sskill.ptp_regained_at_level[lvl].get(), sskill.mtp_regained_at_level[lvl].get()) )
 					ptp_regained += sskill.ptp_regained_at_level[lvl].get()
 					mtp_regained += sskill.mtp_regained_at_level[lvl].get()			
 
@@ -643,9 +643,8 @@ class Skills_Panel:
 						subskill_ranks_this_level[row.subskill_group] = ranks_taken
 				
 								
-				# Current skill would add too many ranks to the skill. This happens if a person tries to train the same skill (or subskill) more than once in a set range
-				
-				if row.max_ranks * (1+lvl) < row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl] + subskill_ranks:
+				# Current skill would add too many ranks to the skill. This happens if a person tries to train the same skill (or subskill) more than once in a set range				
+				if row.max_ranks * (2+min(lvl, 99)) < row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl] + subskill_ranks:
 					if lvl == int(bskill.tlvl.get()):
 						error_text = "Level %s: Error training in %s\nRanks desired exceeds maximum profession ranks\n%s desired ranks vs. %s maximum ranks.  Aborting calculation." % (lvl, row.name, row.total_ranks_by_level[lvl].get() + bskill.adjusted_training_rate[lvl], row.max_ranks * (1+lvl))								
 						abort_loops = 1
@@ -855,7 +854,7 @@ class Build_List_Skill:
 	def __init__(self, parent, name, hidden, order, info, start, target, goal):
 		self.name = tkinter.StringVar()
 		self.info = tkinter.StringVar()
-		self.order =tkinter.StringVar()
+		self.order = tkinter.StringVar()
 		self.hide = tkinter.StringVar()
 		self.slvl = tkinter.StringVar()
 		self.tlvl = tkinter.StringVar()
@@ -902,7 +901,7 @@ class Build_List_Skill:
 	# This takes either a number or rates (1x, 2x) and maps it out across the level range.
 	# Numbers will be front loaded with extra ranks if the ranks cannot be spread across the level ranks.
 	# Rates will set the skill ranks evenly over the level range
-	def Set_Training_Rate(self):
+	def Set_Training_Rate(self, max_ranks_per_level):
 		self.base_training_rate = [0 for i in range(101)]
 		self.adjusted_training_rate = [0 for i in range(101)]
 		start = int(self.slvl.get())
@@ -928,28 +927,32 @@ class Build_List_Skill:
 					self.base_training_rate[i] = int(math.floor(estimated_ranks) - prev_ranks)
 					prev_ranks = math.floor(estimated_ranks)
 				
-		# Map out a Number	
+		# Map out a Number. Unlike using a rate, a set number of ranks will train as many ranks as possible and
+		# as soon as possible, until the goal is met. Using a number instead of a rate effectly frontloads the 
+		# skill ranks.
 		else:
-#			self.base_training_rate[start] = int(self.goal.get())
 			goal = int(self.goal.get())
 			target = end + 1
 			spanning = end - start + 1
-			ranks_taken = 0
-			if spanning >= goal:				
-				for i in range(start, target):	
-					self.base_training_rate[i] = 1
-					ranks_taken += 1
-					if ranks_taken >= goal:
-						break
-			else:
-				base_ranks = math.floor(goal / spanning)
-				remainder = goal % spanning 
-				for i in range(start, target):
-					if remainder > 0 and remainder > ranks_taken:
-						self.base_training_rate[i] = base_ranks + 1					
-						ranks_taken += 1
-					else:
-						self.base_training_rate[i] = base_ranks		
+			ranks_taken = 0			
+			
+			if goal <= (max_ranks_per_level * (start + 2)):
+				self.base_training_rate[start] = goal	
+			else:								
+				while goal > 0:
+					for i in range(start, target):
+						if i == start:
+							self.base_training_rate[i] = (max_ranks_per_level * (start + 2))
+							goal -= (max_ranks_per_level * (start + 2))
+						elif goal < max_ranks_per_level:
+							self.base_training_rate[i] += goal
+							goal = 0							
+						else:
+							self.base_training_rate[i] += max_ranks_per_level
+							goal -= max_ranks_per_level
+							
+						if goal <= 0:
+							break
 
 	
 	# This is used to figure out a new training rate when we had to do a push back from calculating the schedule
