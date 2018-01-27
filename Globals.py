@@ -316,7 +316,7 @@ class Character:
 				location = len(self.build_skills_list)
 				self.build_skills_list.insert(location, skills_panel.Create_Build_List_Skill(skills_panel.ML_Frame.interior(), parts[0], parts[1], location, 
 				"%s / %s (%s)" % (skill.ptp_cost,skill.mtp_cost, skill.max_ranks), parts[3], parts[4], parts[2]) )		
-				self.build_skills_list[location].Set_Training_Rate()
+				self.build_skills_list[location].Set_Training_Rate(skill.max_ranks)
 				
 			# Each of the maneuver types will read in the line and use the information to create a Build_List_Maneuver and add it to a manevuer list.
 			# The order of the build is determined by the order the maneuvers are listed in the file
@@ -1599,11 +1599,22 @@ class Skill:
 		if start < 1 or end > 100:
 			return			
 				
-		for i in range(start, end+1):
-			(pregain, mregain) = self.Get_Total_Skill_Cost(0, self.total_ranks_by_level[i-1].get(), i)			
-#			print("PTP/MTP regained from %s at lvl %s: %s/%s" % (self.name, i, max(0, self.total_ptp_cost_at_level[i-1].get() - pregain), max(0, self.total_mtp_cost_at_level[i-1].get() - mregain)))	
-			self.ptp_regained_at_level[i].set(max(0, self.total_ptp_cost_at_level[i-1].get() - pregain))
-			self.mtp_regained_at_level[i].set(max(0, self.total_mtp_cost_at_level[i-1].get() - mregain))	
+		for i in range(start, end+1):		
+			(total_ptp_cost, total_mtp_cost) = self.Get_Total_Skill_Cost(0, self.total_ranks_by_level[i-1].get(), i)		
+#			print("PTP/MTP this cost at lvl %s: %s/%s" % ( i, max(0, total_ptp_cost), max(0, total_mtp_cost)))		
+#			print("PTP/MTP last cost at lvl %s: %s/%s" % ( i-1, max(0, self.total_ptp_cost_at_level[i-1].get()), max(0, self.total_mtp_cost_at_level[i-1].get())))		
+#			print("PTP/MTP total cost - cost from %s at lvl %s: %s/%s" % (self.name, i, max(0, self.total_ptp_cost_at_level[i-1].get() - total_ptp_cost), max(0, self.total_mtp_cost_at_level[i-1].get() - total_mtp_cost)))	
+			
+			
+			if self.total_ptp_cost_at_level[i].get() != total_ptp_cost:
+				self.total_ptp_cost_at_level[i].set(total_ptp_cost)
+			
+			if self.total_mtp_cost_at_level[i].get() != total_mtp_cost:
+				self.total_mtp_cost_at_level[i].set(total_mtp_cost)
+				
+
+			self.ptp_regained_at_level[i].set(max(0, self.total_ptp_cost_at_level[i-1].get() - total_ptp_cost))
+			self.mtp_regained_at_level[i].set(max(0, self.total_mtp_cost_at_level[i-1].get() - total_mtp_cost))	
 			
 			if self.total_ranks_by_level[i].get() == self.total_ranks_by_level[100].get() and (self.ptp_regained_at_level[i].get() == 0 and self.mtp_regained_at_level[i].get() == 0):
 				break		
@@ -1612,7 +1623,6 @@ class Skill:
 	# Figures out the skill cost using the existing ranks and any subskill ranks.
 	def Get_Total_Skill_Cost(self, subskill_ranks, ranks, current_level):
 		pcost = 0; mcost = 0		
-#		tranks = self.total_ranks_by_level[tranks_level].get()
 		
 		triple_train = max(0, ranks + subskill_ranks - 2 * (current_level + 2))
 		double_train = max(0, ranks + subskill_ranks - triple_train - (current_level + 2))
