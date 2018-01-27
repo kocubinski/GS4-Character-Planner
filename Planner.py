@@ -12,22 +12,28 @@ class Planner
 '''
 
 #!/usr/bin/python
-
-import sys
-import os
-import sqlite3
-import tkinter
-import Pmw
-import Globals as globals
-import Statistics_Panel as StP
-import Misc_Panel as MiP
-import Skills_Panel as SkP
-import Maneuvers_Panel as ManP
-import PostCap_Panel as PcP
-import Loadout_Panel as LdP
-import Progression_Panel as ProgP
-#import Summary_Panel as SumP
-from tkinter import messagebox
+try:
+	import sys
+	import traceback
+	import os
+	import sqlite3
+	import tkinter
+	import Pmw
+	import Globals as globals
+	import Statistics_Panel as StP
+	import Misc_Panel as MiP
+	import Skills_Panel as SkP
+	import Maneuvers_Panel as ManP
+	import PostCap_Panel as PcP
+	import Loadout_Panel as LdP
+	import Progression_Panel as ProgP
+	#import Summary_Panel as SumP
+	from tkinter import messagebox
+except:
+	error_file = open('error log.txt', 'w')
+	traceback.print_exc()
+	traceback.print_exc(file=error_file)
+	error_file.close()
 
 
 # Planner is the primary window in the program that holds everything else.
@@ -174,15 +180,21 @@ class Planner:
 
 # Start of the program. Unless the SQLite database exist it will exit. Otherwise, setup the database and create the Planner.			
 if __name__ == "__main__":	
-	if not os.path.isfile(globals.db_file):	
-		globals.root.title("It seems you have died, my friend.")
-		tkinter.messagebox.showerror("Error","GS4_Planner.db file not found.\nPlease make sure GS4_Planner.db is in the same directory as Planner.exe")		
-	else:
-		globals.db_con = sqlite3.connect(globals.db_file)
-		globals.db_con.row_factory = sqlite3.Row
-		globals.db_cur = globals.db_con.cursor()
-		globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))
-		planner = Planner(globals.root)			
-		globals.root.protocol("WM_DELETE_WINDOW", planner.Planner_Onclose)	
+	try:
+		if not os.path.isfile(globals.db_file):	
+			globals.root.title("It seems you have died, my friend.")
+			tkinter.messagebox.showerror("Error","GS4_Planner.db file not found.\nPlease make sure GS4_Planner.db is in the same directory as Planner.exe")		
+		else:
+			globals.db_con = sqlite3.connect(globals.db_file)
+			globals.db_con.row_factory = sqlite3.Row
+			globals.db_cur = globals.db_con.cursor()
+			globals.root.title("%s %s - %s" % (globals.title, globals.version, globals.char_name))
+			planner = Planner(globals.root)			
+			globals.root.protocol("WM_DELETE_WINDOW", planner.Planner_Onclose)	
 		
-	globals.root.mainloop();		
+			globals.root.mainloop();	
+	except:
+		error_file = open('error log.txt', 'w')
+		traceback.print_exc()
+		traceback.print_exc(file=error_file)
+		error_file.close()
