@@ -45,7 +45,6 @@ import Globals as globals
 # used what is not being used. 
 class Loadout_Panel:  
 	def __init__(self, panel):		
-	
 		# Shared dialog box variables
 		self.vars_dialog_order = tkinter.StringVar()
 		self.vars_dialog_errormsg = tkinter.StringVar()
@@ -431,13 +430,13 @@ class Loadout_Panel:
 		return True
 		
 		
-	# Gear weight must be a whole number between 0 and 100
+	# Gear weight must be a whole number between 0 and 999
 	def Gear_Dialog_Gear_Weight_Entrybox_Validate(self, d, S, s, P):		
 		if( d == "1"):
-			if( (len(s) + len(S)) > 2 ):
+			if( (len(s) + len(S)) > 3 ):
 				return False
 			try:				
-				if( float(P) < 100 and float(P) >= 0 ):	
+				if( float(P) < 999 and float(P) >= 0 ):	
 					return True
 				else:
 					return False
