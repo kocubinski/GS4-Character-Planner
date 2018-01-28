@@ -30,7 +30,7 @@ try:
 	#import Summary_Panel as SumP
 	from tkinter import messagebox
 except:
-	error_file = open('error log.txt', 'w')
+	error_file = open('error log.txt', 'a')
 	traceback.print_exc()
 	traceback.print_exc(file=error_file)
 	error_file.close()
@@ -194,7 +194,7 @@ if __name__ == "__main__":
 		
 			globals.root.mainloop();	
 	except:
-		error_file = open('error log.txt', 'w')
+		error_file = open('error log.txt', 'a')
 		traceback.print_exc()
 		traceback.print_exc(file=error_file)
 		error_file.close()
