@@ -2261,7 +2261,7 @@ class Information_Dialog:
 	
 #Planner globals	
 title = "Hymore Character Planner"
-version = "v2.6.3"
+version = "v2.6.4"
 char_name = "New Character"	
 root = tkinter.Tk()
 root.geometry("1140x600")
