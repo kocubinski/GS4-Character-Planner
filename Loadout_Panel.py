@@ -436,7 +436,7 @@ class Loadout_Panel:
 			if( (len(s) + len(S)) > 3 ):
 				return False
 			try:				
-				if( float(P) < 999 and float(P) >= 0 ):	
+				if( float(P) <= 999 and float(P) >= 0 ):	
 					return True
 				else:
 					return False
