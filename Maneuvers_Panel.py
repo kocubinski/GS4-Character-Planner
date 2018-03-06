@@ -857,7 +857,7 @@ class Maneuvers_Panel:
 					next_rank_cost = row.Get_Cost_At_Rank(row.total_ranks_by_level[lvl].get() + 1, prof_type)    
 					tcost = row.Get_Total_Cost_At_Rank(0, row.total_ranks_by_level[lvl].get() + 1, prof_type)
 									
-					while available >= next_rank_cost and lvl+1 >= tcost:
+					while available >= next_rank_cost and (type == "Armor" or lvl+1 >= tcost):
 						cost_at_level += next_rank_cost
 						available -= next_rank_cost
 						ranks_taken += 1
