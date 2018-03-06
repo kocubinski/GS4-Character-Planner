@@ -1873,8 +1873,8 @@ class Maneuver:
 		total = 0
 		end_rank = start_rank + new_ranks
 		
-		if self.type == "armor":
-			return self.cost_by_rank[end_rank - 1]
+#		if self.type == "armor":
+#			return self.cost_by_rank[end_rank - 1]
 				
 		if prof_type == "square" or self.type != "combat":
 			modifier = 1
