@@ -17,7 +17,16 @@ Python 3.5
 -Insure Python 3.5 is installed with the following modules/packages (and any dependancies): Pmw, matplotlib, PyInstaller. I recommend using pip to install any modules/packages you need
 -download Pip-Win
 -Find the program, open it, and Enter "venv -c -i pyi-env-name" (no quotes) into the Command line and hit run. If this command fails to run, make sure Python Interpreter is pointing to the python.exe file in your Python 3.5 install directory. (C:\BLAH_BLAH\AND_SO_ON\Python\Python35-32\python.exe)
--this starts a cmd that acts as a virtual environment that you can use to build the planner. Type pyinstaller --version to verify the pyinstaller module is installed. If it isn't, close the window and Pip-Win and go install the module.
+-this starts a cmd that acts as a virtual environment that you can use to build the planner. Type "pyinstaller --version" to verify the pyinstaller module is installed. If it isn't, close the window and Pip-Win and go install the module.
 -navigate to the Planner's main directory and find Planner.py. Type "pyinstaller --onefile --windowed Planner.py". After a little while this will create several files in the same directory as your Pip-Win program. Planner.spec and the new build directory are NOT needed and can be deleted without any problems.
 -Go into the dist directory that was created and you will see Planner.exe. Copy GS4_Planner.db into the dist directory and open Planner.exe
 -If everything work, the planner should start up!
+
+
+
+Some people may find the Planner crashing immediately after trying to open it.
+One possible reason for this is an error:   python-error-valueerror-getfullpathname-embedded-null-character
+1. Open the following file:			C:\Users\<NAME>\AppData\Local\Programs\Python\Python35-32\Lib\site-packages\matplotlib\font_manager.py
+2. Find this line: 				direc = os.path.abspath(direc).lower()
+3. Change the above line to:	direc = direc.split('\0', 1)[0]
+4. This error should not longer happen after the planner is converted into a .exe file
