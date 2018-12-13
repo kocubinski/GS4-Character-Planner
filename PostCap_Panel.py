@@ -1,6 +1,3 @@
-# TODO LIST
-# Add maneuver prerequisites to the Add/Edit Dialog box
-
 # INDEX OF CLASSES AND METHODS
 '''
 class PostCap_Panel: 
@@ -477,8 +474,7 @@ class PostCap_Panel:
 	def Dialog_Box_Onclick(self, result):
 		i = 0
 		slevel = 0
-		tlevel = 100
-		
+		tlevel = 100		
 
 		goal = self.vars_dialog_goal.get()
 
@@ -509,7 +505,6 @@ class PostCap_Panel:
 	
 	
 		# Error checking for Add/Update Maneuver choices
-#		if re.search(r"(^Add)|(^Update)", result):
 		if result == "Add Maneuver" or result == "Update Maneuver":	
 			if len(goal) == 0 or goal == "0" or not re.search(r"(^[1-5]$)", goal):
 				self.vars_dialog_errormsg.set("ERROR: Goal must be greater than 0 and less than 5.")
@@ -912,9 +907,7 @@ class PostCap_Panel:
 			if subskill_ranks == 0:
 				self.vars_dialog_precap_ranks.set(skill.total_ranks_by_level[100].get())
 			else:
-				self.vars_dialog_precap_ranks.set("%s + %s other subskill ranks" % (skill.total_ranks_by_level[100].get(), subskill_ranks))
-			
-			
+				self.vars_dialog_precap_ranks.set("%s + %s other subskill ranks" % (skill.total_ranks_by_level[100].get(), subskill_ranks))			
 		
 		self.dialog_box.show()
 		self.dialog_box.grab_set()
