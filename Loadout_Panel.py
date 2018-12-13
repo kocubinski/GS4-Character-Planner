@@ -95,15 +95,13 @@ class Loadout_Panel:
 		
 		# Create the Gear dialog box and the Effect dialog box
 		self.gear_dialog_box = self.Create_Gear_Dialog_Box(panel, "Add Gear", ("Add Gear,Cancel"))
-		self.effect_dialog_box = self.Create_Effect_Dialog_Box(panel, "Add Effect", ("Add Effect,Cancel"))	
-		
+		self.effect_dialog_box = self.Create_Effect_Dialog_Box(panel, "Add Effect", ("Add Effect,Cancel"))			
 
 		#Create all the sub-frames of the panel
 		self.Gear_Header_Frame = self.Create_Gear_Header_Frame(panel)
 		self.Gear_List_Frame = self.Create_Gear_List_Frame(panel)
 		self.Effects_Header_Frame = self.Create_Effects_Header_Frame(panel)
-		self.Effects_List_Frame = self.Create_Effects_List_Frame(panel)
-		
+		self.Effects_List_Frame = self.Create_Effects_List_Frame(panel)		
 		
 		#Make the frames visible
 		self.Gear_Header_Frame.grid(row=0, column=0, sticky="nw")
@@ -323,7 +321,7 @@ class Loadout_Panel:
 		for row in globals.character.loadout_gear_build_list:
 			row.LdP_Row.grid_remove()			
 			
-		# Fun fact, if you try to do delete(1, end)	on an option menue that only has no objects in it, it throws a python error. So this check is needed.
+		# Fun fact, if you try to do delete(1, end)	on an option menu that only has no objects in it, it throws a python error. So this check is needed.
 		if self.gear_menu_size > 1:
 			self.dialog_gear_add_order_menu['menu'].delete(1, "end")
 #			menu = [1]
@@ -345,7 +343,7 @@ class Loadout_Panel:
 		wherenot = ""
 		what = "name, base_weight"
 		
-		# figure out what table to search
+		# Figure out what table to search
 		if result == "Armor":
 			table = "Armor"		
 		elif result == "Shields":
@@ -687,7 +685,7 @@ class Loadout_Panel:
 			if row.ProgP_Build_Row != "":
 				row.ProgP_Build_Row.grid_remove()
 			
-		# Fun fact, if you try to do delete(1, end)	on an option menue that only has 1 object in it, it throws a python error. So this check is needed.
+		# Fun fact, if you try to do delete(1, end)	on an option menu that only has 1 object in it, it throws a python error. So this check is needed.
 		if self.effects_menu_size > 1:
 			self.dialog_effect_add_order_menu['menu'].delete(1, "end")
 #			menu = [1]
@@ -748,8 +746,7 @@ class Loadout_Panel:
 				effect = Effect_Dialog_Scaling_Row(self.dialog_effect_scaling_frame.interior(), pieces[0], pieces[1])
 				effect.row.grid(row=i, column=0, sticky="w")
 				self.effects_dialog_scaling_rows.append(effect)
-				i += 1		
-	
+				i += 1			
 
 
 	# This handles button all the button events that occur in the Add/Edit effect dialog box.	
@@ -917,7 +914,7 @@ class Effect_Dialog_Scaling_Row:
 		self.dynamic_scaling.set(0)	
 		name_parts = name.split(" ")
 		
-		# a dash indicates that this scaling row has a specific range. Meaing a min and a max value
+		# A dash indicates that this scaling row has a specific range. Meaing a min and a max value,
 		# otherwise it has only a max value and the min value is set to 0
 		if "-" in min_max_value:
 			values = min_max_value.split("-")
