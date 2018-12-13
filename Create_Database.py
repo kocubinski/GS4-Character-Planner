@@ -4,6 +4,9 @@
 #  Professions
 #  Skills
 #  Maneuvers
+#  Weapons
+#  Effects
+#  Summation Calculations
 
 #!/usr/bin/python
 
@@ -734,7 +737,7 @@ cur.execute("INSERT INTO Effects VALUES('Casting Strength (Magic Item Use)', 'Sp
 cur.execute("INSERT INTO Effects VALUES('Meditate (Mana)', 'Special Ability', 'Mana recovery increased by (Discipline bonus + Wisdom bonus) / 2',  'Resource_Recovery_Mana_Normal',  'NONE',  'Calculate_Meditate_Mana',  'Discipline Bonus|Wisdom Bonus' ) ")
 cur.execute("INSERT INTO Effects VALUES('Stamina Burst', 'Special Ability', '+15% stamina recovery',  'Resource_Recovery_Stamina',  'NONE',  'Calculate_Stamina_Burst',  'NONE' ) ")
 cur.execute("INSERT INTO Effects VALUES('Stamina Burst (Cooldown)', 'Special Ability', '-15% stamina recovery',  'Resource_Recovery_Stamina',  'NONE',  'Calculate_Stamina_Burst_Cooldown',  'NONE' ) ")
-# Animal Companion Guard Bonus (will probably require a Misc panel update for affinity level)
+# Animal Companion Guard Bonus (will probably require a Misc panel update for affinity level) (need exact formula)
 
 
 # Items
@@ -796,7 +799,24 @@ cur.execute("INSERT INTO Effects VALUES('Node', 'Room\nEffect', 'Base Mana Recov
 
 
 # Lore Summations 
-cur.execute("CREATE TABLE Summations(effect_name, lore_skill, category, summation_seed, bonus_style, default_bonus, mutiplier, rank_cap, info_string, custom_seed ) ")  
+# Creates the summation table. In this case, a summation is 
+# Summations are displayed in the Progression panel as part of lore effect calculations
+# FIELDS
+# effect_name 			- Name of the summation effect. This doesn't need to be unique across summations
+# lore_skill 			- Which lore skill is used when calculating the strength of the summation. This can be more than one skill by using | (pipe)
+# category	 			- The name of the category the summation falls under. Used for sorting purposes and usually refers to a spell circle
+# summation_seed 		- This is either a number between 1 and 10 that indicates the skill range for the summation effect or CUSTOM for a unique custom seed skill range
+# bonus_style 			- "Number" indicates the result of the calculation will be inserted into the info string.
+#						- "Text" will show just show the info string by itself. If this is a | (pipe) diliminated list, each string of the list will be used at each summation seed threshold
+# default_bonus 		- This is the base value the summation will have without any lore skill. The result of multiplier * summation_seed threshold (using lore_skill) is added to this
+# multiplier 			- This is the value by which the effect improves for each threshold of summation seed the lore skill meets. This totoal is added to the default_bonus
+# rank_cap 				- The highest lore_skill rank that the summation_seed can reach. Prevents summation effects from going over their maximum bonux
+# info_string 			- A description of what the summation bonus provides. The use of "??" also the string to be dynamically updated if bonus_style is set to "Number". If this 
+# custom_seed 			- If summation_seed is a number between 1 through 10, this will be "NONE"
+#						- If summation_seed is a number between CUSTOME and lore_skill is one skill, this will be a | (pipe) diliminated list indicating the custom thresholds for the lore_skill 
+#						- If summation_seed is a number between CUSTOME and lore_skill is more than one skill, this will be a | (pipe) diliminated list indicating the custom thresholds for the sum totoal of all lore_skills
+#						- If summation_seed is a number between CUSTOME and lore_skill is more than one skill, this will be a | (pipe) diliminated list indicating the custom thresholds for the lore_skills with ~ being used a second delimiter for each lore skill requirement
+cur.execute("CREATE TABLE Summations(effect_name, lore_skill, category, summation_seed, bonus_style, default_bonus, multiplier, rank_cap, info_string, custom_seed ) ")  
 
 
 # Minor Spiritual (100s)
@@ -865,8 +885,8 @@ cur.execute("INSERT INTO Summations VALUES('Miracle (350)', 'Spiritual Lore, Rel
 cur.execute("INSERT INTO Summations VALUES('Lock Pick Enhancement (403)', 'Elemental Lore, Water', 'Minor Elemental', '10', 'Number', '0', '1', '231', 'Nullified ?? points of potential lockpick damgae', 'NONE' ) ")
 cur.execute("INSERT INTO Summations VALUES('Disarm Enhancement (404)', 'Elemental Lore, Water', 'Minor Elemental', '6', 'Number', '0', '-1', '231', '?? disarm roundtime (min 5 secs)', 'NONE' ) ")
 cur.execute("INSERT INTO Summations VALUES('Elemental Detection (405)', 'Elemental Lore, Air', 'Minor Elemental', 'CUSTOM', 'Text', '0', '0', '30', 'Enhancive and flare detection unlocked', '30' ) ")
-cur.execute("INSERT INTO Summations VALUES('Unlock (407)', 'Elemental Lore, Water', 'Minor Elemental', '1', 'Number', '0', '-1', '231', 'Lock Difficulty Reduction = ?? secs (up to 10% of lock)', 'NONE' ) ")
-cur.execute("INSERT INTO Summations VALUES('Disarm (408)', 'Elemental Lore, Water', 'Minor Elemental', '1', 'Number', '0', '-1', '231', 'Trap Difficulty Reduction = ?? secs (up to 10% of trap)', 'NONE' ) ")
+cur.execute("INSERT INTO Summations VALUES('Unlock (407)', 'Elemental Lore, Water', 'Minor Elemental', '1', 'Number', '0', '-1', '231', 'Lock Difficulty Reduction = ?? (up to 10% of lock)', 'NONE' ) ")
+cur.execute("INSERT INTO Summations VALUES('Disarm (408)', 'Elemental Lore, Water', 'Minor Elemental', '1', 'Number', '0', '-1', '231', 'Trap Difficulty Reduction = ?? (up to 10% of trap)', 'NONE' ) ")
 cur.execute("INSERT INTO Summations VALUES('Elemental Wave (410)', 'Elemental Lore, Air', 'Minor Elemental', 'CUSTOM', 'Text', '0', '0', '50', 'Spherical wave unlocked', '50' ) ")
 cur.execute("INSERT INTO Summations VALUES('Elemental Blade (411)', 'Elemental Lore, Air', 'Minor Elemental', '3', 'Number', '0', '1', '250', 'Able to eblade with vacuum flares +?? enchants and lower', 'NONE' ) ")
 cur.execute("INSERT INTO Summations VALUES('Elemental Blade (411)', 'Elemental Lore, Earth', 'Minor Elemental', '3', 'Number', '0', '1', '250', 'Able to eblade with earth flares +?? enchants and lower', 'NONE' ) ")
@@ -1158,6 +1178,12 @@ cur.execute("INSERT INTO Summations VALUES('Sanctify (1625)', 'Spiritual Lore, S
 cur.execute("INSERT INTO Summations VALUES('Judgment (1630)', 'Spiritual Lore, Summoning', 'Paladin Base', 'CUSTOM', 'Number', '3', '1', '200', 'Affect ?? targets', '10|24|50|100|150|200' ) ")
 cur.execute("INSERT INTO Summations VALUES('Judgment (1630)', 'Spiritual Lore, Religion', 'Paladin Base', 'CUSTOM', 'Number', '35', '2', '25', '??% chance to force target to kneel', '1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25' ) ")
 cur.execute("INSERT INTO Summations VALUES('Divine Word (1640)', 'Spiritual Lore, Religion', 'Paladin Base', 'CUSTOM', 'Number', '1', '1', '200', '?? raises per day', '20|40|60|80|100|120|140|160|180|200' ) ")
+cur.execute("INSERT INTO Summations VALUES('Divine Incarnation (1650)', 'Spiritual Lore, Summoning', 'Paladin Base', '10', 'Number', '30', '1', '231', 'Zeal duration: ?? seconds', 'NONE' ) ")
+cur.execute("INSERT INTO Summations VALUES('Divine Incarnation (1650)', 'Spiritual Lore, Blessings', 'Paladin Base', '5', 'Number', '50', '2', '243', 'Armor: ??% total resistance', 'NONE' ) ")
+cur.execute("INSERT INTO Summations VALUES('Divine Incarnation (1650)', 'Spiritual Lore, Blessings', 'Paladin Base', 'CUSTOM', 'Number', '0', '1', '125', 'Armor: ?? emergency uses per day', '50|125' ) ")
+cur.execute("INSERT INTO Summations VALUES('Divine Incarnation (1650)', 'Spiritual Lore, Religion', 'Paladin Base', 'CUSTOM', 'Number', '0', '10', '150', 'Smite: ??% chance for second Smite', '15|30|45|60|75|90|105|120|135|150' ) ")
+cur.execute("INSERT INTO Summations VALUES('Divine Incarnation (1650)', 'Spiritual Lore, Religion', 'Paladin Base', 'CUSTOM', 'Number', '50', '1', '240', 'Onslaught: ??% total stance ignored', '2|6|12|20|30|42|56|72|90|110|132|156|182|210|240' ) ")
+
 
 
 # Arcane (1700s)
