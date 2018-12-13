@@ -668,7 +668,7 @@ class Progression_Panel:
 			a.plot(self.graph_information.graph_xaxis_tick_range, self.graph_information.graph_data_lists[i], self.graph_information.graph_legend_styles[i], label=self.graph_information.graph_legend_labels[i])			
 		
 		# Set up the graph figure's look before showing it
-#		a.tick_params(labelsize=8)   													#both x and y
+#		a.tick_params(labelsize=8)   													# both x and y
 		a.xaxis.set_tick_params(labelsize=self.graph_information.graph_xlabel_size) 	# just x		
 
 		# major ticks every 10, minor ticks every 1                                       
@@ -1145,7 +1145,7 @@ class Progression_Panel:
 
 
 	# Set the x and y axis labels of the graph plot along with the sizes tick ranges too.
-	# The xaxis tick labels and values will vary depending on if the the radio button is
+	# The x axis tick labels and values will vary depending on if the the radio button is
 	# set to pre-cap mode or post-cap mode. In addtion, the post-cap mode section will determine
 	# what the post-cap loop range is based on the post-cap intervals in which the character
 	# trained in a relavant skill.
@@ -2045,6 +2045,7 @@ class Progression_Panel:
 					else:
 						parry_tooltip_text += "  %s  Enchantment bonus of %s  (%d / 2)\n" % (("%+d" % int(math.floor(main_enchantment/2))).rjust(3), main_gear.name.get(), main_enchantment)		
 						
+						
 			# Ranged Parry DS	
 			elif weapon_types[0] == "Ranged Weapons":	
 				skill_inc_bonus, weapon_tooltip_text = self.Combine_Effects(i, "Ranged Weapons", base_ranks_arr["Ranged Weapons"], 
@@ -2304,8 +2305,7 @@ class Progression_Panel:
 											"  %s  Dexterity bonus  (%+d / 4)\n" % (("%+d" % math.floor(stat_enhancive_totals["Dexterity"]/4)).rjust(4), stat_enhancive_totals["Dexterity"]),
 											stat_tooltip_arr["Dexterity"],
 											"  %s  Enchantment bonus of %s  (%+d / 2)\n" % (("%+d" % int(math.floor(other_enchantment/2))).rjust(3), other_hand_gear.name.get(), other_enchantment)
-											])
-					
+											])					
 
 			
 			# Calculate Block DS
@@ -4476,6 +4476,7 @@ class Progression_Panel:
 		for skill in skill_names:			
 			if highest_lore < lore_totals[skill][-1]:
 				highest_lore = lore_totals[skill][-1]
+				
 			# Append the completed lists to graph_infomation object
 			self.graph_information.graph_data_lists.append(lore_totals[skill])		
 			self.graph_information.graph_legend_labels.append(skill)
@@ -6183,8 +6184,8 @@ class Summation:
 		self.custom_seed = arr["custom_seed"]
 		self.rank_cap = int(arr["rank_cap"])
 		self.summation_seed = arr["summation_seed"]
-		self.mutiplier = float(arr["mutiplier"]) if "." in arr["mutiplier"] else int(arr["mutiplier"])
-		self.value_format = "float" if "." in arr["mutiplier"] else "int"
+		self.multiplier = float(arr["multiplier"]) if "." in arr["multiplier"] else int(arr["multiplier"])
+		self.value_format = "float" if "." in arr["multiplier"] else "int"
 		self.index_to_rank_cap = 0
 		self.last_index = 0
 		self.circle_divisor = 1		
@@ -6207,12 +6208,13 @@ class Summation:
 				self.custom_seed = split_parts
 			self.summation_bonus_list = self.custom_seed		
 
-		if spell_circles == 1:
-			length = len(self.summation_bonus_list)
-			for k in range(0, length):
-				if self.rank_cap <= self.summation_bonus_list[k]:
-					self.index_to_rank_cap = k
-					break
+#		if spell_circles == 1:
+		length = len(self.summation_bonus_list)
+		for k in range(0, length):
+			if self.rank_cap <= self.summation_bonus_list[k]:
+				self.index_to_rank_cap = k
+				break
+					
 			
 	# With useable_ranks, find out the correspoding value and insert it into a string to be 
 	# returned and displayed in the tooltip
@@ -6248,7 +6250,7 @@ class Summation:
 			if self.bonus_style == "Text":
 				info = self.info_string.split("|")[self.last_index]
 			elif self.bonus_style == "Number": 
-				value = self.default_bonus + ((self.last_index + 1) * self.mutiplier)
+				value = self.default_bonus + ((self.last_index + 1) * self.multiplier)
 				if self.value_format == "float":
 					value = round(value, 3)
 				info = self.info_string.replace("??", str(value))
@@ -6298,7 +6300,7 @@ class Summation:
 			if self.bonus_style == "Text":
 				info = self.info_string.split("|")[self.last_index]
 			elif self.bonus_style == "Number": 
-				value = self.default_bonus + ((self.last_index + 1) * self.mutiplier)
+				value = self.default_bonus + ((self.last_index + 1) * self.multiplier)
 				if self.value_format == "float":
 					value = round(value, 3)
 				info = self.info_string.replace("??", str(value))
