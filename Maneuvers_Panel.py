@@ -338,7 +338,6 @@ class Maneuvers_Panel:
 		self.edit_shield_order_menu.config(width=2)	
 		
 		self.dialog_armor_names_menu = tkinter.OptionMenu(myframe_inner, self.vars_dialog_armor_maneuver, "", command="")
-#		self.dialog_armor_names_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_armor_maneuver, "", command="")
 		self.dialog_armor_names_menu.config(width=27)	
 		self.add_armor_order_menu = tkinter.ttk.OptionMenu(myframe_inner, self.vars_dialog_order, "1", command="")
 		self.add_armor_order_menu.config(width=2)	
@@ -363,8 +362,7 @@ class Maneuvers_Panel:
 		Pmw.Counter(lvlframe, entryfield_entry_width = 3, entryfield_validate = { 'validator':'numeric', 'min':0, 'max':100 }, labelpos = 'w', label_text = 'Target', entryfield_value = 0, datatype = "numeric", entryfield_entry_textvariable=self.vars_dialog_tlevel).grid(row=0, column=1, sticky="w", columnspan=2)
 
 		tkinter.Label(myframe_inner, anchor="w", font="-weight bold", wraplength=300, justify="left", textvariable=self.vars_dialog_errormsg).grid(row=9, column=0, sticky="w", columnspan=4)
-				
-			
+							
 		return dialog
 
 		
@@ -387,7 +385,6 @@ class Maneuvers_Panel:
 			man = globals.character.shield_maneuvers_list[self.vars_dialog_shield_maneuver.get()]
 		elif self.maneuver_mode.get() == "Armor":
 			man = globals.character.armor_maneuvers_list[self.vars_dialog_armor_maneuver.get()]
-
 	
 		# Error checking for Add/Update choices
 		if re.search(r"(^Add)|(^Update)", result):
@@ -422,7 +419,7 @@ class Maneuvers_Panel:
 			
 				self.add_combat_order_menu["menu"].insert_command("end", label=self.combat_menu_size, command=lambda v=self.combat_menu_size: self.vars_dialog_order.set(v))	
 				if self.combat_menu_size-1 > 1:
-					self.edit_combat_order_menu["menu"].insert_command("end", label=self.combat_menu_size-1, command=lambda v=self.combat_menu_size-1: self.vars_dialog_order.set(v))				
+					self.edit_combat_order_menu["menu"].insert_command("end", label=self.combat_menu_size-1, command=lambda v=self.combat_menu_size-1: self.vars_dialog_order.set(v))		
 			
 				for man in globals.character.build_combat_maneuvers_list:
 					man.order.set(i+1)
@@ -442,7 +439,7 @@ class Maneuvers_Panel:
 			
 				self.add_shield_order_menu["menu"].insert_command("end", label=self.shield_menu_size, command=lambda v=self.shield_menu_size: self.vars_dialog_order.set(v))	
 				if self.shield_menu_size-1 > 1:
-					self.edit_shield_order_menu["menu"].insert_command("end", label=self.shield_menu_size-1, command=lambda v=self.shield_menu_size-1: self.vars_dialog_order.set(v))				
+					self.edit_shield_order_menu["menu"].insert_command("end", label=self.shield_menu_size-1, command=lambda v=self.shield_menu_size-1: self.vars_dialog_order.set(v))		
 			
 				for man in globals.character.build_shield_maneuvers_list:
 					man.order.set(i+1)
@@ -462,7 +459,7 @@ class Maneuvers_Panel:
 			
 				self.add_armor_order_menu["menu"].insert_command("end", label=self.armor_menu_size, command=lambda v=self.armor_menu_size: self.vars_dialog_order.set(v))	
 				if self.armor_menu_size-1 > 1:
-					self.edit_armor_order_menu["menu"].insert_command("end", label=self.armor_menu_size-1, command=lambda v=self.armor_menu_size-1: self.vars_dialog_order.set(v))				
+					self.edit_armor_order_menu["menu"].insert_command("end", label=self.armor_menu_size-1, command=lambda v=self.armor_menu_size-1: self.vars_dialog_order.set(v))			
 			
 				for man in globals.character.build_armor_maneuvers_list:
 					man.order.set(i+1)
@@ -490,7 +487,6 @@ class Maneuvers_Panel:
 				list = globals.character.build_armor_maneuvers_list
 				man.name.set(self.vars_dialog_armor_maneuver.get())		
 				m_ranks = globals.character.armor_maneuvers_list[self.vars_dialog_armor_maneuver.get()]
-
 
 			man.ranks[0].set(m_ranks.cost_by_rank[0])	
 			man.ranks[1].set(m_ranks.cost_by_rank[1])	
@@ -576,7 +572,6 @@ class Maneuvers_Panel:
 		self.edit_combat_order_menu.grid_remove()
 		self.edit_shield_order_menu.grid_remove()
 		self.edit_armor_order_menu.grid_remove()
-		
 				
 		if self.maneuver_mode.get() == "Combat":
 			char_man = globals.character.combat_maneuvers_list[self.dialog_combat_names_menu['menu'].entrycget(0, "label")]
@@ -854,7 +849,7 @@ class Maneuvers_Panel:
 							
 					cost_at_level = 0	
 					prev_leftover = 0
-					next_rank_cost = row.Get_Cost_At_Rank(row.total_ranks_by_level[lvl].get() + 1, prof_type)    
+					next_rank_cost = row.Get_Cost_At_Rank(row.total_ranks_by_level[lvl].get() + 1, prof_type)  
 					tcost = row.Get_Total_Cost_At_Rank(0, row.total_ranks_by_level[lvl].get() + 1, prof_type)
 									
 					while available >= next_rank_cost and (type == "Armor" or lvl+1 >= tcost):
