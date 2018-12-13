@@ -1,3 +1,26 @@
+-Version 2.6.5- (Date: 12/13/2018)
+
+PLANNER
+-Added more comments in various places
+
+DATABASE
+-Added Divine Incarnation (1650) to the Summation table
+
+
+
+-Version 2.6.4- (Date: 1/27/2017)
+
+PLANNER
+-Added some rudimentary error handling for the planner. If the planner crashes, it will attempt to write a stack trace of the error to "error log.txt" and if the planner was run via a command prompt it will print the stack trace to the prompt as well. Hopefully, this will allow for better debugging when the planner encounters a problem.
+
+SKILLS PANEL
+-Characters can "training ahead" in skills by one level. For example, a Warrior could train in One-handed Edged 4 times at level 0 with the cost being 12/6 (2/1 + 2/1 + 4/2 +4/2)
+-When training for a set number of ranks in a skill (as opposed to training a set rate (1x, 2.5x, etc)), the planner will attempt to "front load" the skill ranks in a cost effect manner instead of unnecessary spreading the ranks out across the level range.
+
+LOADOUT PANEL
+-Maximum weight for all Gear is now 999 lb.
+
+
 -Version 2.6.3- (Date: 1/12/2017)
 SKILLS PANEL
 -Fixed a bug that was preventing converted training points from unconverting
