@@ -334,8 +334,8 @@ class Character:
 				man = self.armor_maneuvers_list[parts[0]]
 				location = len(self.build_armor_maneuvers_list)
 				self.build_armor_maneuvers_list.insert(location, man_panel.Create_Build_List_Maneuver(man_panel.ML_Frame.interior(), parts[0], 
-				"Armor", parts[1], location, parts[3], parts[4], parts[2], (man.cost_by_rank[0], man.cost_by_rank[1], man.cost_by_rank[2], man.cost_by_rank[3], man.cost_by_rank[4]) ))						
-					
+				"Armor", parts[1], location, parts[3], parts[4], parts[2], (man.cost_by_rank[0], man.cost_by_rank[1], man.cost_by_rank[2], man.cost_by_rank[3], man.cost_by_rank[4]) ))		
+			
 
 			# Post cap lines are treated almost the same as the precap lines.
 			elif read_mode == "skill postcap":
@@ -1428,8 +1428,7 @@ class Skill:
 		self.postcap_ranks_at_interval = collections.OrderedDict()
 		self.postcap_total_ranks_at_interval = collections.OrderedDict()
 		self.postcap_bonus_at_interval = collections.OrderedDict()
-		self.postcap_cost_at_interval = collections.OrderedDict()
-		
+		self.postcap_cost_at_interval = collections.OrderedDict()		
 			
 		self.Set_To_Default()
 		
@@ -1795,6 +1794,7 @@ class Maneuver:
 
 		self.ManP_schedule_row.grid_remove()
 
+		
 	# Resets the Maneuver object for the Postcap panel
 	def Set_To_Default_Postcap(self):
 		self.postcap_exp_intervals = []
@@ -2261,7 +2261,7 @@ class Information_Dialog:
 	
 #Planner globals	
 title = "Hymore Character Planner"
-version = "v2.6.4"
+version = "v2.6.5"
 char_name = "New Character"	
 root = tkinter.Tk()
 root.geometry("1140x600")
